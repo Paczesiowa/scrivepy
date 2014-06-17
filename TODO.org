@@ -1,0 +1,6 @@
+* questions
+** what is 'closed' in SignatoryField
+* Field
+** closed is missing
+* list of scrive objects
+  this list when returned by mutable objects should be mutable, but when the object turns immutable it should stop being mutable as well
