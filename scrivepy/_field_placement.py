@@ -53,6 +53,9 @@ class FieldPlacement(_object.ScriveObject):
                       u'page': page,
                       u'tip': tip.value if tip else None}
 
+    def _to_json_obj(self):
+        return self._json
+
     def __str__(self):
         return u'Placement(page ' + str(self.page) + u',' + \
             str(self.left) + u':' + str(self.top) + u')'

@@ -92,12 +92,13 @@ class Field(_object.ScriveObject):
         for placement in self.placements():
             placement._read_only()
 
-    def _default_placement_tip(self):
-        return _field_placement.TipSide.right_tip
-
-    def _pre_jsonize(self):
+    def _to_json_obj(self):
         for placement in self.placements():
             placement._resolve_default_tip(self._default_placement_tip())
+        return self._json
+
+    def _default_placement_tip(self):
+        return _field_placement.TipSide.right_tip
 
     @property
     def type(self):

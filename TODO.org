@@ -1,6 +1,17 @@
-* questions
-** what is 'closed' in SignatoryField
-* Field
-** closed is missing
-* list of scrive objects
-  this list when returned by mutable objects should be mutable, but when the object turns immutable it should stop being mutable as well
+* write a signatory.py
+** fields
+** _from_json()
+** getters/setters
+* write a documentation from code and get someone from scrive to review it
+* write a document.py
+* update __init__.py
+* add tests
+* write a documentation
+* add setup.py
+* port to other python versions
+* write utility functions
+** field
+*** set_single_placement
+*** add_placement
+* polish type_value_unifier
+** move it to utils

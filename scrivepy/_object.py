@@ -35,11 +35,5 @@ class ScriveObjectEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, ScriveObject):
-            try:
-                pre_jsonize = obj._pre_jsonize
-            except AttributeError:
-                pass
-            else:
-                pre_jsonize()
-            return obj._json
+            return obj._to_json_obj()
         return json.JSONEncoder.default(self, obj)
