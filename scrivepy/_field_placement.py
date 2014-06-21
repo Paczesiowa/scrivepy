@@ -61,7 +61,7 @@ class FieldPlacement(_object.ScriveObject):
             str(self.left) + u':' + str(self.top) + u')'
 
     @classmethod
-    def _from_json(cls, json):
+    def _from_json_obj(cls, json):
         return FieldPlacement(left=json[u'xrel'], top=json[u'yrel'],
                               width=json[u'wrel'], height=json[u'hrel'],
                               font_size=json[u'fsrel'], page=json[u'page'],
