@@ -5,12 +5,19 @@ from scrivepy import _exceptions
 
 class ScriveObject(object):
 
+    class JSONEncoder(json.JSONEncoder):
+
+        def default(self, obj):
+            if isinstance(obj, ScriveObject):
+                return obj._to_json_obj()
+            return json.JSONEncoder.default(self, obj)
+
     def __init__(self):
         self._invalid = False
         self._read_only = False
 
     def _to_json(self):
-        return json.dumps(self, cls=ScriveObjectEncoder)
+        return json.dumps(self, cls=ScriveObject.JSONEncoder)
 
     def _check_invalid(self):
         if self._invalid:
@@ -29,11 +36,3 @@ class ScriveObject(object):
         self._check_invalid()
         if self._read_only:
             raise _exceptions.ReadOnlyScriveObject()
-
-
-class ScriveObjectEncoder(json.JSONEncoder):
-
-    def default(self, obj):
-        if isinstance(obj, ScriveObject):
-            return obj._to_json_obj()
-        return json.JSONEncoder.default(self, obj)
