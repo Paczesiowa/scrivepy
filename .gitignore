@@ -1,0 +1,9 @@
+*.pyc
+.ropeproject
+dist
+virtualenv*
+scrivepy.egg-info
+.noseids
+aliases.sh
+bare_python_tests
+build
