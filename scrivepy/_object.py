@@ -10,7 +10,7 @@ class ScriveObject(object):
         def default(self, obj):
             if isinstance(obj, ScriveObject):
                 return obj._to_json_obj()
-            return json.JSONEncoder.default(self, obj)
+            return super(ScriveObject.JSONEncoder, self).default(obj)
 
     def __init__(self):
         self._invalid = False
