@@ -1,4 +1,4 @@
-from scrivepy import _object
+from scrivepy import _object, _exceptions
 from tests import utils
 
 
@@ -6,14 +6,17 @@ class ScriveObjectTest(utils.TestCase):
 
     def test_flags(self):
         obj = _object.ScriveObject()
-        self.assertFalse(obj._invalid)
-        self.assertFalse(obj._read_only)
-        obj._set_invalid()
-        self.assertTrue(obj._invalid)
-        self.assertFalse(obj._read_only)
+        self.assertIsNone(obj._check_getter())
+        self.assertIsNone(obj._check_setter())
         obj._set_read_only()
-        self.assertTrue(obj._invalid)
-        self.assertTrue(obj._read_only)
+        self.assertIsNone(obj._check_getter())
+        self.assertRaisesExcStr(_exceptions.ReadOnlyScriveObject, u'',
+                                obj._check_setter)
+        obj._set_invalid()
+        self.assertRaisesExcStr(_exceptions.InvalidScriveObject, u'',
+                                obj._check_getter)
+        self.assertRaisesExcStr(_exceptions.InvalidScriveObject, u'',
+                                obj._check_setter)
 
     def test_serialization(self):
         class DerivedObject(_object.ScriveObject):
