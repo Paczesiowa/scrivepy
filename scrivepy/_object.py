@@ -16,10 +16,10 @@ class ScriveObject(object):
         if self._invalid:
             raise _exceptions.InvalidScriveObject()
 
-    def _invalid(self):
+    def _set_invalid(self):
         self._invalid = True
 
-    def _read_only(self):
+    def _set_read_only(self):
         self._read_only = True
 
     def _check_getter(self):
