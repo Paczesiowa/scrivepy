@@ -10,13 +10,13 @@ class ScriveObjectTest(utils.TestCase):
         self.assertIsNone(obj._check_setter())
         obj._set_read_only()
         self.assertIsNone(obj._check_getter())
-        self.assertRaisesExcStr(_exceptions.ReadOnlyScriveObject, u'',
-                                obj._check_setter)
+        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+                          obj._check_setter)
         obj._set_invalid()
-        self.assertRaisesExcStr(_exceptions.InvalidScriveObject, u'',
-                                obj._check_getter)
-        self.assertRaisesExcStr(_exceptions.InvalidScriveObject, u'',
-                                obj._check_setter)
+        self.assertRaises(_exceptions.InvalidScriveObject, None,
+                          obj._check_getter)
+        self.assertRaises(_exceptions.InvalidScriveObject, None,
+                          obj._check_setter)
 
     def test_serialization(self):
         class DerivedObject(_object.ScriveObject):
