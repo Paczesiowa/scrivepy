@@ -1,0 +1,12 @@
+* Field placement
+
+Field placement objects describe visual position of a field on the document's PDF page.
+
+Field placement JSON object contains the following fields:
+- xrel: number from <0,1> range (inclusive), it specifies the position of the left border of the placed field on the document, relative to the whole page width - e.g: 0 means the field will be placed at the left border of the document, 1 means placed field's left border will be at the document's right border (so it doesn't make much sense) and 0.5 means that placed field's left border will be exactly in the middle of the document.
+- yrel: number from <0,1> range (inclusive), it specifies the position of the top border of the placed field on the document, relative to the whole page height - e.g: 0 means the field will be placed at the top border of the document's page, 1 means placed field's top border will be at the document's bottom border (so it doesn't make much sense) and 0.5 means that placed field's top border will be exactly in the middle of the document.
+- wrel: number from <0,1> range (inclusive), it specifies width of the placed field, relative to the whole page width - e.g: 0 means the field will have width 0, 1 means placed field's will have the same width as document's page and 0.5 means that placed field's will have half the width of the document's page.
+- hrel: number from <0,1> range (inclusive), it specifies the height of the placed field, relative to the whole page height - e.g: 0 means the field will have height 0, 1 means placed field's will have the same height as document's page and 0.5 means that placed field's will have half the height of the document's page.
+- fsrel: number from <0,1> range (inclusive), it specifies the font size to be used for field's value, relative to the whole page size (width? height?). Suggested values are small, normal, large and huge (0.012, 0.016, 0.021 and 0.025 respectively). Suggested default value is normal (0.016).
+- page: positive integer number, it specifies the document's page on which the field will be placed. Good default value is 1.
+- tip: string "left" or "right", it specifies the side on which the arrow tooltip (pointing to the field) will be placed. A good default value depends on the type of the field - "left" for checkboxes and "right" for other fields.
