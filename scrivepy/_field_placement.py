@@ -45,16 +45,22 @@ class FieldPlacement(_object.ScriveObject):
     def __init__(self, left, top, width, height,
                  font_size=FONT_SIZE_NORMAL, page=1, tip=None):
         super(FieldPlacement, self).__init__()
-        self._json = {u'xrel': left,
-                      u'yrel': top,
-                      u'wrel': width,
-                      u'hrel': height,
-                      u'fsrel': font_size,
-                      u'page': page,
-                      u'tip': tip.value if tip else None}
+        self._left = left
+        self._top = top
+        self._width = width
+        self._height = height
+        self._font_size = font_size
+        self._page = page
+        self._tip = tip
 
     def _to_json_obj(self):
-        return self._json
+        return {u'xrel': self._left,
+                u'yrel': self._top,
+                u'wrel': self._width,
+                u'hrel': self._height,
+                u'fsrel': self._font_size,
+                u'page': self._page,
+                u'tip': self._tip.value if self._tip else None}
 
     def __str__(self):
         return u'Placement(page ' + str(self.page) + u',' + \
@@ -75,73 +81,73 @@ class FieldPlacement(_object.ScriveObject):
     @property
     def left(self):
         self._check_getter()
-        return self._json[u'xrel']
+        return self._left
 
     @left.setter
     @tvu.validate_and_unify(left=Ratio)
     def left(self, left):
         self._check_setter()
-        self._json[u'xrel'] = left
+        self._left = left
 
     @property
     def top(self):
         self._check_getter()
-        return self._json[u'yrel']
+        return self._top
 
     @top.setter
     @tvu.validate_and_unify(top=Ratio)
     def top(self, top):
         self._check_setter()
-        self._json[u'yrel'] = top
+        self._top = top
 
     @property
     def width(self):
         self._check_getter()
-        return self._json[u'wrel']
+        return self._width
 
     @width.setter
     @tvu.validate_and_unify(width=Ratio)
     def width(self, width):
         self._check_setter()
-        self._json[u'wrel'] = width
+        self._width = width
 
     @property
     def height(self):
         self._check_getter()
-        return self._json[u'hrel']
+        return self._height
 
     @height.setter
     @tvu.validate_and_unify(height=Ratio)
     def height(self, height):
         self._check_setter()
-        self._json[u'hrel'] = height
+        self._height = height
 
     @property
     def font_size(self):
         self._check_getter()
-        return self._json[u'fsrel']
+        return self._font_size
 
     @font_size.setter
     @tvu.validate_and_unify(font_size=Ratio)
     def font_size(self, font_size):
         self._check_setter()
-        self._json[u'fsrel'] = font_size
+        self._font_size = font_size
 
     @property
     def page(self):
         self._check_getter()
-        return self._json[u'page']
+        return self._page
 
     @page.setter
     @tvu.validate_and_unify(page=PositiveInt)
     def page(self, page):
         self._check_setter()
-        self._json[u'page'] = page
+        self._page = page
 
     @property
     def tip(self):
         self._check_getter()
-        tip = self._json[u'tip']
+        tip = self._tip
         if tip is not None:
             tip = TipSide(tip)
         return tip
@@ -150,4 +156,4 @@ class FieldPlacement(_object.ScriveObject):
     @tvu.validate_and_unify(tip=MaybeTipSide)
     def tip(self, tip):
         self._check_setter()
-        self._json[u'tip'] = tip.value if tip else None
+        self._tip = tip
