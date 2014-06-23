@@ -137,7 +137,7 @@ class Field(_object.ScriveObject):
         return self._json[u'obligatory']
 
     @obligatory.setter
-    @tvu.validate_and_unify(value=tvu.instance(bool))
+    @tvu.validate_and_unify(obligatory=tvu.instance(bool))
     def obligatory(self, obligatory):
         self._check_setter()
         self._json[u'obligatory'] = obligatory
