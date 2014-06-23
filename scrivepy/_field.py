@@ -97,6 +97,7 @@ class Field(_object.ScriveObject):
             placement._resolve_default_tip(self._default_placement_tip())
         json = self._json.copy()
         json[u'placements'] = list(json[u'placements'])
+        del json[u'closed']
         return json
 
     def _default_placement_tip(self):
