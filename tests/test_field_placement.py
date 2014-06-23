@@ -372,3 +372,15 @@ class FieldPlacementTest(utils.TestCase):
         self.assertTrue(.01 < fp.font_size < .02)
         self.assertEqual(fp.page, 1)
         self.assertEqual(fp.tip, TS.left_tip)
+
+    def test_to_json_obj(self):
+        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
+                page=6, tip=TS.left_tip)
+        json = {u'xrel': .1,
+                u'yrel': .2,
+                u'wrel': .3,
+                u'hrel': .4,
+                u'fsrel': .5,
+                u'page': 6,
+                u'tip': u'left'}
+        self.assertEqual(json, fp._to_json_obj())
