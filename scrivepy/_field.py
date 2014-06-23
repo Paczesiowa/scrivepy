@@ -95,7 +95,9 @@ class Field(_object.ScriveObject):
     def _to_json_obj(self):
         for placement in self.placements():
             placement._resolve_default_tip(self._default_placement_tip())
-        return self._json
+        json = self._json.copy()
+        json[u'placements'] = list(json[u'placements'])
+        return json
 
     def _default_placement_tip(self):
         return _field_placement.TipSide.right_tip
