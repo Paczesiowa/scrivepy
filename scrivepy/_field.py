@@ -83,9 +83,10 @@ class Field(_object.ScriveObject):
             raise _exceptions.InvalidResponse(e)
 
     def _set_invalid(self):
-        super(Field, self)._set_invalid()
+        # invalidate placements first, before getter stops working
         for placement in self.placements():
             placement._set_invalid()
+        super(Field, self)._set_invalid()
 
     def _set_read_only(self):
         super(Field, self)._set_read_only()
