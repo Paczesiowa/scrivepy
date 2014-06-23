@@ -36,3 +36,6 @@ class TestCase(unittest.TestCase):
         except exc_class as e:
             if exc_msg is not None:
                 self.assertEqual(str(e), exc_msg)
+        else:
+            test_err_msg = exc_class.__name__ + u' not raised'
+            raise self.failureException(test_err_msg)
