@@ -155,8 +155,7 @@ class Field(_object.ScriveObject):
 
     def placements(self):
         self._check_getter()
-        for placement in self._json[u'placements']:
-            yield placement
+        return iter(self._json[u'placements'])
 
     @tvu.validate_and_unify(placements=PlacementSet)
     def set_placements(self, placements):
