@@ -82,15 +82,15 @@ class Field(_object.ScriveObject):
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
 
-    def _invalid(self):
-        super(Field, self)._invalid()
+    def _set_invalid(self):
+        super(Field, self)._set_invalid()
         for placement in self.placements():
-            placement._invalid()
+            placement._set_invalid()
 
-    def _read_only(self):
-        super(Field, self)._invalid()
+    def _set_read_only(self):
+        super(Field, self)._set_read_only()
         for placement in self.placements():
-            placement._read_only()
+            placement._set_read_only()
 
     def _to_json_obj(self):
         for placement in self.placements():
