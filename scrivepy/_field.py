@@ -33,7 +33,7 @@ class Field(_object.ScriveObject):
              self.value, len(self.placements()))
 
     @classmethod
-    def _from_json(cls, json):
+    def _from_json_obj(cls, json):
         try:
             type_ = json[u'type']
             name = json[u'name']
@@ -42,8 +42,8 @@ class Field(_object.ScriveObject):
             obligatory = json[u'obligatory']
             should_be_filled_by_sender = json[u'shouldbefilledbysender']
             placements = \
-                set([_field_placement.FieldPlacement._from_json(placement_json)
-                     for placement_json in json[u'placements']])
+                set([_field_placement.FieldPlacement._from_json_obj(
+                    placement_json) for placement_json in json[u'placements']])
 
             if type_ == u'standard':
                 if name == u'fstname':

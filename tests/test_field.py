@@ -7,22 +7,24 @@ TS = _field_placement.TipSide
 F = _field.Field
 
 
-class FieldTest(utils.TestCase):
+class FieldTest(object):
 
-    def __init__(self, *args, **kwargs):
-        super(FieldTest, self).__init__(*args, **kwargs)
-        self.fp = FP(left=.5, top=.5, width=.5, height=.5)
-        self.fp2 = FP(left=.7, top=.7, width=.7, height=.7)
+    def setUp(self):
+        self.fp = FP(left=.5, top=.5, width=.5, height=.5, tip=TS.right_tip)
+        self.fp2 = FP(left=.7, top=.7, width=.7, height=.7, tip=TS.right_tip)
+
+    def f(self, *args, **kwargs):
+        return F(*args, **kwargs)
 
     def test_value(self):
         with self.assertRaises(TypeError, u'value must be unicode, not 1'):
-            F(value=1)
+            self.f(value=1)
 
         # check default ctor value
-        f = F()
+        f = self.f()
         self.assertEqual(u'', f.value)
 
-        f = F(value=u'foo')
+        f = self.f(value=u'foo')
         self.assertEqual(u'foo', f.value)
 
         with self.assertRaises(TypeError, u'value must be unicode, not 1'):
@@ -46,13 +48,13 @@ class FieldTest(utils.TestCase):
 
     def test_obligatory(self):
         with self.assertRaises(TypeError, u'obligatory must be bool, not 1'):
-            F(obligatory=1)
+            self.f(obligatory=1)
 
         # check default ctor value
-        f = F()
+        f = self.f()
         self.assertTrue(f.obligatory)
 
-        f = F(obligatory=False)
+        f = self.f(obligatory=False)
         self.assertFalse(f.obligatory)
 
         with self.assertRaises(TypeError, u'obligatory must be bool, not 1'):
@@ -77,13 +79,13 @@ class FieldTest(utils.TestCase):
     def test_should_be_filled_by_sender(self):
         err_msg = u'should_be_filled_by_sender must be bool, not 1'
         with self.assertRaises(TypeError, err_msg):
-            F(should_be_filled_by_sender=1)
+            self.f(should_be_filled_by_sender=1)
 
         # check default ctor value
-        f = F()
+        f = self.f()
         self.assertFalse(f.should_be_filled_by_sender)
 
-        f = F(should_be_filled_by_sender=False)
+        f = self.f(should_be_filled_by_sender=False)
         self.assertFalse(f.should_be_filled_by_sender)
 
         with self.assertRaises(TypeError, err_msg):
@@ -108,18 +110,18 @@ class FieldTest(utils.TestCase):
     def test_placements(self):
         err_msg = u'placements must be set, not 1'
         with self.assertRaises(TypeError, err_msg):
-            F(placements=1)
+            self.f(placements=1)
 
         err_msg = u'placements should be set of FieldPlacement objects, ' + \
             u'not: set([1])'
         with self.assertRaises(ValueError, err_msg):
-            F(placements=set([1]))
+            self.f(placements=set([1]))
 
         # check default ctor value
-        f = F()
+        f = self.f()
         self.assertEqual(set([]), set(f.placements()))
 
-        f = F(placements=set([self.fp]))
+        f = self.f(placements=set([self.fp]))
         self.assertEqual(set([self.fp]), set(f.placements()))
 
         with self.assertRaises(TypeError, u'placements must be set, not 1'):
@@ -147,11 +149,11 @@ class FieldTest(utils.TestCase):
             f.set_placements(set([self.fp]))
 
     def test_default_placement_tip(self):
-        f = F()
+        f = self.f()
         self.assertEqual(TS.right_tip, f._default_placement_tip())
 
     def test_closed(self):
-        f = F()
+        f = self.f()
         self.assertIsNone(f.closed)
 
         f._set_read_only()
@@ -164,7 +166,7 @@ class FieldTest(utils.TestCase):
     def test_flags(self):
         fp1 = FP(left=.5, top=.5, width=.5, height=.5)
         fp2 = FP(left=.7, top=.7, width=.7, height=.7)
-        f = F(placements=set([fp1, fp2]))
+        f = self.f(placements=set([fp1, fp2]))
 
         self.assertIsNone(f._check_getter())
         self.assertIsNone(fp1._check_getter())
@@ -202,8 +204,8 @@ class FieldTest(utils.TestCase):
         fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
                 page=6, tip=None)
 
-        f = F(value=u'foo', obligatory=False, should_be_filled_by_sender=True,
-              placements=set([fp]))
+        f = self.f(value=u'foo', obligatory=False,
+                   should_be_filled_by_sender=True, placements=set([fp]))
 
         json = {u'value': u'foo',
                 u'obligatory': False,
@@ -214,7 +216,63 @@ class FieldTest(utils.TestCase):
         self.assertEqual(fp.tip, TS.right_tip)
 
     def test_modification_of_default_placements_value(self):
-        f1 = F()
+        f1 = self.f()
         f1._json[u'placements'].add(1)
-        f2 = F()
+        f2 = self.f()
         self.assertEqual(set(), set(f2.placements()))
+
+
+class FirstNameFieldTest(FieldTest, utils.TestCase):
+
+    def f(self, *args, **kwargs):
+        return _field.FirstNameField(*args, **kwargs)
+
+    def test_to_json_obj(self):
+        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
+                page=6, tip=None)
+
+        f = self.f(value=u'foo', obligatory=False,
+                   should_be_filled_by_sender=True, placements=set([fp]))
+
+        json = {u'value': u'foo',
+                u'obligatory': False,
+                u'shouldbefilledbysender': True,
+                u'placements': [fp],
+                u'type': u'standard',
+                u'name': u'fstname'}
+
+        self.assertEqual(json, f._to_json_obj())
+        self.assertEqual(fp.tip, TS.right_tip)
+
+    def test_from_json_obj(self):
+        json = {u'type': u'standard',
+                u'name': u'fstname',
+                u'value': u'John',
+                u'closed': False,
+                u'obligatory': True,
+                u'shouldbefilledbysender': False,
+                u'placements': [self.fp._to_json_obj(),
+                                self.fp2._to_json_obj()]}
+        f = F._from_json_obj(json)
+        self.assertTrue(isinstance(f, _field.FirstNameField))
+        self.assertEqual(f.value, u'John')
+        self.assertEqual(f.closed, False)
+        self.assertEqual(f.obligatory, True)
+        self.assertEqual(f.should_be_filled_by_sender, False)
+
+        self.assertEqual(sorted([fp._to_json_obj()
+                                 for fp in f.placements()]),
+                         sorted([self.fp._to_json_obj(),
+                                 self.fp2._to_json_obj()]))
+
+    def test_type(self):
+        f = self.f()
+        self.assertEqual(f.type, u'standard')
+        with self.assertRaises(AttributeError, u"can't set attribute"):
+            f.type = u'custom'
+
+    def test_name(self):
+        f = self.f()
+        self.assertEqual(f.name, u'fstname')
+        with self.assertRaises(AttributeError, u"can't set attribute"):
+            f.name = u'sndname'
