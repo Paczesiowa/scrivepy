@@ -78,8 +78,10 @@ class Field(_object.ScriveObject):
             field.obligatory = obligatory
             field.should_be_filled_by_sender = should_be_filled_by_sender
             field.set_placements(placements)
-            if closed is not None:
-                field._set_closed(closed)
+            if isinstance(closed, (bool, type(None))):
+                field._json[u'closed'] = closed
+            else:
+                raise _exceptions.InvalidResponse()
             return field
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -128,11 +130,6 @@ class Field(_object.ScriveObject):
     def closed(self):
         self._check_getter()
         return self._json[u'closed']
-
-    @tvu.validate_and_unify(closed=tvu.instance(bool))
-    def _set_closed(self, closed):
-        self._check_setter()
-        self._json[u'closed'] = closed
 
     @property
     def obligatory(self):

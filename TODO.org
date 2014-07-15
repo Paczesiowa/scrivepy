@@ -1,5 +1,4 @@
 * field
-** closed should not have a setter, from_json_obj() can assign it directly
 ** type, name in some Field subclasses could be class params
 ** maybe get rid of type getter? (it should be synonymous with its class)
 * write tests for every field type
