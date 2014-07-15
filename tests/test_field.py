@@ -46,13 +46,13 @@ class FieldTest(object):
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             f.value = u'baz'
 
+    def test_obligatory_default(self):
+        f = self.f()
+        self.assertTrue(f.obligatory)
+
     def test_obligatory(self):
         with self.assertRaises(TypeError, u'obligatory must be bool, not 1'):
             self.f(obligatory=1)
-
-        # check default ctor value
-        f = self.f()
-        self.assertTrue(f.obligatory)
 
         f = self.f(obligatory=False)
         self.assertFalse(f.obligatory)
@@ -222,10 +222,10 @@ class FieldTest(object):
         self.assertEqual(set(), set(f2.placements()))
 
 
-class FirstNameFieldTest(FieldTest, utils.TestCase):
+class StandardFieldTest(FieldTest):
 
     def f(self, *args, **kwargs):
-        return _field.FirstNameField(*args, **kwargs)
+        return self.FIELD_CTOR(*args, **kwargs)
 
     def test_to_json_obj(self):
         fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
@@ -239,23 +239,23 @@ class FirstNameFieldTest(FieldTest, utils.TestCase):
                 u'shouldbefilledbysender': True,
                 u'placements': [fp],
                 u'type': u'standard',
-                u'name': u'fstname'}
+                u'name': self.FIELD_NAME}
 
         self.assertEqual(json, f._to_json_obj())
         self.assertEqual(fp.tip, TS.right_tip)
 
     def test_from_json_obj(self):
         json = {u'type': u'standard',
-                u'name': u'fstname',
-                u'value': u'John',
+                u'name': self.FIELD_NAME,
+                u'value': u'bar',
                 u'closed': False,
                 u'obligatory': True,
                 u'shouldbefilledbysender': False,
                 u'placements': [self.fp._to_json_obj(),
                                 self.fp2._to_json_obj()]}
         f = F._from_json_obj(json)
-        self.assertTrue(isinstance(f, _field.FirstNameField))
-        self.assertEqual(f.value, u'John')
+        self.assertTrue(isinstance(f, self.FIELD_CTOR))
+        self.assertEqual(f.value, u'bar')
         self.assertEqual(f.closed, False)
         self.assertEqual(f.obligatory, True)
         self.assertEqual(f.should_be_filled_by_sender, False)
@@ -273,6 +273,285 @@ class FirstNameFieldTest(FieldTest, utils.TestCase):
 
     def test_name(self):
         f = self.f()
-        self.assertEqual(f.name, u'fstname')
+        self.assertEqual(f.name, self.FIELD_NAME)
         with self.assertRaises(AttributeError, u"can't set attribute"):
-            f.name = u'sndname'
+            f.name = u'quux'
+
+
+class FirstNameFieldTest(StandardFieldTest, utils.TestCase):
+
+    FIELD_CTOR = _field.FirstNameField
+    FIELD_NAME = u'fstname'
+
+
+class LastNameFieldTest(StandardFieldTest, utils.TestCase):
+
+    FIELD_CTOR = _field.LastNameField
+    FIELD_NAME = u'sndname'
+
+
+class EmailFieldTest(StandardFieldTest, utils.TestCase):
+
+    FIELD_CTOR = _field.EmailField
+    FIELD_NAME = u'email'
+
+
+class MobileNumberFieldTest(StandardFieldTest, utils.TestCase):
+
+    FIELD_CTOR = _field.MobileNumberField
+    FIELD_NAME = u'mobile'
+
+    def test_obligatory_default(self):
+        f = self.f()
+        self.assertFalse(f.obligatory)
+
+
+class PersonalNumberFieldTest(StandardFieldTest, utils.TestCase):
+
+    FIELD_CTOR = _field.PersonalNumberField
+    FIELD_NAME = u'sigpersnr'
+
+
+class CompanyNameFieldTest(StandardFieldTest, utils.TestCase):
+
+    FIELD_CTOR = _field.CompanyNameField
+    FIELD_NAME = u'sigco'
+
+    def test_obligatory_default(self):
+        f = self.f()
+        self.assertFalse(f.obligatory)
+
+
+class CompanyNumberFieldTest(StandardFieldTest, utils.TestCase):
+
+    FIELD_CTOR = _field.CompanyNumberField
+    FIELD_NAME = u'sigcompnr'
+
+
+class CustomFieldTest(FieldTest, utils.TestCase):
+
+    def f(self, *args, **kwargs):
+        if u'name' not in kwargs:
+            kwargs[u'name'] = u'fieldname'
+        return _field.CustomField(*args, **kwargs)
+
+    def test_to_json_obj(self):
+        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
+                page=6, tip=None)
+
+        f = self.f(name=u'fieldname', value=u'fieldvalue', obligatory=False,
+                   should_be_filled_by_sender=True, placements=set([fp]))
+
+        json = {u'value': u'fieldvalue',
+                u'obligatory': False,
+                u'shouldbefilledbysender': True,
+                u'placements': [fp],
+                u'type': u'custom',
+                u'name': u'fieldname'}
+
+        self.assertEqual(json, f._to_json_obj())
+        self.assertEqual(fp.tip, TS.right_tip)
+
+    def test_from_json_obj(self):
+        json = {u'type': u'custom',
+                u'name': u'fieldname',
+                u'value': u'fieldvalue',
+                u'closed': False,
+                u'obligatory': True,
+                u'shouldbefilledbysender': False,
+                u'placements': [self.fp._to_json_obj(),
+                                self.fp2._to_json_obj()]}
+        f = F._from_json_obj(json)
+        self.assertTrue(isinstance(f, _field.CustomField))
+        self.assertEqual(f.value, u'fieldvalue')
+        self.assertEqual(f.closed, False)
+        self.assertEqual(f.obligatory, True)
+        self.assertEqual(f.should_be_filled_by_sender, False)
+
+        self.assertEqual(sorted([fp._to_json_obj()
+                                 for fp in f.placements()]),
+                         sorted([self.fp._to_json_obj(),
+                                 self.fp2._to_json_obj()]))
+
+    def test_type(self):
+        f = self.f()
+        self.assertEqual(f.type, u'custom')
+        with self.assertRaises(AttributeError, u"can't set attribute"):
+            f.type = u'standard'
+
+    def test_name(self):
+        f = self.f(name=u'fieldname')
+        self.assertEqual(f.name, u'fieldname')
+        f.name = u'quux'
+        self.assertEqual(f.name, u'quux')
+
+
+class SignatureFieldTest(FieldTest, utils.TestCase):
+
+    def f(self, *args, **kwargs):
+        if u'name' not in kwargs:
+            kwargs[u'name'] = u'signature-1'
+        return _field.SignatureField(*args, **kwargs)
+
+    def test_value(self):
+        with self.assertRaises(TypeError):  # unexpected argument
+            self.f(value=1)
+
+        f = self.f()
+        self.assertEqual(u'', f.value)
+
+        with self.assertRaises(AttributeError, u"can't set attribute"):
+            f.value = 1
+
+        f._set_read_only()
+        self.assertEqual(u'', f.value)
+
+        f._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            f.value
+
+    def test_to_json_obj(self):
+        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
+                page=6, tip=None)
+
+        f = self.f(name=u'signature-2', obligatory=False,
+                   should_be_filled_by_sender=True, placements=set([fp]))
+
+        json = {u'value': u'',
+                u'obligatory': False,
+                u'shouldbefilledbysender': True,
+                u'placements': [fp],
+                u'type': u'signature',
+                u'name': u'signature-2'}
+
+        self.assertEqual(json, f._to_json_obj())
+        self.assertEqual(fp.tip, TS.right_tip)
+
+    def test_from_json_obj(self):
+        json = {u'type': u'signature',
+                u'name': u'signature-3',
+                u'value': u'somejpegdata',
+                u'closed': True,
+                u'obligatory': True,
+                u'shouldbefilledbysender': False,
+                u'placements': [self.fp._to_json_obj(),
+                                self.fp2._to_json_obj()]}
+        f = F._from_json_obj(json)
+        self.assertTrue(isinstance(f, _field.SignatureField))
+        self.assertEqual(f.value, u'somejpegdata')
+        self.assertEqual(f.closed, True)
+        self.assertEqual(f.obligatory, True)
+        self.assertEqual(f.should_be_filled_by_sender, False)
+
+        self.assertEqual(sorted([fp._to_json_obj()
+                                 for fp in f.placements()]),
+                         sorted([self.fp._to_json_obj(),
+                                 self.fp2._to_json_obj()]))
+
+    def test_type(self):
+        f = self.f()
+        self.assertEqual(f.type, u'signature')
+        with self.assertRaises(AttributeError, u"can't set attribute"):
+            f.type = u'standard'
+
+    def test_name(self):
+        f = self.f(name=u'signature-1')
+        self.assertEqual(f.name, u'signature-1')
+        f.name = u'signature-2'
+        self.assertEqual(f.name, u'signature-2')
+
+
+class CheckboxFieldTest(FieldTest, utils.TestCase):
+
+    def f(self, *args, **kwargs):
+        if u'name' not in kwargs:
+            kwargs[u'name'] = u'checkbox-1'
+        return _field.CheckboxField(*args, **kwargs)
+
+    def test_value(self):
+        with self.assertRaises(TypeError, u'value must be bool, not 1'):
+            self.f(value=1)
+
+        # check default ctor value
+        f = self.f()
+        self.assertFalse(f.value)
+
+        f = self.f(value=True)
+        self.assertTrue(f.value)
+
+        with self.assertRaises(TypeError, u'value must be bool, not 1'):
+            f.value = 1
+
+        f.value = False
+        self.assertFalse(f.value)
+
+        self.assertFalse(f._to_json_obj()[u'value'])
+
+        f._set_read_only()
+        self.assertFalse(f.value)
+        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+            f.value = True
+
+        f._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            f.value
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            f.value = True
+
+    def test_obligatory_default(self):
+        f = self.f()
+        self.assertFalse(f.obligatory)
+
+    def test_default_placement_tip(self):
+        f = self.f()
+        self.assertEqual(TS.left_tip, f._default_placement_tip())
+
+    def test_to_json_obj(self):
+        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
+                page=6, tip=None)
+
+        f = self.f(name=u'checkbox-2', obligatory=False,
+                   should_be_filled_by_sender=True, placements=set([fp]))
+
+        json = {u'value': u'',
+                u'obligatory': False,
+                u'shouldbefilledbysender': True,
+                u'placements': [fp],
+                u'type': u'checkbox',
+                u'name': u'checkbox-2'}
+
+        self.assertEqual(json, f._to_json_obj())
+        self.assertEqual(fp.tip, TS.left_tip)
+
+    def test_from_json_obj(self):
+        json = {u'type': u'checkbox',
+                u'name': u'checkbox-3',
+                u'value': u'',
+                u'closed': True,
+                u'obligatory': True,
+                u'shouldbefilledbysender': False,
+                u'placements': [self.fp._to_json_obj(),
+                                self.fp2._to_json_obj()]}
+        f = F._from_json_obj(json)
+        self.assertTrue(isinstance(f, _field.CheckboxField))
+        self.assertFalse(f.value)
+        self.assertEqual(f.closed, True)
+        self.assertEqual(f.obligatory, True)
+        self.assertEqual(f.should_be_filled_by_sender, False)
+
+        self.assertEqual(sorted([fp._to_json_obj()
+                                 for fp in f.placements()]),
+                         sorted([self.fp._to_json_obj(),
+                                 self.fp2._to_json_obj()]))
+
+    def test_type(self):
+        f = self.f()
+        self.assertEqual(f.type, u'checkbox')
+        with self.assertRaises(AttributeError, u"can't set attribute"):
+            f.type = u'standard'
+
+    def test_name(self):
+        f = self.f(name=u'checkbox-1')
+        self.assertEqual(f.name, u'checkbox-1')
+        f.name = u'checkbox-2'
+        self.assertEqual(f.name, u'checkbox-2')

@@ -10,6 +10,7 @@
 ** include name getter
 ** include closed
 ** closed should not be none after using from_json_obj()
+** abstract a test for a simple field
 * turn back placements into a property
 * add field_handler
 * from_json should trigger read_only
