@@ -14,6 +14,8 @@ class PlacementSet(tvu.TypeValueUnifier):
 
 class Field(_object.ScriveObject):
 
+    _default_placement_tip = _field_placement.TipSide.right_tip
+
     @tvu.validate_and_unify(value=tvu.instance(unicode),
                             obligatory=tvu.instance(bool),
                             should_be_filled_by_sender=tvu.instance(bool),
@@ -95,14 +97,11 @@ class Field(_object.ScriveObject):
 
     def _to_json_obj(self):
         for placement in self.placements():
-            placement._resolve_default_tip(self._default_placement_tip())
+            placement._resolve_default_tip(self._default_placement_tip)
         json = self._json.copy()
         json[u'placements'] = list(json[u'placements'])
         del json[u'closed']
         return json
-
-    def _default_placement_tip(self):
-        return _field_placement.TipSide.right_tip
 
     @property
     def type(self):
@@ -337,6 +336,8 @@ class SignatureField(Field):
 
 class CheckboxField(Field):
 
+    _default_placement_tip = _field_placement.TipSide.left_tip
+
     @tvu.validate_and_unify(name=tvu.instance(unicode),
                             value=tvu.instance(bool),
                             obligatory=tvu.instance(bool),
@@ -350,9 +351,6 @@ class CheckboxField(Field):
             should_be_filled_by_sender=should_be_filled_by_sender)
         self._json[u'type'] = u'checkbox'
         self._json[u'name'] = name
-
-    def _default_placement_tip(self):
-        return _field_placement.TipSide.left_tip
 
     @property
     def name(self):

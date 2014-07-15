@@ -1,15 +1,8 @@
 * field
-** default_placement_tip should be a class property
 ** closed should not have a setter, from_json_obj() can assign it directly
 ** type, name in some Field subclasses could be class params
 ** maybe get rid of type getter? (it should be synonymous with its class)
 * write tests for every field type
-** include test_from_json_obj
-** include _default_placement_tip
-** include type getter
-** include name getter
-** include closed
-** closed should not be none after using from_json_obj()
 ** abstract a test for a simple field
 * turn back placements into a property
 * add field_handler

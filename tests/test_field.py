@@ -150,7 +150,7 @@ class FieldTest(object):
 
     def test_default_placement_tip(self):
         f = self.f()
-        self.assertEqual(TS.right_tip, f._default_placement_tip())
+        self.assertEqual(TS.right_tip, f._default_placement_tip)
 
     def test_closed(self):
         f = self.f()
@@ -504,7 +504,7 @@ class CheckboxFieldTest(FieldTest, utils.TestCase):
 
     def test_default_placement_tip(self):
         f = self.f()
-        self.assertEqual(TS.left_tip, f._default_placement_tip())
+        self.assertEqual(TS.left_tip, f._default_placement_tip)
 
     def test_to_json_obj(self):
         fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
