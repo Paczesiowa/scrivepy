@@ -48,20 +48,16 @@ class Field(_object.ScriveObject):
                     placement_json) for placement_json in json[u'placements']])
 
             if type_ == u'standard':
-                if name == u'fstname':
-                    field = FirstNameField(value=value)
-                elif name == u'sndname':
-                    field = LastNameField(value=value)
-                elif name == u'email':
-                    field = EmailField(value=value)
-                elif name == u'mobile':
-                    field = MobileNumberField(value=value)
-                elif name == u'sigpersnr':
-                    field = PersonalNumberField(value=value)
-                elif name == u'sigco':
-                    field = CompanyNameField(value=value)
-                elif name == u'sigcompnr':
-                    field = CompanyNumberField(value=value)
+                ctors = {u'fstname': FirstNameField,
+                         u'sndname': LastNameField,
+                         u'email': EmailField,
+                         u'mobile': MobileNumberField,
+                         u'sigpersnr': PersonalNumberField,
+                         u'sigco': CompanyNameField,
+                         u'sigcompnr': CompanyNumberField}
+                ctor = ctors.get(name)
+                if ctor is not None:
+                    field = ctor(value=value)
                 else:
                     raise _exceptions.InvalidResponse(u'bad field name')
             elif type_ == u'custom':
