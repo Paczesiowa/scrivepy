@@ -6,7 +6,6 @@
 * turn back placements into a property
 * add field_handler
 * from_json should trigger read_only
-* write a getter/setter decorator
 * write a signatory.py
 ** fields
 ** _from_json()

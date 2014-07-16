@@ -3,6 +3,8 @@ import enum
 import type_value_unifier as tvu
 from scrivepy import _object
 
+scrive_property = _object.scrive_property
+
 
 class Ratio(tvu.TypeValueUnifier):
 
@@ -78,75 +80,62 @@ class FieldPlacement(_object.ScriveObject):
         if self.tip is None:
             self.tip = default_tip_value
 
-    @property
+    @scrive_property
     def left(self):
-        self._check_getter()
         return self._left
 
     @left.setter
     @tvu.validate_and_unify(left=Ratio)
     def left(self, left):
-        self._check_setter()
         self._left = left
 
-    @property
+    @scrive_property
     def top(self):
-        self._check_getter()
         return self._top
 
     @top.setter
     @tvu.validate_and_unify(top=Ratio)
     def top(self, top):
-        self._check_setter()
         self._top = top
 
-    @property
+    @scrive_property
     def width(self):
-        self._check_getter()
         return self._width
 
     @width.setter
     @tvu.validate_and_unify(width=Ratio)
     def width(self, width):
-        self._check_setter()
         self._width = width
 
-    @property
+    @scrive_property
     def height(self):
-        self._check_getter()
         return self._height
 
     @height.setter
     @tvu.validate_and_unify(height=Ratio)
     def height(self, height):
-        self._check_setter()
         self._height = height
 
-    @property
+    @scrive_property
     def font_size(self):
-        self._check_getter()
         return self._font_size
 
     @font_size.setter
     @tvu.validate_and_unify(font_size=Ratio)
     def font_size(self, font_size):
-        self._check_setter()
         self._font_size = font_size
 
-    @property
+    @scrive_property
     def page(self):
-        self._check_getter()
         return self._page
 
     @page.setter
     @tvu.validate_and_unify(page=PositiveInt)
     def page(self, page):
-        self._check_setter()
         self._page = page
 
-    @property
+    @scrive_property
     def tip(self):
-        self._check_getter()
         tip = self._tip
         if tip is not None:
             tip = TipSide(tip)
@@ -155,5 +144,4 @@ class FieldPlacement(_object.ScriveObject):
     @tip.setter
     @tvu.validate_and_unify(tip=MaybeTipSide)
     def tip(self, tip):
-        self._check_setter()
         self._tip = tip

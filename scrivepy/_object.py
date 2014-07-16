@@ -36,3 +36,27 @@ class ScriveObject(object):
         self._check_invalid()
         if self._read_only:
             raise _exceptions.ReadOnlyScriveObject()
+
+
+def _scrive_method_wrap(fun, pre_fun_name):
+    if fun is None:
+        return None
+
+    if hasattr(fun, '__scrive_property_wrapped__'):
+        return fun
+
+    def wrapper(self, *args):
+        getattr(self, pre_fun_name)()
+        return fun(self, *args)
+
+    wrapper.__scrive_property_wrapped__ = True
+
+    return wrapper
+
+
+class scrive_property(property):
+
+    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
+        fget = _scrive_method_wrap(fget, '_check_getter')
+        fset = _scrive_method_wrap(fset, '_check_setter')
+        super(scrive_property, self).__init__(fget, fset, fdel, doc)
