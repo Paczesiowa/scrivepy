@@ -64,7 +64,9 @@ class Field(_object.ScriveObject):
                 field = CustomField(name=name, value=value)
             elif type_ == u'signature':
                 field = SignatureField(name=name)
-                field._set_value(value)
+                if not isinstance(value, unicode):
+                    raise _exceptions.InvalidResponse(u'bad field value')
+                field._json[u'value'] = value
             elif type_ == u'checkbox':
                 field = CheckboxField(name=name,
                                       value=value.lower() == u'checked')
@@ -320,11 +322,6 @@ class SignatureField(Field):
     def value(self):
         self._check_getter()
         return self._json[u'value']
-
-    @tvu.validate_and_unify(value=tvu.instance(unicode))
-    def _set_value(self, value):
-        self._check_setter()
-        self._json[u'value'] = value
 
 
 class CheckboxField(Field):
