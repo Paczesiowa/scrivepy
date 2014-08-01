@@ -8,7 +8,8 @@ class TypeValueUnifier(object):
         self._variable_name = \
             variable_name or self.__class__.__name__ + u'() argument'
 
-    def type_check(self, value):
+    def type_check(self):
+        value = self._value
         types = self.__class__.TYPES
         if isinstance(value, types):
             return
@@ -27,8 +28,8 @@ class TypeValueUnifier(object):
 
     def unify_validate(self, value):
         self._value = value
-        self.type_check(value)
-        unified_value = self.unify(value)
+        self.type_check()
+        unified_value = self.unify(self._value)
         self.validate(unified_value)
         return unified_value
 
