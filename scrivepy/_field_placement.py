@@ -8,7 +8,10 @@ scrive_property = _object.scrive_property
 
 class Ratio(tvu.TypeValueUnifier):
 
-    TYPES = (float,)
+    TYPES = (float, int)
+
+    def unify(self, value):
+        return float(value)
 
     def validate(self, value):
         if not 0. <= value <= 1.:

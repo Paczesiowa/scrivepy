@@ -66,33 +66,3 @@ def instance(class_):
         TYPES = (class_,)
 
     return InstanceTypeValueUnifier
-
-
-##############################
-class NonNegativeInt(TypeValueUnifier):
-
-    TYPES = (str, unicode, int)
-
-    def unify(self, value):
-        try:
-            return int(value)
-        except (ValueError, UnicodeEncodeError):
-            self.error(u'invalid value')
-
-    def validate(self, value):
-        if value < 0:
-            self.error(u'unexpected negative integer')
-
-
-class AsciiString(TypeValueUnifier):
-
-    TYPES = (str, unicode)
-
-    def unify(self, value):
-        if isinstance(value, unicode):
-            try:
-                return value.encode('ascii')
-            except UnicodeEncodeError:
-                self.error(u'ascii only')
-        else:
-            return value
