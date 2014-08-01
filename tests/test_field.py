@@ -112,7 +112,7 @@ class FieldTest(object):
         with self.assertRaises(TypeError, err_msg):
             self.f(placements=1)
 
-        err_msg = u'placements should be set of FieldPlacement objects, ' + \
+        err_msg = u'placements must be set of FieldPlacement objects, ' + \
             u'not: set([1])'
         with self.assertRaises(ValueError, err_msg):
             self.f(placements=set([1]))
@@ -127,7 +127,7 @@ class FieldTest(object):
         with self.assertRaises(TypeError, u'placements must be set, not 1'):
             f.set_placements(1)
 
-        err_msg = u'placements should be set of FieldPlacement objects, ' + \
+        err_msg = u'placements must be set of FieldPlacement objects, ' + \
             u'not: set([1])'
         with self.assertRaises(ValueError, err_msg):
             f.set_placements(set([1]))

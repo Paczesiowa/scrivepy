@@ -32,9 +32,10 @@ class TypeValueUnifier(object):
         self.validate(unified_value)
         return unified_value
 
-    def error(self, msg):
-        full_msg = (u'%s should be ' + msg + u', not: %s') % \
-            (self._variable_name, unicode(self._value))
+    def error(self, msg, soft=False):
+        word = u'could' if soft else u'must'
+        full_msg = (u'%s %s be ' + msg + u', not: %s') % \
+            (self._variable_name, word, unicode(self._value))
         raise ValueError(full_msg)
 
     def unify(self, value):

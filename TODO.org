@@ -3,6 +3,7 @@
 ** maybe get rid of type getter? (it should be synonymous with its class)
 * write tests for every field type
 ** abstract a test for a simple field
+* PositiveInt could also accept floats
 * turn back placements into a property
 * add field_handler
 * from_json should trigger read_only

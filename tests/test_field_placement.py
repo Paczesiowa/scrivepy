@@ -19,11 +19,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'left must be float or int, not []'):
             self._make_fp(left=[])
 
-        err_msg = u'left should be in the <0,1> range (inclusive), not: -0.1'
+        err_msg = u'left must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(left=-.1)
 
-        err_msg = u'left should be in the <0,1> range (inclusive), not: 1.1'
+        err_msg = u'left must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(left=1.1)
 
@@ -37,11 +37,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'left must be float or int, not []'):
             fp.left = []
 
-        err_msg = u'left should be in the <0,1> range (inclusive), not: -0.1'
+        err_msg = u'left must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             fp.left = -.1
 
-        err_msg = u'left should be in the <0,1> range (inclusive), not: 1.1'
+        err_msg = u'left must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             fp.left = 1.1
 
@@ -69,11 +69,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'top must be float or int, not []'):
             self._make_fp(top=[])
 
-        err_msg = u'top should be in the <0,1> range (inclusive), not: -0.1'
+        err_msg = u'top must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(top=-.1)
 
-        err_msg = u'top should be in the <0,1> range (inclusive), not: 1.1'
+        err_msg = u'top must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(top=1.1)
 
@@ -87,11 +87,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'top must be float or int, not []'):
             fp.top = []
 
-        err_msg = u'top should be in the <0,1> range (inclusive), not: -0.1'
+        err_msg = u'top must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             fp.top = -.1
 
-        err_msg = u'top should be in the <0,1> range (inclusive), not: 1.1'
+        err_msg = u'top must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             fp.top = 1.1
 
@@ -119,11 +119,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'width must be float or int, not []'):
             self._make_fp(width=[])
 
-        err_msg = u'width should be in the <0,1> range (inclusive), not: -0.1'
+        err_msg = u'width must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(width=-.1)
 
-        err_msg = u'width should be in the <0,1> range (inclusive), not: 1.1'
+        err_msg = u'width must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(width=1.1)
 
@@ -137,11 +137,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'width must be float or int, not []'):
             fp.width = []
 
-        err_msg = u'width should be in the <0,1> range (inclusive), not: -0.1'
+        err_msg = u'width must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             fp.width = -.1
 
-        err_msg = u'width should be in the <0,1> range (inclusive), not: 1.1'
+        err_msg = u'width must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             fp.width = 1.1
 
@@ -169,11 +169,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'height must be float or int, not []'):
             self._make_fp(height=[])
 
-        err_msg = u'height should be in the <0,1> range (inclusive), not: -0.1'
+        err_msg = u'height must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(height=-.1)
 
-        err_msg = u'height should be in the <0,1> range (inclusive), not: 1.1'
+        err_msg = u'height must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(height=1.1)
 
@@ -187,11 +187,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'height must be float or int, not []'):
             fp.height = []
 
-        err_msg = u'height should be in the <0,1> range (inclusive), not: -0.1'
+        err_msg = u'height must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             fp.height = -.1
 
-        err_msg = u'height should be in the <0,1> range (inclusive), not: 1.1'
+        err_msg = u'height must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             fp.height = 1.1
 
@@ -220,12 +220,12 @@ class FieldPlacementTest(utils.TestCase):
             self._make_fp(font_size=[])
 
         err_msg = \
-            u'font_size should be in the <0,1> range (inclusive), not: -0.1'
+            u'font_size must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(font_size=-.1)
 
         err_msg = \
-            u'font_size should be in the <0,1> range (inclusive), not: 1.1'
+            u'font_size must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(font_size=1.1)
 
@@ -250,12 +250,12 @@ class FieldPlacementTest(utils.TestCase):
             fp.font_size = []
 
         err_msg = \
-            u'font_size should be in the <0,1> range (inclusive), not: -0.1'
+            u'font_size must be in the <0,1> range (inclusive), not: -0.1'
         with self.assertRaises(ValueError, err_msg):
             fp.font_size = -.1
 
         err_msg = \
-            u'font_size should be in the <0,1> range (inclusive), not: 1.1'
+            u'font_size must be in the <0,1> range (inclusive), not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             fp.font_size = 1.1
 
@@ -288,7 +288,7 @@ class FieldPlacementTest(utils.TestCase):
         with self.assertRaises(TypeError, u'page must be int, not []'):
             self._make_fp(page=[])
 
-        err_msg = u'page should be a positive integer, not: 0'
+        err_msg = u'page must be a positive integer, not: 0'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(page=0)
 
@@ -302,7 +302,7 @@ class FieldPlacementTest(utils.TestCase):
         with self.assertRaises(TypeError, u'page must be int, not []'):
             fp.page = []
 
-        err_msg = u'page should be a positive integer, not: 0'
+        err_msg = u'page must be a positive integer, not: 0'
         with self.assertRaises(ValueError, err_msg):
             fp.page = 0
 
