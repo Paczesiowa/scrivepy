@@ -218,7 +218,7 @@ class FieldTest(object):
 
     def test_modification_of_default_placements_value(self):
         f1 = self.f()
-        f1._json[u'placements'].add(1)
+        f1._placements.add(1)
         f2 = self.f()
         self.assertEqual(set(), set(f2.placements()))
 

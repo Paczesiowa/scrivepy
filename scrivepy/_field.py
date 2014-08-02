@@ -28,11 +28,11 @@ class Field(_object.ScriveObject):
     def __init__(self, value=u'', obligatory=True,
                  should_be_filled_by_sender=False, placements=set()):
         super(Field, self).__init__()
-        self._json = {u'value': value,
-                      u'closed': None,
-                      u'obligatory': obligatory,
-                      u'shouldbefilledbysender': should_be_filled_by_sender,
-                      u'placements': set(placements)}
+        self._value = value
+        self._closed = None
+        self._obligatory = obligatory
+        self._should_be_filled_by_sender = should_be_filled_by_sender
+        self._placements = set(placements)
 
     def __str__(self):
         return u'%s(value=%s, %d placements)' % \
@@ -60,7 +60,7 @@ class Field(_object.ScriveObject):
                 field = SignatureField(name=name)
                 if not isinstance(value, unicode):
                     raise _exceptions.InvalidResponse(u'bad field value')
-                field._json[u'value'] = value
+                field._value = value
             elif type_ == u'checkbox':
                 field = CheckboxField(name=name,
                                       value=value.lower() == u'checked')
@@ -71,7 +71,7 @@ class Field(_object.ScriveObject):
             field.should_be_filled_by_sender = should_be_filled_by_sender
             field.set_placements(placements)
             if isinstance(closed, (bool, type(None))):
-                field._json[u'closed'] = closed
+                field._closed = closed
             else:
                 raise _exceptions.InvalidResponse()
             return field
@@ -92,73 +92,61 @@ class Field(_object.ScriveObject):
     def _to_json_obj(self):
         for placement in self.placements():
             placement._resolve_default_tip(self._default_placement_tip)
-        json = self._json.copy()
-        json[u'placements'] = list(json[u'placements'])
-        del json[u'closed']
-        return json
+        return {u'name': self.name,
+                u'obligatory': self.obligatory,
+                u'shouldbefilledbysender': self.should_be_filled_by_sender,
+                u'type': self.type,
+                # checkbox stores different type than getter returns
+                u'value': self._value,
+                u'placements': list(self.placements())}
 
     @scrive_property
     def type(self):
-        return self._json[u'type']
+        return self._type
 
     @scrive_property
     def name(self):
-        return self._json[u'name']
+        return self._name
 
     @scrive_property
     def value(self):
-        return self._json[u'value']
+        return self._value
 
     @value.setter
     @tvu.validate_and_unify(value=tvu.instance(unicode))
     def value(self, value):
-        self._json[u'value'] = value
+        self._value = value
 
     @scrive_property
     def closed(self):
-        return self._json[u'closed']
+        return self._closed
 
     @scrive_property
     def obligatory(self):
-        return self._json[u'obligatory']
+        return self._obligatory
 
     @obligatory.setter
     @tvu.validate_and_unify(obligatory=tvu.instance(bool))
     def obligatory(self, obligatory):
-        self._json[u'obligatory'] = obligatory
+        self._obligatory = obligatory
 
     @scrive_property
     def should_be_filled_by_sender(self):
-        return self._json[u'shouldbefilledbysender']
+        return self._should_be_filled_by_sender
 
     @should_be_filled_by_sender.setter
     @tvu.validate_and_unify(should_be_filled_by_sender=tvu.instance(bool))
     def should_be_filled_by_sender(self, should_be_filled_by_sender):
-        self._json[u'shouldbefilledbysender'] = should_be_filled_by_sender
+        self._should_be_filled_by_sender = should_be_filled_by_sender
 
     def placements(self):
         self._check_getter()
-        return iter(self._json[u'placements'])
+        return iter(self._placements)
 
     @tvu.validate_and_unify(placements=PlacementSet)
     def set_placements(self, placements):
         self._check_setter()
-        self._json[u'placements'] = set(placements)
-
-
-class FirstNameField(Field):
-
-    @tvu.validate_and_unify(value=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
-    def __init__(self, value=u'', obligatory=True,
-                 should_be_filled_by_sender=False, placements=set()):
-        super(FirstNameField, self).__init__(
-            value=value, obligatory=obligatory, placements=placements,
-            should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'standard'
-        self._json[u'name'] = u'fstname'
+        self._placements = set(placements)
 
 
 class StandardFieldType(unicode, enum.Enum):
@@ -183,8 +171,8 @@ class StandardField(Field):
         super(StandardField, self).__init__(
             value=value, obligatory=obligatory, placements=placements,
             should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'standard'
-        self._json[u'name'] = name
+        self._type = u'standard'
+        self._name = name
 
 
 class CustomField(Field):
@@ -199,17 +187,17 @@ class CustomField(Field):
         super(CustomField, self).__init__(
             value=value, obligatory=obligatory, placements=placements,
             should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'custom'
-        self._json[u'name'] = name
+        self._type = u'custom'
+        self._name = name
 
     @scrive_property
     def name(self):
-        return self._json[u'name']
+        return self._name
 
     @name.setter
     @tvu.validate_and_unify(name=tvu.instance(unicode))
     def name(self, name):
-        self._json[u'name'] = name
+        self._name = name
 
 
 class SignatureField(Field):
@@ -223,21 +211,21 @@ class SignatureField(Field):
         super(SignatureField, self).__init__(
             value=u'', obligatory=obligatory, placements=placements,
             should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'signature'
-        self._json[u'name'] = name
+        self._type = u'signature'
+        self._name = name
 
     @scrive_property
     def name(self):
-        return self._json[u'name']
+        return self._name
 
     @name.setter
     @tvu.validate_and_unify(name=tvu.instance(unicode))
     def name(self, name):
-        self._json[u'name'] = name
+        self._name = name
 
     @scrive_property
     def value(self):
-        return self._json[u'value']
+        return self._value
 
 
 class CheckboxField(Field):
@@ -255,23 +243,23 @@ class CheckboxField(Field):
             value=u'CHECKED' if value else u'', obligatory=obligatory,
             placements=placements,
             should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'checkbox'
-        self._json[u'name'] = name
+        self._type = u'checkbox'
+        self._name = name
 
     @scrive_property
     def name(self):
-        return self._json[u'name']
+        return self._name
 
     @name.setter
     @tvu.validate_and_unify(name=tvu.instance(unicode))
     def name(self, name):
-        self._json[u'name'] = name
+        self._name = name
 
     @scrive_property
     def value(self):
-        return self._json[u'value'].lower() == u'checked'
+        return self._value.lower() == u'checked'
 
     @value.setter
     @tvu.validate_and_unify(value=tvu.instance(bool))
     def value(self, value):
-        self._json[u'value'] = u'CHECKED' if value else u''
+        self._value = u'CHECKED' if value else u''
