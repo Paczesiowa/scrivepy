@@ -327,9 +327,16 @@ class FieldPlacementTest(utils.TestCase):
         with self.assertRaises(TypeError, err_msg):
             self._make_fp(tip={})
 
+        err_msg = u"tip could be TipSide's variant name, not: wrong"
+        with self.assertRaises(ValueError, err_msg):
+            self._make_fp(tip='wrong')
+
         # check default ctor value
         fp = self._make_fp()
         self.assertIsNone(fp.tip)
+
+        fp = self._make_fp(tip='right_tip')
+        self.assertEqual(TS.right_tip, fp.tip)
 
         fp = self._make_fp(tip=TS.left_tip)
         self.assertEqual(TS.left_tip, fp.tip)

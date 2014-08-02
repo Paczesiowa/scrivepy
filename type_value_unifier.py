@@ -1,6 +1,8 @@
 # coding: utf-8
 import inspect
 
+import enum
+
 
 class TypeValueUnifier(object):
 
@@ -61,6 +63,26 @@ def validate_and_unify(**arg_validators):
             return fun(**args_values)
         return inner_wrapper
     return wrapper
+
+
+class EnumTypeValueUnifier(TypeValueUnifier):
+
+    def _get_enum_type(self):
+        for type_ in self.TYPES:
+            if issubclass(type_, enum.Enum):
+                return type_
+
+    def type_check(self):
+        value = self._value
+        if isinstance(value, str):
+            enum_type = self._get_enum_type()
+            try:
+                self._value = getattr(enum_type, value)
+            except AttributeError:
+                msg = enum_type.__name__ + u"'s variant name"
+                self.error(msg, soft=True)
+            return
+        super(EnumTypeValueUnifier, self).type_check()
 
 
 def instance(class_):

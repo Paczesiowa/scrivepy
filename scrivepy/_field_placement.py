@@ -32,7 +32,7 @@ class TipSide(unicode, enum.Enum):
     right_tip = u'right'
 
 
-class MaybeTipSide(tvu.TypeValueUnifier):
+class MaybeTipSide(tvu.EnumTypeValueUnifier):
 
     TYPES = (TipSide, type(None))
 
