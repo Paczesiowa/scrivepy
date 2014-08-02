@@ -3,21 +3,22 @@ import json
 from scrivepy import _exceptions
 
 
+class _JSONEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, ScriveObject):
+            return obj._to_json_obj()
+        return super(_JSONEncoder, self).default(obj)
+
+
 class ScriveObject(object):
-
-    class JSONEncoder(json.JSONEncoder):
-
-        def default(self, obj):
-            if isinstance(obj, ScriveObject):
-                return obj._to_json_obj()
-            return super(ScriveObject.JSONEncoder, self).default(obj)
 
     def __init__(self):
         self._invalid = False
         self._read_only = False
 
     def _to_json(self):
-        return json.dumps(self, cls=ScriveObject.JSONEncoder)
+        return json.dumps(self, cls=_JSONEncoder)
 
     def _check_invalid(self):
         if self._invalid:
