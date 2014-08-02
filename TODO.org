@@ -1,5 +1,4 @@
 * field
-** hold standard field type internally in field as standardfieldtype
 ** hold fields as real fields, not _json
 * hide JSONEncoder better in ScriveObject
 * write tests for every field type

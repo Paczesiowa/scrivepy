@@ -276,11 +276,13 @@ class StandardFieldTest(FieldTest):
     def test_name(self):
         f = self.f()
         self.assertEqual(f.name, self.FIELD_NAME)
+        self.assertTrue(isinstance(f.name, SFT))
         with self.assertRaises(AttributeError, u"can't set attribute"):
             f.name = u'quux'
 
         f = _field.StandardField(name=self.FIELD_NAME.name)
-        self.assertEqual(f.name, self.FIELD_NAME.value)
+        self.assertTrue(isinstance(f.name, SFT))
+        self.assertEqual(f.name, self.FIELD_NAME)
 
         err_msg = u"name could be StandardFieldType's variant name, not: wrong"
         with self.assertRaises(ValueError, err_msg):

@@ -184,7 +184,7 @@ class StandardField(Field):
             value=value, obligatory=obligatory, placements=placements,
             should_be_filled_by_sender=should_be_filled_by_sender)
         self._json[u'type'] = u'standard'
-        self._json[u'name'] = name.value
+        self._json[u'name'] = name
 
 
 class CustomField(Field):
