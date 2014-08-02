@@ -20,7 +20,12 @@ class Ratio(tvu.TypeValueUnifier):
 
 class PositiveInt(tvu.TypeValueUnifier):
 
-    TYPES = (int,)
+    TYPES = (int, float)
+
+    def unify(self, value):
+        if isinstance(value, float) and round(value) != value:
+            self.error(u'a round integer')
+        return int(value)
 
     def validate(self, value):
         if value < 1:

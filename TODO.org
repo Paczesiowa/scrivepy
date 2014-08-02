@@ -1,4 +1,3 @@
-* PositiveInt could also accept floats
 * turn back placements into a property
 * add field_handler
 * from_json should trigger read_only

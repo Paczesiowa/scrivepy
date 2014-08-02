@@ -285,26 +285,42 @@ class FieldPlacementTest(utils.TestCase):
             fp.font_size = .9
 
     def test_page(self):
-        with self.assertRaises(TypeError, u'page must be int, not []'):
+        with self.assertRaises(TypeError,
+                               u'page must be int or float, not []'):
             self._make_fp(page=[])
 
         err_msg = u'page must be a positive integer, not: 0'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(page=0)
 
+        err_msg = u'page must be a round integer, not: 1.1'
+        with self.assertRaises(ValueError, err_msg):
+            self._make_fp(page=1.1)
+
         # check default ctor value
         fp = self._make_fp()
         self.assertEqual(1, fp.page)
 
+        fp = self._make_fp(page=8.)
+        self.assertEqual(8, fp.page)
+
         fp = self._make_fp(page=2)
         self.assertEqual(2, fp.page)
 
-        with self.assertRaises(TypeError, u'page must be int, not []'):
+        with self.assertRaises(TypeError,
+                               u'page must be int or float, not []'):
             fp.page = []
 
         err_msg = u'page must be a positive integer, not: 0'
         with self.assertRaises(ValueError, err_msg):
             fp.page = 0
+
+        err_msg = u'page must be a round integer, not: 1.1'
+        with self.assertRaises(ValueError, err_msg):
+            fp.page = 1.1
+
+        fp.page = 8.
+        self.assertEqual(8, fp.page)
 
         fp.page = 3
         self.assertEqual(3, fp.page)
