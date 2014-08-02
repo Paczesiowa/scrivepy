@@ -1,5 +1,8 @@
+import enum
+
 import type_value_unifier as tvu
 from scrivepy import _object, _field_placement, _exceptions
+
 
 scrive_property = _object.scrive_property
 
@@ -50,18 +53,7 @@ class Field(_object.ScriveObject):
                     placement_json) for placement_json in json[u'placements']])
 
             if type_ == u'standard':
-                ctors = {u'fstname': FirstNameField,
-                         u'sndname': LastNameField,
-                         u'email': EmailField,
-                         u'mobile': MobileNumberField,
-                         u'sigpersnr': PersonalNumberField,
-                         u'sigco': CompanyNameField,
-                         u'sigcompnr': CompanyNumberField}
-                ctor = ctors.get(name)
-                if ctor is not None:
-                    field = ctor(value=value)
-                else:
-                    raise _exceptions.InvalidResponse(u'bad field name')
+                field = StandardField(name=name, value=value)
             elif type_ == u'custom':
                 field = CustomField(name=name, value=value)
             elif type_ == u'signature':
@@ -169,94 +161,30 @@ class FirstNameField(Field):
         self._json[u'name'] = u'fstname'
 
 
-class LastNameField(Field):
+class StandardFieldType(unicode, enum.Enum):
+    first_name = u'fstname'
+    last_name = u'sndname'
+    email = u'email'
+    mobile = u'mobile'
+    personal_number = u'sigpersnr'
+    company_name = u'sigco'
+    company_number = u'sigcompnr'
 
-    @tvu.validate_and_unify(value=tvu.instance(unicode),
+
+class StandardField(Field):
+
+    @tvu.validate_and_unify(name=tvu.instance(StandardFieldType, enum=True),
+                            value=tvu.instance(unicode),
                             obligatory=tvu.instance(bool),
                             should_be_filled_by_sender=tvu.instance(bool),
                             placements=PlacementSet)
-    def __init__(self, value=u'', obligatory=True,
+    def __init__(self, name, value=u'', obligatory=True,
                  should_be_filled_by_sender=False, placements=set()):
-        super(LastNameField, self).__init__(
+        super(StandardField, self).__init__(
             value=value, obligatory=obligatory, placements=placements,
             should_be_filled_by_sender=should_be_filled_by_sender)
         self._json[u'type'] = u'standard'
-        self._json[u'name'] = u'sndname'
-
-
-class EmailField(Field):
-
-    @tvu.validate_and_unify(value=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
-    def __init__(self, value=u'', obligatory=True,
-                 should_be_filled_by_sender=False, placements=set()):
-        super(EmailField, self).__init__(
-            value=value, obligatory=obligatory, placements=placements,
-            should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'standard'
-        self._json[u'name'] = u'email'
-
-
-class MobileNumberField(Field):
-
-    @tvu.validate_and_unify(value=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
-    def __init__(self, value=u'', obligatory=False,
-                 should_be_filled_by_sender=False, placements=set()):
-        super(MobileNumberField, self).__init__(
-            value=value, obligatory=obligatory, placements=placements,
-            should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'standard'
-        self._json[u'name'] = u'mobile'
-
-
-class PersonalNumberField(Field):
-
-    @tvu.validate_and_unify(value=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
-    def __init__(self, value=u'', obligatory=True,
-                 should_be_filled_by_sender=False, placements=set()):
-        super(PersonalNumberField, self).__init__(
-            value=value, obligatory=obligatory, placements=placements,
-            should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'standard'
-        self._json[u'name'] = u'sigpersnr'
-
-
-class CompanyNameField(Field):
-
-    @tvu.validate_and_unify(value=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
-    def __init__(self, value=u'', obligatory=False,
-                 should_be_filled_by_sender=False, placements=set()):
-        super(CompanyNameField, self).__init__(
-            value=value, obligatory=obligatory, placements=placements,
-            should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'standard'
-        self._json[u'name'] = u'sigco'
-
-
-class CompanyNumberField(Field):
-
-    @tvu.validate_and_unify(value=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
-    def __init__(self, value=u'', obligatory=True,
-                 should_be_filled_by_sender=False, placements=set()):
-        super(CompanyNumberField, self).__init__(
-            value=value, obligatory=obligatory, placements=placements,
-            should_be_filled_by_sender=should_be_filled_by_sender)
-        self._json[u'type'] = u'standard'
-        self._json[u'name'] = u'sigcompnr'
+        self._json[u'name'] = name.value
 
 
 class CustomField(Field):

@@ -5,6 +5,7 @@ from tests import utils
 FP = _field_placement.FieldPlacement
 TS = _field_placement.TipSide
 F = _field.Field
+SFT = _field.StandardFieldType
 
 
 class FieldTest(object):
@@ -225,7 +226,7 @@ class FieldTest(object):
 class StandardFieldTest(FieldTest):
 
     def f(self, *args, **kwargs):
-        return self.FIELD_CTOR(*args, **kwargs)
+        return _field.StandardField(name=self.FIELD_NAME, *args, **kwargs)
 
     def test_to_json_obj(self):
         fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
@@ -254,7 +255,8 @@ class StandardFieldTest(FieldTest):
                 u'placements': [self.fp._to_json_obj(),
                                 self.fp2._to_json_obj()]}
         f = F._from_json_obj(json)
-        self.assertTrue(isinstance(f, self.FIELD_CTOR))
+        self.assertEqual(f.type, u'standard')
+        self.assertEqual(f.name, self.FIELD_NAME.value)
         self.assertEqual(f.value, u'bar')
         self.assertEqual(f.closed, False)
         self.assertEqual(f.obligatory, True)
@@ -277,55 +279,47 @@ class StandardFieldTest(FieldTest):
         with self.assertRaises(AttributeError, u"can't set attribute"):
             f.name = u'quux'
 
+        f = _field.StandardField(name=self.FIELD_NAME.name)
+        self.assertEqual(f.name, self.FIELD_NAME.value)
+
+        err_msg = u"name could be StandardFieldType's variant name, not: wrong"
+        with self.assertRaises(ValueError, err_msg):
+            _field.StandardField(name='wrong')
+
 
 class FirstNameFieldTest(StandardFieldTest, utils.TestCase):
 
-    FIELD_CTOR = _field.FirstNameField
-    FIELD_NAME = u'fstname'
+    FIELD_NAME = SFT.first_name
 
 
 class LastNameFieldTest(StandardFieldTest, utils.TestCase):
 
-    FIELD_CTOR = _field.LastNameField
-    FIELD_NAME = u'sndname'
+    FIELD_NAME = SFT.last_name
 
 
 class EmailFieldTest(StandardFieldTest, utils.TestCase):
 
-    FIELD_CTOR = _field.EmailField
-    FIELD_NAME = u'email'
+    FIELD_NAME = SFT.email
 
 
 class MobileNumberFieldTest(StandardFieldTest, utils.TestCase):
 
-    FIELD_CTOR = _field.MobileNumberField
-    FIELD_NAME = u'mobile'
-
-    def test_obligatory_default(self):
-        f = self.f()
-        self.assertFalse(f.obligatory)
+    FIELD_NAME = SFT.mobile
 
 
 class PersonalNumberFieldTest(StandardFieldTest, utils.TestCase):
 
-    FIELD_CTOR = _field.PersonalNumberField
-    FIELD_NAME = u'sigpersnr'
+    FIELD_NAME = SFT.personal_number
 
 
 class CompanyNameFieldTest(StandardFieldTest, utils.TestCase):
 
-    FIELD_CTOR = _field.CompanyNameField
-    FIELD_NAME = u'sigco'
-
-    def test_obligatory_default(self):
-        f = self.f()
-        self.assertFalse(f.obligatory)
+    FIELD_NAME = SFT.company_name
 
 
 class CompanyNumberFieldTest(StandardFieldTest, utils.TestCase):
 
-    FIELD_CTOR = _field.CompanyNumberField
-    FIELD_NAME = u'sigcompnr'
+    FIELD_NAME = SFT.company_number
 
 
 class CustomFieldTest(FieldTest, utils.TestCase):

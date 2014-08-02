@@ -1,6 +1,7 @@
 * field
-** type, name in some Field subclasses could be class params
-** maybe get rid of type getter? (it should be synonymous with its class)
+** hold standard field type internally in field as standardfieldtype
+** hold fields as real fields, not _json
+* hide JSONEncoder better in ScriveObject
 * write tests for every field type
 ** abstract a test for a simple field
 * PositiveInt could also accept floats

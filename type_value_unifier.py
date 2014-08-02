@@ -85,8 +85,10 @@ class EnumTypeValueUnifier(TypeValueUnifier):
         super(EnumTypeValueUnifier, self).type_check()
 
 
-def instance(class_):
-    class InstanceTypeValueUnifier(TypeValueUnifier):
+def instance(class_, enum=False):
+    base = EnumTypeValueUnifier if enum else TypeValueUnifier
+
+    class InstanceTypeValueUnifier(base):
         TYPES = (class_,)
 
     return InstanceTypeValueUnifier
