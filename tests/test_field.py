@@ -120,34 +120,34 @@ class FieldTest(object):
 
         # check default ctor value
         f = self.f()
-        self.assertEqual(set([]), set(f.placements()))
+        self.assertEqual(set([]), set(f.placements))
 
         f = self.f(placements=set([self.fp]))
-        self.assertEqual(set([self.fp]), set(f.placements()))
+        self.assertEqual(set([self.fp]), set(f.placements))
 
         with self.assertRaises(TypeError, u'placements must be set, not 1'):
-            f.set_placements(1)
+            f.placements = 1
 
         err_msg = u'placements must be set of FieldPlacement objects, ' + \
             u'not: set([1])'
         with self.assertRaises(ValueError, err_msg):
-            f.set_placements(set([1]))
+            f.placements = set([1])
 
-        f.set_placements(set([self.fp2]))
-        self.assertEqual(set([self.fp2]), set(f.placements()))
+        f.placements = set([self.fp2])
+        self.assertEqual(set([self.fp2]), set(f.placements))
 
         self.assertEqual([self.fp2], f._to_json_obj()[u'placements'])
 
         f._set_read_only()
-        self.assertEqual(set([self.fp2]), set(f.placements()))
+        self.assertEqual(set([self.fp2]), set(f.placements))
         with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
-            f.set_placements(set([self.fp]))
+            f.placements = set([self.fp])
 
         f._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            f.placements()
+            f.placements
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            f.set_placements(set([self.fp]))
+            f.placements = set([self.fp])
 
     def test_default_placement_tip(self):
         f = self.f()
@@ -220,7 +220,7 @@ class FieldTest(object):
         f1 = self.f()
         f1._placements.add(1)
         f2 = self.f()
-        self.assertEqual(set(), set(f2.placements()))
+        self.assertEqual(set(), set(f2.placements))
 
 
 class StandardFieldTest(FieldTest):
@@ -263,7 +263,7 @@ class StandardFieldTest(FieldTest):
         self.assertEqual(f.should_be_filled_by_sender, False)
 
         self.assertEqual(sorted([fp._to_json_obj()
-                                 for fp in f.placements()]),
+                                 for fp in f.placements]),
                          sorted([self.fp._to_json_obj(),
                                  self.fp2._to_json_obj()]))
 
@@ -365,7 +365,7 @@ class CustomFieldTest(FieldTest, utils.TestCase):
         self.assertEqual(f.should_be_filled_by_sender, False)
 
         self.assertEqual(sorted([fp._to_json_obj()
-                                 for fp in f.placements()]),
+                                 for fp in f.placements]),
                          sorted([self.fp._to_json_obj(),
                                  self.fp2._to_json_obj()]))
 
@@ -440,7 +440,7 @@ class SignatureFieldTest(FieldTest, utils.TestCase):
         self.assertEqual(f.should_be_filled_by_sender, False)
 
         self.assertEqual(sorted([fp._to_json_obj()
-                                 for fp in f.placements()]),
+                                 for fp in f.placements]),
                          sorted([self.fp._to_json_obj(),
                                  self.fp2._to_json_obj()]))
 
@@ -536,7 +536,7 @@ class CheckboxFieldTest(FieldTest, utils.TestCase):
         self.assertEqual(f.should_be_filled_by_sender, False)
 
         self.assertEqual(sorted([fp._to_json_obj()
-                                 for fp in f.placements()]),
+                                 for fp in f.placements]),
                          sorted([self.fp._to_json_obj(),
                                  self.fp2._to_json_obj()]))
 

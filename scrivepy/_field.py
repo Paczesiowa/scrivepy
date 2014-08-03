@@ -69,7 +69,7 @@ class Field(_object.ScriveObject):
 
             field.obligatory = obligatory
             field.should_be_filled_by_sender = should_be_filled_by_sender
-            field.set_placements(placements)
+            field.placements = placements
             if isinstance(closed, (bool, type(None))):
                 field._closed = closed
             else:
@@ -80,17 +80,17 @@ class Field(_object.ScriveObject):
 
     def _set_invalid(self):
         # invalidate placements first, before getter stops working
-        for placement in self.placements():
+        for placement in self.placements:
             placement._set_invalid()
         super(Field, self)._set_invalid()
 
     def _set_read_only(self):
         super(Field, self)._set_read_only()
-        for placement in self.placements():
+        for placement in self.placements:
             placement._set_read_only()
 
     def _to_json_obj(self):
-        for placement in self.placements():
+        for placement in self.placements:
             placement._resolve_default_tip(self._default_placement_tip)
         return {u'name': self.name,
                 u'obligatory': self.obligatory,
@@ -98,7 +98,7 @@ class Field(_object.ScriveObject):
                 u'type': self.type,
                 # checkbox stores different type than getter returns
                 u'value': self._value,
-                u'placements': list(self.placements())}
+                u'placements': list(self.placements)}
 
     @scrive_property
     def type(self):
@@ -139,13 +139,13 @@ class Field(_object.ScriveObject):
     def should_be_filled_by_sender(self, should_be_filled_by_sender):
         self._should_be_filled_by_sender = should_be_filled_by_sender
 
+    @scrive_property
     def placements(self):
-        self._check_getter()
         return iter(self._placements)
 
+    @placements.setter
     @tvu.validate_and_unify(placements=PlacementSet)
-    def set_placements(self, placements):
-        self._check_setter()
+    def placements(self, placements):
         self._placements = set(placements)
 
 

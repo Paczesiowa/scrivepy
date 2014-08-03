@@ -1,4 +1,3 @@
-* turn back placements into a property
 * add field_handler
 * from_json should trigger read_only
 * write a signatory.py
