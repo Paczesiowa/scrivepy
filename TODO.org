@@ -1,9 +1,8 @@
+* write a signatory.py
+** setup a basic test infrastracture
+** fields
 * add field_handler
 * from_json should trigger read_only
-* write a signatory.py
-** fields
-** _from_json()
-** getters/setters
 * write a documentation from code and get someone from scrive to review it
 * write a document.py
 * update __init__.py
