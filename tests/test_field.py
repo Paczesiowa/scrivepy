@@ -201,21 +201,6 @@ class FieldTest(object):
         self.assertRaises(_exceptions.InvalidScriveObject, None,
                           fp2._check_setter)
 
-    def test_to_json_obj(self):
-        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
-                page=6, tip=None)
-
-        f = self.f(value=u'foo', obligatory=False,
-                   should_be_filled_by_sender=True, placements=set([fp]))
-
-        json = {u'value': u'foo',
-                u'obligatory': False,
-                u'shouldbefilledbysender': True,
-                u'placements': [fp]}
-
-        self.assertEqual(json, f._to_json_obj())
-        self.assertEqual(fp.tip, TS.right_tip)
-
     def test_modification_of_default_placements_value(self):
         f1 = self.f()
         f1._placements.add(1)
