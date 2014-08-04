@@ -69,23 +69,56 @@ import type_value_unifier as tvu
 
 # id, it's present in output, no point in sending it back in update(), should be immutable
 
+
+scrive_property = _object.scrive_property
+
+
+class FieldSet(tvu.TypeValueUnifier):
+
+    TYPES = (set,)
+
+    def validate(self, value):
+        for elem in value:
+            if not isinstance(elem, _field.Field):
+                self.error(u'set of Field objects')
+
+
 class Signatory(_object.ScriveObject):
 
-    def __init__(self):
+    @tvu.validate_and_unify(fields=FieldSet)
+    def __init__(self, fields=set()):
         super(Signatory, self).__init__()
+        self._fields = set(fields)
 
     @classmethod
     def _from_json_obj(cls, json):
         try:
-            return Signatory()
+            fields = \
+                set([_field.Field._from_json_obj(field_json)
+                     for field_json in json[u'fields']])
+            return Signatory(fields=fields)
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
 
     def _set_invalid(self):
+        # invalidate fields first, before getter stops working
+        for field in self.fields:
+            field._set_invalid()
         super(Signatory, self)._set_invalid()
 
     def _set_read_only(self):
         super(Signatory, self)._set_read_only()
+        for field in self.fields:
+            field._set_read_only()
 
     def _to_json_obj(self):
-        return {}
+        return {u'fields': list(self.fields)}
+
+    @scrive_property
+    def fields(self):
+        return iter(self._fields)
+
+    @fields.setter
+    @tvu.validate_and_unify(fields=FieldSet)
+    def fields(self, fields):
+        self._fields = set(fields)

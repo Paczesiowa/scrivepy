@@ -1,6 +1,33 @@
 * write a signatory.py
-** setup a basic test infrastracture
-** fields
+** attributes
+*** id
+*** current
+*** signorder
+*** undeliveredInvitation
+*** undeliveredMailInvitation
+*** undeliveredSMSInvitation
+*** deliveredInvitation
+*** delivery
+*** confirmationdelivery
+*** signs
+*** author
+*** saved
+*** datamismatch
+*** signdate
+*** seendate
+*** readdate
+*** rejecteddate
+*** rejectionreason
+*** status
+*** attachments
+*** csv
+*** inpadqueue
+*** userid
+*** signsuccessredirect
+*** rejectredirect
+*** authentication
+*** signlink
+* FieldSet could be a different collection
 * add field_handler
 * from_json should trigger read_only
 * write a documentation from code and get someone from scrive to review it
