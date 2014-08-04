@@ -89,14 +89,18 @@ class Signatory(_object.ScriveObject):
     def __init__(self, fields=set()):
         super(Signatory, self).__init__()
         self._fields = set(fields)
+        self._id = None
 
     @classmethod
     def _from_json_obj(cls, json):
         try:
+            id_ = json[u'id']
             fields = \
                 set([_field.Field._from_json_obj(field_json)
                      for field_json in json[u'fields']])
-            return Signatory(fields=fields)
+            signatory = Signatory(fields=fields)
+            signatory._id = id_
+            return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
 
@@ -122,3 +126,7 @@ class Signatory(_object.ScriveObject):
     @tvu.validate_and_unify(fields=FieldSet)
     def fields(self, fields):
         self._fields = set(fields)
+
+    @scrive_property
+    def id(self):
+        return self._id

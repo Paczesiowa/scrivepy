@@ -1,5 +1,6 @@
 import json
 
+import type_value_unifier as tvu
 from scrivepy import _exceptions
 
 
@@ -61,3 +62,8 @@ class scrive_property(property):
         fget = _scrive_method_wrap(fget, '_check_getter')
         fset = _scrive_method_wrap(fset, '_check_setter')
         super(scrive_property, self).__init__(fget, fset, fdel, doc)
+
+
+class ID(tvu.TypeValueUnifier):
+
+    TYPES = (unicode,)

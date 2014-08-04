@@ -59,6 +59,18 @@ class SignatoryTest(utils.TestCase):
 
         self.assertEqual(json, s._to_json_obj())
 
+    def test_from_json_obj(self):
+        json = {u'id': u'123abc',
+                u'fields': [self.f1._to_json_obj(),
+                            self.f2._to_json_obj()]}
+        s = S._from_json_obj(json)
+        self.assertEqual(s.id, u'123abc')
+
+        self.assertEqual(sorted([f._to_json_obj()
+                                 for f in s.fields]),
+                         sorted([self.f1._to_json_obj(),
+                                 self.f2._to_json_obj()]))
+
     def test_modification_of_default_placements_value(self):
         s1 = self.s()
         s1._fields.add(1)
@@ -105,3 +117,14 @@ class SignatoryTest(utils.TestCase):
             f.fields
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             f.fields = set([self.f1])
+
+    def test_id(self):
+        s = self.s()
+        self.assertIsNone(s.id)
+
+        s._set_read_only()
+        self.assertIsNone(s.id)
+
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.id
