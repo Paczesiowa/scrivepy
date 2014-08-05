@@ -1,6 +1,5 @@
 from scrivepy import _object, _field, _exceptions
 import type_value_unifier as tvu
-    # J.value "signorder" $ unSignOrder $ signatorysignorder siglink
     # J.value "undeliveredInvitation" $ Undelivered == mailinvitationdeliverystatus siglink || Undelivered == smsinvitationdeliverystatus siglink
     # J.value "undeliveredMailInvitation" $ Undelivered == mailinvitationdeliverystatus siglink
     # J.value "undeliveredSMSInvitation" $  Undelivered == smsinvitationdeliverystatus siglink
@@ -35,7 +34,6 @@ import type_value_unifier as tvu
 #         author <- fromJSValueField "author"
 #         signs  <- fromJSValueField "signs"
 #         mfields <- fromJSValueFieldCustom "fields" (fromJSValueManyWithUpdate $ fromMaybe [] (signatoryfields <$> ms))
-#         signorder <- fromJSValueField "signorder"
 #         attachments <- fromJSValueField "attachments"
 #         (csv :: Maybe (Maybe CSVUpload)) <- fromJSValueField "csv"
 #         (sredirecturl :: Maybe (Maybe String)) <- fromJSValueField "signsuccessredirect"
@@ -80,12 +78,13 @@ class FieldSet(tvu.TypeValueUnifier):
 
 class Signatory(_object.ScriveObject):
 
-    @tvu.validate_and_unify(fields=FieldSet)
-    def __init__(self, fields=set()):
+    @tvu.validate_and_unify(fields=FieldSet, sign_order=tvu.PositiveInt)
+    def __init__(self, fields=set(), sign_order=1):
         super(Signatory, self).__init__()
         self._fields = set(fields)
         self._id = None
         self._current = None
+        self._sign_order = sign_order
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -93,7 +92,8 @@ class Signatory(_object.ScriveObject):
             fields = \
                 set([_field.Field._from_json_obj(field_json)
                      for field_json in json[u'fields']])
-            signatory = Signatory(fields=fields)
+            sign_order = json[u'signorder']
+            signatory = Signatory(fields=fields, sign_order=sign_order)
             signatory._id = json[u'id']
             signatory._current = json[u'current']
             return signatory
@@ -112,7 +112,8 @@ class Signatory(_object.ScriveObject):
             field._set_read_only()
 
     def _to_json_obj(self):
-        return {u'fields': list(self.fields)}
+        return {u'fields': list(self.fields),
+                u'signorder': self.sign_order}
 
     @scrive_property
     def fields(self):
@@ -130,3 +131,12 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def current(self):
         return self._current
+
+    @scrive_property
+    def sign_order(self):
+        return self._sign_order
+
+    @sign_order.setter
+    @tvu.validate_and_unify(sign_order=tvu.PositiveInt)
+    def sign_order(self, sign_order):
+        self._sign_order = sign_order

@@ -18,20 +18,6 @@ class Ratio(tvu.TypeValueUnifier):
             self.error(u'in the <0,1> range (inclusive)')
 
 
-class PositiveInt(tvu.TypeValueUnifier):
-
-    TYPES = (int, float)
-
-    def unify(self, value):
-        if isinstance(value, float) and round(value) != value:
-            self.error(u'a round integer')
-        return int(value)
-
-    def validate(self, value):
-        if value < 1:
-            self.error(u'a positive integer')
-
-
 class TipSide(unicode, enum.Enum):
     left_tip = u'left'
     right_tip = u'right'
@@ -50,8 +36,8 @@ class FieldPlacement(_object.ScriveObject):
     FONT_SIZE_HUGE = 24. / 943.
 
     @tvu.validate_and_unify(left=Ratio, top=Ratio, width=Ratio,
-                            height=Ratio, font_size=Ratio, page=PositiveInt,
-                            tip=MaybeTipSide)
+                            height=Ratio, font_size=Ratio,
+                            page=tvu.PositiveInt, tip=MaybeTipSide)
     def __init__(self, left, top, width, height,
                  font_size=FONT_SIZE_NORMAL, page=1, tip=None):
         super(FieldPlacement, self).__init__()
@@ -138,7 +124,7 @@ class FieldPlacement(_object.ScriveObject):
         return self._page
 
     @page.setter
-    @tvu.validate_and_unify(page=PositiveInt)
+    @tvu.validate_and_unify(page=tvu.PositiveInt)
     def page(self, page):
         self._page = page
 

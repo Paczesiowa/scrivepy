@@ -92,3 +92,17 @@ def instance(class_, enum=False):
         TYPES = (class_,)
 
     return InstanceTypeValueUnifier
+
+
+class PositiveInt(TypeValueUnifier):
+
+    TYPES = (int, float)
+
+    def unify(self, value):
+        if isinstance(value, float) and round(value) != value:
+            self.error(u'a round integer')
+        return int(value)
+
+    def validate(self, value):
+        if value < 1:
+            self.error(u'a positive integer')

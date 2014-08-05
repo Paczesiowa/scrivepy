@@ -53,20 +53,23 @@ class SignatoryTest(utils.TestCase):
                           f2._check_setter)
 
     def test_to_json_obj(self):
-        s = self.s(fields=set([self.f1]))
+        s = self.s(fields=set([self.f1]), sign_order=2)
 
-        json = {u'fields': [self.f1]}
+        json = {u'fields': [self.f1],
+                u'signorder': 2}
 
         self.assertEqual(json, s._to_json_obj())
 
     def test_from_json_obj(self):
         json = {u'id': u'123abc',
                 u'current': True,
+                u'signorder': 3,
                 u'fields': [self.f1._to_json_obj(),
                             self.f2._to_json_obj()]}
         s = S._from_json_obj(json)
         self.assertEqual(s.id, u'123abc')
         self.assertEqual(s.current, True)
+        self.assertEqual(s.sign_order, 3)
 
         self.assertEqual(sorted([f._to_json_obj()
                                  for f in s.fields]),
@@ -141,3 +144,57 @@ class SignatoryTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             s.current
+
+    def test_sign_order(self):
+        with self.assertRaises(TypeError,
+                               u'sign_order must be int or float, not []'):
+            self.s(sign_order=[])
+
+        err_msg = u'sign_order must be a positive integer, not: 0'
+        with self.assertRaises(ValueError, err_msg):
+            self.s(sign_order=0)
+
+        err_msg = u'sign_order must be a round integer, not: 1.1'
+        with self.assertRaises(ValueError, err_msg):
+            self.s(sign_order=1.1)
+
+        # check default ctor value
+        s = self.s()
+        self.assertEqual(1, s.sign_order)
+
+        s = self.s(sign_order=8.)
+        self.assertEqual(8, s.sign_order)
+
+        s = self.s(sign_order=2)
+        self.assertEqual(2, s.sign_order)
+
+        with self.assertRaises(TypeError,
+                               u'sign_order must be int or float, not []'):
+            s.sign_order = []
+
+        err_msg = u'sign_order must be a positive integer, not: 0'
+        with self.assertRaises(ValueError, err_msg):
+            s.sign_order = 0
+
+        err_msg = u'sign_order must be a round integer, not: 1.1'
+        with self.assertRaises(ValueError, err_msg):
+            s.sign_order = 1.1
+
+        s.sign_order = 8.
+        self.assertEqual(8, s.sign_order)
+
+        s.sign_order = 3
+        self.assertEqual(3, s.sign_order)
+
+        self.assertEqual(3, s._to_json_obj()[u'signorder'])
+
+        s._set_read_only()
+        self.assertEqual(3, s.sign_order)
+        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+            s.sign_order = 4
+
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.sign_order
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.sign_order = 4

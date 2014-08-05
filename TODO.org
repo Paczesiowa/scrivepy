@@ -1,6 +1,5 @@
 * write a signatory.py
 ** attributes
-*** signorder
 *** undeliveredInvitation
 *** undeliveredMailInvitation
 *** undeliveredSMSInvitation
