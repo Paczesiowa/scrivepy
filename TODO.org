@@ -1,6 +1,5 @@
 * write a signatory.py
 ** attributes
-*** current
 *** signorder
 *** undeliveredInvitation
 *** undeliveredMailInvitation
@@ -27,6 +26,7 @@
 *** authentication
 *** signlink
 * FieldSet could be a different collection
+* add tests for failing _from_json_obj()
 * add field_handler
 * from_json should trigger read_only
 * write a documentation from code and get someone from scrive to review it

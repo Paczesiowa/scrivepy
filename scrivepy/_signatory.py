@@ -1,7 +1,5 @@
 from scrivepy import _object, _field, _exceptions
 import type_value_unifier as tvu
-    # J.value "id" $ show $ signatorylinkid siglink
-    # J.value "current" $ isCurrent
     # J.value "signorder" $ unSignOrder $ signatorysignorder siglink
     # J.value "undeliveredInvitation" $ Undelivered == mailinvitationdeliverystatus siglink || Undelivered == smsinvitationdeliverystatus siglink
     # J.value "undeliveredMailInvitation" $ Undelivered == mailinvitationdeliverystatus siglink
@@ -18,7 +16,6 @@ import type_value_unifier as tvu
     # J.value "readdate" $ jsonDate $ maybereadinvite siglink
     # J.value "rejecteddate" $ jsonDate rejectedDate
     # J.value "rejectionreason" $ signatorylinkrejectionreason siglink
-    # J.value "fields" $ signatoryFieldsJSON doc siglink
     # J.value "status" $ show $ signatorylinkstatusclass siglink
     # J.objects "attachments" $ map signatoryAttachmentJSON (signatoryattachments siglink)
     # J.value "csv" $ csvcontents <$> signatorylinkcsvupload siglink
@@ -31,7 +28,6 @@ import type_value_unifier as tvu
     # when (not (isPreparation doc) && forauthor && forapi && signatorylinkdeliverymethod siglink == APIDelivery) $ do
     #     J.value "signlink" $ show $ LinkSignDoc doc siglink
     # where
-    #   isCurrent = (signatorylinkid <$> viewer) == (Just $ signatorylinkid siglink) || (forauthor &&  isAuthor siglink)
     #   rejectedDate = signatorylinkrejectiontime siglink
 
 # instance FromJSValueWithUpdate SignatoryLink where
@@ -51,7 +47,6 @@ import type_value_unifier as tvu
 #              (Just fields) -> return $ Just $ defaultValue {
 #                     signatorylinkid            = fromMaybe (unsafeSignatoryLinkID 0) (signatorylinkid <$> ms)
 #                   , signatorysignorder     = updateWithDefaultAndField (SignOrder 1) signatorysignorder (SignOrder <$> signorder)
-#                   , signatoryfields        = fields
 #                   , signatoryisauthor      = updateWithDefaultAndField False signatoryisauthor author
 #                   , signatoryispartner     = updateWithDefaultAndField False signatoryispartner signs
 #                   , signatorylinkcsvupload       = updateWithDefaultAndField Nothing signatorylinkcsvupload csv
@@ -90,16 +85,17 @@ class Signatory(_object.ScriveObject):
         super(Signatory, self).__init__()
         self._fields = set(fields)
         self._id = None
+        self._current = None
 
     @classmethod
     def _from_json_obj(cls, json):
         try:
-            id_ = json[u'id']
             fields = \
                 set([_field.Field._from_json_obj(field_json)
                      for field_json in json[u'fields']])
             signatory = Signatory(fields=fields)
-            signatory._id = id_
+            signatory._id = json[u'id']
+            signatory._current = json[u'current']
             return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -130,3 +126,7 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def id(self):
         return self._id
+
+    @scrive_property
+    def current(self):
+        return self._current
