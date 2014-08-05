@@ -1,8 +1,5 @@
 * write a signatory.py
 ** attributes
-*** undeliveredInvitation
-*** undeliveredMailInvitation
-*** undeliveredSMSInvitation
 *** deliveredInvitation
 *** delivery
 *** confirmationdelivery

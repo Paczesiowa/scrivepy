@@ -1,8 +1,5 @@
 from scrivepy import _object, _field, _exceptions
 import type_value_unifier as tvu
-    # J.value "undeliveredInvitation" $ Undelivered == mailinvitationdeliverystatus siglink || Undelivered == smsinvitationdeliverystatus siglink
-    # J.value "undeliveredMailInvitation" $ Undelivered == mailinvitationdeliverystatus siglink
-    # J.value "undeliveredSMSInvitation" $  Undelivered == smsinvitationdeliverystatus siglink
     # J.value "deliveredInvitation" $ Delivered == mailinvitationdeliverystatus siglink || Delivered == smsinvitationdeliverystatus siglink
     # J.value "delivery" $ signatorylinkdeliverymethod siglink
     # J.value "confirmationdelivery" $ signatorylinkconfirmationdeliverymethod siglink
@@ -85,6 +82,9 @@ class Signatory(_object.ScriveObject):
         self._id = None
         self._current = None
         self._sign_order = sign_order
+        self._undelivered_invitation = None
+        self._undelivered_email_invitation = None
+        self._undelivered_sms_invitation = None
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -96,6 +96,11 @@ class Signatory(_object.ScriveObject):
             signatory = Signatory(fields=fields, sign_order=sign_order)
             signatory._id = json[u'id']
             signatory._current = json[u'current']
+            signatory._undelivered_invitation = json[u'undeliveredInvitation']
+            signatory._undelivered_email_invitation = \
+                json[u'undeliveredMailInvitation']
+            signatory._undelivered_sms_invitation = \
+                json[u'undeliveredSMSInvitation']
             return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -140,3 +145,15 @@ class Signatory(_object.ScriveObject):
     @tvu.validate_and_unify(sign_order=tvu.PositiveInt)
     def sign_order(self, sign_order):
         self._sign_order = sign_order
+
+    @scrive_property
+    def undelivered_invitation(self):
+        return self._undelivered_invitation
+
+    @scrive_property
+    def undelivered_email_invitation(self):
+        return self._undelivered_email_invitation
+
+    @scrive_property
+    def undelivered_sms_invitation(self):
+        return self._undelivered_sms_invitation

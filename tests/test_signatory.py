@@ -64,12 +64,18 @@ class SignatoryTest(utils.TestCase):
         json = {u'id': u'123abc',
                 u'current': True,
                 u'signorder': 3,
+                u'undeliveredInvitation': True,
+                u'undeliveredMailInvitation': False,
+                u'undeliveredSMSInvitation': True,
                 u'fields': [self.f1._to_json_obj(),
                             self.f2._to_json_obj()]}
         s = S._from_json_obj(json)
         self.assertEqual(s.id, u'123abc')
         self.assertEqual(s.current, True)
         self.assertEqual(s.sign_order, 3)
+        self.assertEqual(s.undelivered_invitation, True)
+        self.assertEqual(s.undelivered_email_invitation, False)
+        self.assertEqual(s.undelivered_sms_invitation, True)
 
         self.assertEqual(sorted([f._to_json_obj()
                                  for f in s.fields]),
@@ -198,3 +204,36 @@ class SignatoryTest(utils.TestCase):
             s.sign_order
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             s.sign_order = 4
+
+    def test_undelivered_invitation(self):
+        s = self.s()
+        self.assertIsNone(s.undelivered_invitation)
+
+        s._set_read_only()
+        self.assertIsNone(s.undelivered_invitation)
+
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.undelivered_invitation
+
+    def test_undelivered_email_invitation(self):
+        s = self.s()
+        self.assertIsNone(s.undelivered_email_invitation)
+
+        s._set_read_only()
+        self.assertIsNone(s.undelivered_email_invitation)
+
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.undelivered_email_invitation
+
+    def test_undelivered_sms_invitation(self):
+        s = self.s()
+        self.assertIsNone(s.undelivered_sms_invitation)
+
+        s._set_read_only()
+        self.assertIsNone(s.undelivered_sms_invitation)
+
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.undelivered_sms_invitation
