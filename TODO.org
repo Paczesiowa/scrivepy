@@ -1,6 +1,5 @@
 * write a signatory.py
 ** attributes
-*** deliveredInvitation
 *** delivery
 *** confirmationdelivery
 *** signs

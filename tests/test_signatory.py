@@ -67,6 +67,7 @@ class SignatoryTest(utils.TestCase):
                 u'undeliveredInvitation': True,
                 u'undeliveredMailInvitation': False,
                 u'undeliveredSMSInvitation': True,
+                u'deliveredInvitation': False,
                 u'fields': [self.f1._to_json_obj(),
                             self.f2._to_json_obj()]}
         s = S._from_json_obj(json)
@@ -76,6 +77,7 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(s.undelivered_invitation, True)
         self.assertEqual(s.undelivered_email_invitation, False)
         self.assertEqual(s.undelivered_sms_invitation, True)
+        self.assertEqual(s.delivered_invitation, False)
 
         self.assertEqual(sorted([f._to_json_obj()
                                  for f in s.fields]),
@@ -237,3 +239,14 @@ class SignatoryTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             s.undelivered_sms_invitation
+
+    def test_delivered_invitation(self):
+        s = self.s()
+        self.assertIsNone(s.delivered_invitation)
+
+        s._set_read_only()
+        self.assertIsNone(s.delivered_invitation)
+
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.delivered_invitation

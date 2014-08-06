@@ -1,6 +1,5 @@
 from scrivepy import _object, _field, _exceptions
 import type_value_unifier as tvu
-    # J.value "deliveredInvitation" $ Delivered == mailinvitationdeliverystatus siglink || Delivered == smsinvitationdeliverystatus siglink
     # J.value "delivery" $ signatorylinkdeliverymethod siglink
     # J.value "confirmationdelivery" $ signatorylinkconfirmationdeliverymethod siglink
     # J.value "signs" $ isSignatory siglink
@@ -85,6 +84,7 @@ class Signatory(_object.ScriveObject):
         self._undelivered_invitation = None
         self._undelivered_email_invitation = None
         self._undelivered_sms_invitation = None
+        self._delivered_invitation = None
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -101,6 +101,8 @@ class Signatory(_object.ScriveObject):
                 json[u'undeliveredMailInvitation']
             signatory._undelivered_sms_invitation = \
                 json[u'undeliveredSMSInvitation']
+            signatory._delivered_invitation = \
+                json[u'deliveredInvitation']
             return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -157,3 +159,7 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def undelivered_sms_invitation(self):
         return self._undelivered_sms_invitation
+
+    @scrive_property
+    def delivered_invitation(self):
+        return self._delivered_invitation
