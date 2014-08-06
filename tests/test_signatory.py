@@ -3,6 +3,7 @@ from tests import utils
 
 
 S = _signatory.Signatory
+IDM = _signatory.InvitationDeliveryMethod
 F = _field
 
 
@@ -53,10 +54,12 @@ class SignatoryTest(utils.TestCase):
                           f2._check_setter)
 
     def test_to_json_obj(self):
-        s = self.s(fields=set([self.f1]), sign_order=2)
+        s = self.s(fields=set([self.f1]), sign_order=2,
+                   invitation_delivery_method='api')
 
         json = {u'fields': [self.f1],
-                u'signorder': 2}
+                u'signorder': 2,
+                u'delivery': u'api'}
 
         self.assertEqual(json, s._to_json_obj())
 
@@ -68,6 +71,7 @@ class SignatoryTest(utils.TestCase):
                 u'undeliveredMailInvitation': False,
                 u'undeliveredSMSInvitation': True,
                 u'deliveredInvitation': False,
+                u'delivery': u'email_mobile',
                 u'fields': [self.f1._to_json_obj(),
                             self.f2._to_json_obj()]}
         s = S._from_json_obj(json)
@@ -78,6 +82,7 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(s.undelivered_email_invitation, False)
         self.assertEqual(s.undelivered_sms_invitation, True)
         self.assertEqual(s.delivered_invitation, False)
+        self.assertEqual(s.invitation_delivery_method, IDM.email_and_mobile)
 
         self.assertEqual(sorted([f._to_json_obj()
                                  for f in s.fields]),
@@ -250,3 +255,40 @@ class SignatoryTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             s.delivered_invitation
+
+    def test_invitation_delivery_method(self):
+        err_msg = u'invitation_delivery_method must be ' + \
+            u'InvitationDeliveryMethod, not {}'
+        with self.assertRaises(TypeError, err_msg):
+            self.s(invitation_delivery_method={})
+
+        err_msg = u'invitation_delivery_method could be ' + \
+            u"InvitationDeliveryMethod's variant name, not: wrong"
+        with self.assertRaises(ValueError, err_msg):
+            self.s(invitation_delivery_method='wrong')
+
+        # check default ctor value
+        s = self.s()
+        self.assertEqual(IDM.email, s.invitation_delivery_method)
+
+        s = self.s(invitation_delivery_method='email_and_mobile')
+        self.assertEqual(IDM.email_and_mobile, s.invitation_delivery_method)
+
+        s = self.s(invitation_delivery_method=IDM.mobile)
+        self.assertEqual(IDM.mobile, s.invitation_delivery_method)
+
+        err_msg = u'invitation_delivery_method must be ' + \
+            u'InvitationDeliveryMethod, not 0'
+        with self.assertRaises(TypeError, err_msg):
+            s.invitation_delivery_method = 0
+
+        self.assertEqual(u'mobile', s._to_json_obj()[u'delivery'])
+
+        s.invitation_delivery_method = IDM.pad
+        self.assertEqual(IDM.pad, s.invitation_delivery_method)
+        self.assertEqual(u'pad', s._to_json_obj()[u'delivery'])
+
+        s.invitation_delivery_method = IDM.email_and_mobile
+        self.assertEqual(IDM.email_and_mobile, s.invitation_delivery_method)
+
+        self.assertEqual(u'email_mobile', s._to_json_obj()[u'delivery'])

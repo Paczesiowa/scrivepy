@@ -1,6 +1,6 @@
 from scrivepy import _object, _field, _exceptions
+import enum
 import type_value_unifier as tvu
-    # J.value "delivery" $ signatorylinkdeliverymethod siglink
     # J.value "confirmationdelivery" $ signatorylinkconfirmationdeliverymethod siglink
     # J.value "signs" $ isSignatory siglink
     # J.value "author" $ isAuthor siglink
@@ -48,7 +48,6 @@ import type_value_unifier as tvu
 #                   , signatorylinksignredirecturl = updateWithDefaultAndField Nothing signatorylinksignredirecturl sredirecturl
 #                   , signatorylinkrejectredirecturl = updateWithDefaultAndField Nothing signatorylinkrejectredirecturl rredirecturl
 #                   , signatorylinkauthenticationmethod = updateWithDefaultAndField StandardAuthentication signatorylinkauthenticationmethod authentication'
-#                   , signatorylinkdeliverymethod       = updateWithDefaultAndField EmailDelivery signatorylinkdeliverymethod delivery'
 #                   , signatorylinkconfirmationdeliverymethod = updateWithDefaultAndField EmailConfirmationDelivery signatorylinkconfirmationdeliverymethod confirmationdelivery'
 #                 }
 #              _ -> return Nothing
@@ -72,10 +71,24 @@ class FieldSet(tvu.TypeValueUnifier):
                 self.error(u'set of Field objects')
 
 
+class InvitationDeliveryMethod(unicode, enum.Enum):
+    email = u'email'
+    pad = u'pad'
+    api = u'api'
+    mobile = u'mobile'
+    email_and_mobile = u'email_mobile'
+
+
+IDM = InvitationDeliveryMethod
+
+
 class Signatory(_object.ScriveObject):
 
-    @tvu.validate_and_unify(fields=FieldSet, sign_order=tvu.PositiveInt)
-    def __init__(self, fields=set(), sign_order=1):
+    @tvu.validate_and_unify(fields=FieldSet, sign_order=tvu.PositiveInt,
+                            invitation_delivery_method=
+                            tvu.instance(IDM, enum=True))
+    def __init__(self, fields=set(), sign_order=1,
+                 invitation_delivery_method=IDM.email):
         super(Signatory, self).__init__()
         self._fields = set(fields)
         self._id = None
@@ -85,6 +98,7 @@ class Signatory(_object.ScriveObject):
         self._undelivered_email_invitation = None
         self._undelivered_sms_invitation = None
         self._delivered_invitation = None
+        self._invitation_delivery_method = invitation_delivery_method
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -92,8 +106,9 @@ class Signatory(_object.ScriveObject):
             fields = \
                 set([_field.Field._from_json_obj(field_json)
                      for field_json in json[u'fields']])
-            sign_order = json[u'signorder']
-            signatory = Signatory(fields=fields, sign_order=sign_order)
+            signatory = \
+                Signatory(fields=fields, sign_order=json[u'signorder'],
+                          invitation_delivery_method=IDM(json[u'delivery']))
             signatory._id = json[u'id']
             signatory._current = json[u'current']
             signatory._undelivered_invitation = json[u'undeliveredInvitation']
@@ -120,7 +135,8 @@ class Signatory(_object.ScriveObject):
 
     def _to_json_obj(self):
         return {u'fields': list(self.fields),
-                u'signorder': self.sign_order}
+                u'signorder': self.sign_order,
+                u'delivery': self.invitation_delivery_method.value}
 
     @scrive_property
     def fields(self):
@@ -163,3 +179,13 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def delivered_invitation(self):
         return self._delivered_invitation
+
+    @scrive_property
+    def invitation_delivery_method(self):
+        return self._invitation_delivery_method
+
+    @invitation_delivery_method.setter
+    @tvu.validate_and_unify(
+        invitation_delivery_method=tvu.instance(IDM, enum=True))
+    def invitation_delivery_method(self, invitation_delivery_method):
+        self._invitation_delivery_method = invitation_delivery_method
