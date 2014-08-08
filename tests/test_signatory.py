@@ -4,6 +4,7 @@ from tests import utils
 
 S = _signatory.Signatory
 IDM = _signatory.InvitationDeliveryMethod
+CDM = _signatory.ConfirmationDeliveryMethod
 F = _field
 
 
@@ -55,11 +56,13 @@ class SignatoryTest(utils.TestCase):
 
     def test_to_json_obj(self):
         s = self.s(fields=set([self.f1]), sign_order=2,
-                   invitation_delivery_method='api')
+                   invitation_delivery_method='api',
+                   confirmation_delivery_method='none')
 
         json = {u'fields': [self.f1],
                 u'signorder': 2,
-                u'delivery': u'api'}
+                u'delivery': u'api',
+                u'confirmationdelivery': u'none'}
 
         self.assertEqual(json, s._to_json_obj())
 
@@ -72,6 +75,7 @@ class SignatoryTest(utils.TestCase):
                 u'undeliveredSMSInvitation': True,
                 u'deliveredInvitation': False,
                 u'delivery': u'email_mobile',
+                u'confirmationdelivery': u'none',
                 u'fields': [self.f1._to_json_obj(),
                             self.f2._to_json_obj()]}
         s = S._from_json_obj(json)
@@ -83,6 +87,7 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(s.undelivered_sms_invitation, True)
         self.assertEqual(s.delivered_invitation, False)
         self.assertEqual(s.invitation_delivery_method, IDM.email_and_mobile)
+        self.assertEqual(s.confirmation_delivery_method, CDM.none)
 
         self.assertEqual(sorted([f._to_json_obj()
                                  for f in s.fields]),
@@ -292,3 +297,41 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(IDM.email_and_mobile, s.invitation_delivery_method)
 
         self.assertEqual(u'email_mobile', s._to_json_obj()[u'delivery'])
+
+    def test_confirmation_delivery_method(self):
+        err_msg = u'confirmation_delivery_method must be ' + \
+            u'ConfirmationDeliveryMethod, not {}'
+        with self.assertRaises(TypeError, err_msg):
+            self.s(confirmation_delivery_method={})
+
+        err_msg = u'confirmation_delivery_method could be ' + \
+            u"ConfirmationDeliveryMethod's variant name, not: wrong"
+        with self.assertRaises(ValueError, err_msg):
+            self.s(confirmation_delivery_method='wrong')
+
+        # check default ctor value
+        s = self.s()
+        self.assertEqual(CDM.email, s.confirmation_delivery_method)
+
+        s = self.s(confirmation_delivery_method='email_and_mobile')
+        self.assertEqual(CDM.email_and_mobile, s.confirmation_delivery_method)
+
+        s = self.s(confirmation_delivery_method=CDM.mobile)
+        self.assertEqual(CDM.mobile, s.confirmation_delivery_method)
+
+        err_msg = u'confirmation_delivery_method must be ' + \
+            u'ConfirmationDeliveryMethod, not 0'
+        with self.assertRaises(TypeError, err_msg):
+            s.confirmation_delivery_method = 0
+
+        self.assertEqual(u'mobile', s._to_json_obj()[u'confirmationdelivery'])
+
+        s.confirmation_delivery_method = CDM.none
+        self.assertEqual(CDM.none, s.confirmation_delivery_method)
+        self.assertEqual(u'none', s._to_json_obj()[u'confirmationdelivery'])
+
+        s.confirmation_delivery_method = CDM.email_and_mobile
+        self.assertEqual(CDM.email_and_mobile, s.confirmation_delivery_method)
+
+        self.assertEqual(u'email_mobile',
+                         s._to_json_obj()[u'confirmationdelivery'])
