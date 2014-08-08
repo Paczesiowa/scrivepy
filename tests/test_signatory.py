@@ -57,12 +57,14 @@ class SignatoryTest(utils.TestCase):
     def test_to_json_obj(self):
         s = self.s(fields=set([self.f1]), sign_order=2,
                    invitation_delivery_method='api',
-                   confirmation_delivery_method='none')
+                   confirmation_delivery_method='none',
+                   viewer=True)
 
         json = {u'fields': [self.f1],
                 u'signorder': 2,
                 u'delivery': u'api',
-                u'confirmationdelivery': u'none'}
+                u'confirmationdelivery': u'none',
+                u'signs': False}
 
         self.assertEqual(json, s._to_json_obj())
 
@@ -76,12 +78,14 @@ class SignatoryTest(utils.TestCase):
                 u'deliveredInvitation': False,
                 u'delivery': u'email_mobile',
                 u'confirmationdelivery': u'none',
+                u'signs': True,
                 u'fields': [self.f1._to_json_obj(),
                             self.f2._to_json_obj()]}
         s = S._from_json_obj(json)
         self.assertEqual(s.id, u'123abc')
         self.assertEqual(s.current, True)
         self.assertEqual(s.sign_order, 3)
+        self.assertEqual(s.viewer, False)
         self.assertEqual(s.undelivered_invitation, True)
         self.assertEqual(s.undelivered_email_invitation, False)
         self.assertEqual(s.undelivered_sms_invitation, True)
@@ -335,3 +339,33 @@ class SignatoryTest(utils.TestCase):
 
         self.assertEqual(u'email_mobile',
                          s._to_json_obj()[u'confirmationdelivery'])
+
+    def test_viewer(self):
+        with self.assertRaises(TypeError, u'viewer must be bool, not []'):
+            self.s(viewer=[])
+
+        # check default ctor value
+        s = self.s()
+        self.assertEqual(False, s.viewer)
+
+        s = self.s(viewer=True)
+        self.assertEqual(True, s.viewer)
+
+        with self.assertRaises(TypeError, u'viewer must be bool, not []'):
+            s.viewer = []
+
+        s.viewer = False
+        self.assertEqual(False, s.viewer)
+
+        self.assertEqual(True, s._to_json_obj()[u'signs'])
+
+        s._set_read_only()
+        self.assertEqual(False, s.viewer)
+        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+            s.viewer = True
+
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.viewer
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.viewer = True

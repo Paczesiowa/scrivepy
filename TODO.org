@@ -1,6 +1,5 @@
 * write a signatory.py
 ** attributes
-*** signs
 *** author
 *** saved
 *** datamismatch
