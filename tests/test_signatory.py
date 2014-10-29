@@ -222,48 +222,27 @@ class SignatoryTest(utils.TestCase):
             s.sign_order = 4
 
     def test_undelivered_invitation(self):
-        s = self.s()
-        self.assertIsNone(s.undelivered_invitation)
-
-        s._set_read_only()
-        self.assertIsNone(s.undelivered_invitation)
-
-        s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.undelivered_invitation
+        self._test_server_field('undelivered_invitation')
 
     def test_undelivered_email_invitation(self):
-        s = self.s()
-        self.assertIsNone(s.undelivered_email_invitation)
-
-        s._set_read_only()
-        self.assertIsNone(s.undelivered_email_invitation)
-
-        s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.undelivered_email_invitation
+        self._test_server_field('undelivered_email_invitation')
 
     def test_undelivered_sms_invitation(self):
-        s = self.s()
-        self.assertIsNone(s.undelivered_sms_invitation)
-
-        s._set_read_only()
-        self.assertIsNone(s.undelivered_sms_invitation)
-
-        s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.undelivered_sms_invitation
+        self._test_server_field('undelivered_sms_invitation')
 
     def test_delivered_invitation(self):
+        self._test_server_field('delivered_invitation')
+
+    def _test_server_field(self, field_name):
         s = self.s()
-        self.assertIsNone(s.delivered_invitation)
+        self.assertIsNone(getattr(s, field_name))
 
         s._set_read_only()
-        self.assertIsNone(s.delivered_invitation)
+        self.assertIsNone(getattr(s, field_name))
 
         s._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.delivered_invitation
+            getattr(s, field_name)
 
     def test_invitation_delivery_method(self):
         self._test_field('invitation_delivery_method',
