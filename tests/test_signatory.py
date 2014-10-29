@@ -146,31 +146,17 @@ class SignatoryTest(utils.TestCase):
             f.fields = set([self.f1])
 
     def test_id(self):
-        s = self.s()
-        self.assertIsNone(s.id)
-
-        s._set_read_only()
-        self.assertIsNone(s.id)
-
-        s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.id
+        self._test_server_field('id')
 
     def test_current(self):
-        s = self.s()
-        self.assertIsNone(s.current)
-
-        s._set_read_only()
-        self.assertIsNone(s.current)
-
-        s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.current
+        self._test_server_field('current')
 
     def test_sign_order(self):
-        with self.assertRaises(TypeError,
-                               u'sign_order must be int or float, not []'):
-            self.s(sign_order=[])
+        self._test_field('sign_order',
+                         bad_value=[], correct_type='int or float',
+                         default_good_value=1,
+                         other_good_values=[(8., 8), 2],
+                         serialized_name=u'signorder')
 
         err_msg = u'sign_order must be a positive integer, not: 0'
         with self.assertRaises(ValueError, err_msg):
@@ -180,19 +166,7 @@ class SignatoryTest(utils.TestCase):
         with self.assertRaises(ValueError, err_msg):
             self.s(sign_order=1.1)
 
-        # check default ctor value
         s = self.s()
-        self.assertEqual(1, s.sign_order)
-
-        s = self.s(sign_order=8.)
-        self.assertEqual(8, s.sign_order)
-
-        s = self.s(sign_order=2)
-        self.assertEqual(2, s.sign_order)
-
-        with self.assertRaises(TypeError,
-                               u'sign_order must be int or float, not []'):
-            s.sign_order = []
 
         err_msg = u'sign_order must be a positive integer, not: 0'
         with self.assertRaises(ValueError, err_msg):
@@ -201,25 +175,6 @@ class SignatoryTest(utils.TestCase):
         err_msg = u'sign_order must be a round integer, not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             s.sign_order = 1.1
-
-        s.sign_order = 8.
-        self.assertEqual(8, s.sign_order)
-
-        s.sign_order = 3
-        self.assertEqual(3, s.sign_order)
-
-        self.assertEqual(3, s._to_json_obj()[u'signorder'])
-
-        s._set_read_only()
-        self.assertEqual(3, s.sign_order)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
-            s.sign_order = 4
-
-        s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.sign_order
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.sign_order = 4
 
     def test_undelivered_invitation(self):
         self._test_server_field('undelivered_invitation')
@@ -284,15 +239,19 @@ class SignatoryTest(utils.TestCase):
             serialized_name = field_name
         if serialized_default_good_value is None:
             serialized_default_good_value = default_good_value
+        if isinstance(correct_type, str):
+            correct_type_name = correct_type
+        else:
+            correct_type_name = correct_type.__name__
 
-        type_err_msg = (field_name + u' must be ' + correct_type.__name__ +
+        type_err_msg = (field_name + u' must be ' + correct_type_name +
                         ', not ' + str(bad_value))
         with self.assertRaises(TypeError, type_err_msg):
             self.s(**{field_name: bad_value})
 
         if bad_enum_value is not None:
             enum_type_err_msg = (field_name + u' could be ' +
-                                 correct_type.__name__ +
+                                 correct_type_name +
                                  "'s variant name, not: " + bad_enum_value)
             with self.assertRaises(ValueError, enum_type_err_msg):
                 self.s(**{field_name: bad_enum_value})
