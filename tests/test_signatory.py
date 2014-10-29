@@ -58,13 +58,14 @@ class SignatoryTest(utils.TestCase):
         s = self.s(fields=set([self.f1]), sign_order=2,
                    invitation_delivery_method='api',
                    confirmation_delivery_method='none',
-                   viewer=True)
+                   viewer=True, author=True)
 
         json = {u'fields': [self.f1],
                 u'signorder': 2,
                 u'delivery': u'api',
                 u'confirmationdelivery': u'none',
-                u'signs': False}
+                u'signs': False,
+                u'author': True}
 
         self.assertEqual(json, s._to_json_obj())
 
@@ -79,6 +80,7 @@ class SignatoryTest(utils.TestCase):
                 u'delivery': u'email_mobile',
                 u'confirmationdelivery': u'none',
                 u'signs': True,
+                u'author': True,
                 u'fields': [self.f1._to_json_obj(),
                             self.f2._to_json_obj()]}
         s = S._from_json_obj(json)
@@ -86,6 +88,7 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(s.current, True)
         self.assertEqual(s.sign_order, 3)
         self.assertEqual(s.viewer, False)
+        self.assertEqual(s.author, True)
         self.assertEqual(s.undelivered_invitation, True)
         self.assertEqual(s.undelivered_email_invitation, False)
         self.assertEqual(s.undelivered_sms_invitation, True)
@@ -289,3 +292,9 @@ class SignatoryTest(utils.TestCase):
         for good_value in other_good_values:
             with self.assertRaises(_exceptions.InvalidScriveObject, None):
                 setattr(s, field_name, good_value)
+
+    def test_author(self):
+        self._test_field('author',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=False,
+                         other_good_values=[True])

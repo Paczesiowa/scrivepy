@@ -1,7 +1,6 @@
 from scrivepy import _object, _field, _exceptions
 import enum
 import type_value_unifier as tvu
-    # J.value "author" $ isAuthor siglink
     # J.value "saved" $ isJust . maybesignatory $ siglink
     # J.value "datamismatch" $ signatorylinkelegdatamismatchmessage siglink
     # J.value "signdate" $ jsonDate $ signtime <$> maybesigninfo siglink
@@ -25,7 +24,6 @@ import type_value_unifier as tvu
 
 # instance FromJSValueWithUpdate SignatoryLink where
 #     fromJSValueWithUpdate ms = do
-#         author <- fromJSValueField "author"
 #         mfields <- fromJSValueFieldCustom "fields" (fromJSValueManyWithUpdate $ fromMaybe [] (signatoryfields <$> ms))
 #         attachments <- fromJSValueField "attachments"
 #         (csv :: Maybe (Maybe CSVUpload)) <- fromJSValueField "csv"
@@ -37,7 +35,6 @@ import type_value_unifier as tvu
 #              (Just fields) -> return $ Just $ defaultValue {
 #                     signatorylinkid            = fromMaybe (unsafeSignatoryLinkID 0) (signatorylinkid <$> ms)
 #                   , signatorysignorder     = updateWithDefaultAndField (SignOrder 1) signatorysignorder (SignOrder <$> signorder)
-#                   , signatoryisauthor      = updateWithDefaultAndField False signatoryisauthor author
 #                   , signatorylinkcsvupload       = updateWithDefaultAndField Nothing signatorylinkcsvupload csv
 #                   , signatoryattachments         = updateWithDefaultAndField [] signatoryattachments attachments
 #                   , signatorylinksignredirecturl = updateWithDefaultAndField Nothing signatorylinksignredirecturl sredirecturl
@@ -87,8 +84,9 @@ class Signatory(_object.ScriveObject):
                             tvu.instance(IDM, enum=True),
                             confirmation_delivery_method=
                             tvu.instance(CDM, enum=True),
-                            viewer=tvu.instance(bool))
-    def __init__(self, fields=set(), sign_order=1, viewer=False,
+                            viewer=tvu.instance(bool),
+                            author=tvu.instance(bool))
+    def __init__(self, fields=set(), sign_order=1, viewer=False, author=False,
                  invitation_delivery_method=IDM.email,
                  confirmation_delivery_method=CDM.email):
         super(Signatory, self).__init__()
@@ -103,6 +101,7 @@ class Signatory(_object.ScriveObject):
         self._invitation_delivery_method = invitation_delivery_method
         self._confirmation_delivery_method = confirmation_delivery_method
         self._viewer = viewer
+        self._author = author
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -115,7 +114,8 @@ class Signatory(_object.ScriveObject):
                           invitation_delivery_method=IDM(json[u'delivery']),
                           confirmation_delivery_method=CDM(
                               json[u'confirmationdelivery']),
-                          viewer=not json[u'signs'])
+                          viewer=not json[u'signs'],
+                          author=json[u'author'])
             signatory._id = json[u'id']
             signatory._current = json[u'current']
             signatory._undelivered_invitation = json[u'undeliveredInvitation']
@@ -146,7 +146,8 @@ class Signatory(_object.ScriveObject):
                 u'delivery': self.invitation_delivery_method.value,
                 u'confirmationdelivery':
                 self.confirmation_delivery_method.value,
-                u'signs': not self.viewer}
+                u'signs': not self.viewer,
+                u'author': self.author}
 
     @scrive_property
     def fields(self):
@@ -218,3 +219,12 @@ class Signatory(_object.ScriveObject):
     @tvu.validate_and_unify(viewer=tvu.instance(bool))
     def viewer(self, viewer):
         self._viewer = viewer
+
+    @scrive_property
+    def author(self):
+        return self._author
+
+    @author.setter
+    @tvu.validate_and_unify(author=tvu.instance(bool))
+    def author(self, author):
+        self._author = author
