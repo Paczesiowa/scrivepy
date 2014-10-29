@@ -341,31 +341,64 @@ class SignatoryTest(utils.TestCase):
                          s._to_json_obj()[u'confirmationdelivery'])
 
     def test_viewer(self):
-        with self.assertRaises(TypeError, u'viewer must be bool, not []'):
-            self.s(viewer=[])
+        self._test_field('viewer',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=False,
+                         other_good_values=[True],
+                         serialized_name=u'signs',
+                         serialized_default_good_value=True)
+
+    def _test_field(self, field_name, bad_value, correct_type,
+                    default_good_value, other_good_values,
+                    serialized_name=None, serialized_default_good_value=None,
+                    bad_enum_value=None):
+        if serialized_name is None:
+            serialized_name = field_name
+        if serialized_default_good_value is None:
+            serialized_default_good_value = default_good_value
+
+        type_err_msg = (field_name + u' must be ' + correct_type.__name__ +
+                        ', not ' + str(bad_value))
+        with self.assertRaises(TypeError, type_err_msg):
+            self.s(**{field_name: bad_value})
+
+        if bad_enum_value is not None:
+            enum_type_err_msg = (field_name + u' could be ' +
+                                 correct_type.__name__ +
+                                 "'s variant name, not: " + bad_enum_value)
+            with self.assertRaises(ValueError, enum_type_err_msg):
+                self.s(**{field_name: bad_enum_value})
 
         # check default ctor value
         s = self.s()
-        self.assertEqual(False, s.viewer)
+        self.assertEqual(default_good_value, getattr(s, field_name))
 
-        s = self.s(viewer=True)
-        self.assertEqual(True, s.viewer)
+        for good_value in other_good_values:
+            if isinstance(good_value, tuple):
+                good_value, unified_good_value = good_value
+            else:
+                unified_good_value = good_value
+            s = self.s(**{field_name: good_value})
+            self.assertEqual(unified_good_value, getattr(s, field_name))
 
-        with self.assertRaises(TypeError, u'viewer must be bool, not []'):
-            s.viewer = []
+        with self.assertRaises(TypeError, type_err_msg):
+            setattr(s, field_name, bad_value)
 
-        s.viewer = False
-        self.assertEqual(False, s.viewer)
+        setattr(s, field_name, default_good_value)
+        self.assertEqual(default_good_value, getattr(s, field_name))
 
-        self.assertEqual(True, s._to_json_obj()[u'signs'])
+        self.assertEqual(serialized_default_good_value,
+                         s._to_json_obj()[serialized_name])
 
         s._set_read_only()
-        self.assertEqual(False, s.viewer)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
-            s.viewer = True
+        self.assertEqual(default_good_value, getattr(s, field_name))
+        for good_value in other_good_values:
+            with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+                setattr(s, field_name, good_value)
 
         s._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.viewer
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.viewer = True
+            getattr(s, field_name)
+        for good_value in other_good_values:
+            with self.assertRaises(_exceptions.InvalidScriveObject, None):
+                setattr(s, field_name, good_value)
