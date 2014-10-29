@@ -1,7 +1,6 @@
 from scrivepy import _object, _field, _exceptions
 import enum
 import type_value_unifier as tvu
-    # J.value "datamismatch" $ signatorylinkelegdatamismatchmessage siglink
     # J.value "signdate" $ jsonDate $ signtime <$> maybesigninfo siglink
     # J.value "seendate" $ jsonDate $ signtime <$> maybeseeninfo siglink
     # J.value "readdate" $ jsonDate $ maybereadinvite siglink
@@ -102,6 +101,7 @@ class Signatory(_object.ScriveObject):
         self._confirmation_delivery_method = confirmation_delivery_method
         self._viewer = viewer
         self._author = author
+        self._eleg_mismatch_message = None
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -127,6 +127,8 @@ class Signatory(_object.ScriveObject):
                 json[u'deliveredInvitation']
             signatory._has_account = \
                 json[u'saved']
+            signatory._eleg_mismatch_message = \
+                json[u'datamismatch']
             return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -234,3 +236,7 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def has_account(self):
         return self._has_account
+
+    @scrive_property
+    def eleg_mismatch_message(self):
+        return self._eleg_mismatch_message

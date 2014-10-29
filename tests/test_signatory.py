@@ -82,6 +82,7 @@ class SignatoryTest(utils.TestCase):
                 u'signs': True,
                 u'author': True,
                 u'saved': True,
+                u'datamismatch': u'first name doesnt match',
                 u'fields': [self.f1._to_json_obj(),
                             self.f2._to_json_obj()]}
         s = S._from_json_obj(json)
@@ -95,6 +96,7 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(s.undelivered_sms_invitation, True)
         self.assertEqual(s.delivered_invitation, False)
         self.assertEqual(s.has_account, True)
+        self.assertEqual(s.eleg_mismatch_message, u'first name doesnt match')
         self.assertEqual(s.invitation_delivery_method, IDM.email_and_mobile)
         self.assertEqual(s.confirmation_delivery_method, CDM.none)
 
@@ -303,3 +305,6 @@ class SignatoryTest(utils.TestCase):
 
     def test_has_account(self):
         self._test_server_field('has_account')
+
+    def test_eleg_mismatch_message(self):
+        self._test_server_field('eleg_mismatch_message')
