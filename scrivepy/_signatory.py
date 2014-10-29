@@ -1,10 +1,7 @@
 from scrivepy import _object, _field, _exceptions
 import enum
 import type_value_unifier as tvu
-    # J.value "signdate" $ jsonDate $ signtime <$> maybesigninfo siglink
-    # J.value "seendate" $ jsonDate $ signtime <$> maybeseeninfo siglink
-    # J.value "readdate" $ jsonDate $ maybereadinvite siglink
-    # J.value "rejecteddate" $ jsonDate rejectedDate
+from dateutil import parser as dateparser
     # J.value "rejectionreason" $ signatorylinkrejectionreason siglink
     # J.value "status" $ show $ signatorylinkstatusclass siglink
     # J.objects "attachments" $ map signatoryAttachmentJSON (signatoryattachments siglink)
@@ -17,8 +14,6 @@ import type_value_unifier as tvu
 
     # when (not (isPreparation doc) && forauthor && forapi && signatorylinkdeliverymethod siglink == APIDelivery) $ do
     #     J.value "signlink" $ show $ LinkSignDoc doc siglink
-    # where
-    #   rejectedDate = signatorylinkrejectiontime siglink
 
 # instance FromJSValueWithUpdate SignatoryLink where
 #     fromJSValueWithUpdate ms = do
@@ -102,6 +97,10 @@ class Signatory(_object.ScriveObject):
         self._viewer = viewer
         self._author = author
         self._eleg_mismatch_message = None
+        self._sign_time = None
+        self._view_time = None
+        self._invitation_view_time = None
+        self._rejection_time = None
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -129,6 +128,16 @@ class Signatory(_object.ScriveObject):
                 json[u'saved']
             signatory._eleg_mismatch_message = \
                 json[u'datamismatch']
+            if json[u'signdate'] is not None:
+                signatory._sign_time = dateparser.parse(json[u'signdate'])
+            if json[u'seendate'] is not None:
+                signatory._view_time = dateparser.parse(json[u'seendate'])
+            if json[u'readdate'] is not None:
+                signatory._invitation_view_time = \
+                    dateparser.parse(json[u'readdate'])
+            if json[u'rejecteddate'] is not None:
+                signatory._rejection_time = \
+                    dateparser.parse(json[u'rejecteddate'])
             return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -240,3 +249,19 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def eleg_mismatch_message(self):
         return self._eleg_mismatch_message
+
+    @scrive_property
+    def sign_time(self):
+        return self._sign_time
+
+    @scrive_property
+    def view_time(self):
+        return self._view_time
+
+    @scrive_property
+    def invitation_view_time(self):
+        return self._invitation_view_time
+
+    @scrive_property
+    def rejection_time(self):
+        return self._rejection_time

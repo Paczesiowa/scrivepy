@@ -13,6 +13,25 @@ class SignatoryTest(utils.TestCase):
     def setUp(self):
         self.f1 = F.StandardField(name='first_name', value=u'John')
         self.f2 = F.CustomField(name=u'field', value=u'value')
+        self.json = {u'id': u'123abc',
+                     u'current': True,
+                     u'signorder': 3,
+                     u'undeliveredInvitation': True,
+                     u'undeliveredMailInvitation': False,
+                     u'undeliveredSMSInvitation': True,
+                     u'deliveredInvitation': False,
+                     u'delivery': u'email_mobile',
+                     u'confirmationdelivery': u'none',
+                     u'signs': True,
+                     u'author': True,
+                     u'saved': True,
+                     u'datamismatch': u'first name doesnt match',
+                     u'signdate': None,
+                     u'seendate': None,
+                     u'readdate': None,
+                     u'rejecteddate': None,
+                     u'fields': [self.f1._to_json_obj(),
+                                 self.f2._to_json_obj()]}
 
     def s(self, *args, **kwargs):
         return S(*args, **kwargs)
@@ -70,22 +89,7 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(json, s._to_json_obj())
 
     def test_from_json_obj(self):
-        json = {u'id': u'123abc',
-                u'current': True,
-                u'signorder': 3,
-                u'undeliveredInvitation': True,
-                u'undeliveredMailInvitation': False,
-                u'undeliveredSMSInvitation': True,
-                u'deliveredInvitation': False,
-                u'delivery': u'email_mobile',
-                u'confirmationdelivery': u'none',
-                u'signs': True,
-                u'author': True,
-                u'saved': True,
-                u'datamismatch': u'first name doesnt match',
-                u'fields': [self.f1._to_json_obj(),
-                            self.f2._to_json_obj()]}
-        s = S._from_json_obj(json)
+        s = S._from_json_obj(self.json)
         self.assertEqual(s.id, u'123abc')
         self.assertEqual(s.current, True)
         self.assertEqual(s.sign_order, 3)
@@ -99,6 +103,10 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(s.eleg_mismatch_message, u'first name doesnt match')
         self.assertEqual(s.invitation_delivery_method, IDM.email_and_mobile)
         self.assertEqual(s.confirmation_delivery_method, CDM.none)
+        self.assertEqual(s.sign_time, None)
+        self.assertEqual(s.view_time, None)
+        self.assertEqual(s.invitation_view_time, None)
+        self.assertEqual(s.rejection_time, None)
 
         self.assertEqual(sorted([f._to_json_obj()
                                  for f in s.fields]),
@@ -308,3 +316,29 @@ class SignatoryTest(utils.TestCase):
 
     def test_eleg_mismatch_message(self):
         self._test_server_field('eleg_mismatch_message')
+
+    def _test_time_field(self, field_name, serialized_field_name):
+        self._test_server_field(field_name)
+        json = dict(self.json)
+        json[serialized_field_name] = u'2014-10-29T15:40:20Z'
+        s = S._from_json_obj(json)
+        date_field = getattr(s, field_name)
+        self.assertEqual(date_field.year, 2014)
+        self.assertEqual(date_field.month, 10)
+        self.assertEqual(date_field.day, 29)
+        self.assertEqual(date_field.hour, 15)
+        self.assertEqual(date_field.minute, 40)
+        self.assertEqual(date_field.second, 20)
+        self.assertEqual(date_field.microsecond, 0)
+
+    def test_sign_time(self):
+        self._test_time_field('sign_time', u'signdate')
+
+    def test_view_time(self):
+        self._test_time_field('view_time', u'seendate')
+
+    def test_invitation_view_time(self):
+        self._test_time_field('invitation_view_time', u'readdate')
+
+    def test_rejection_time(self):
+        self._test_time_field('rejection_time', u'rejecteddate')

@@ -1,9 +1,5 @@
 * write a signatory.py
 ** attributes
-*** signdate
-*** seendate
-*** readdate
-*** rejecteddate
 *** rejectionreason
 *** status
 *** attachments
