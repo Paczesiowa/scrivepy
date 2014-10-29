@@ -1,6 +1,5 @@
 * write a signatory.py
 ** attributes
-*** saved
 *** datamismatch
 *** signdate
 *** seendate
