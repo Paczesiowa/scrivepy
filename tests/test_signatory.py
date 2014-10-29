@@ -266,79 +266,28 @@ class SignatoryTest(utils.TestCase):
             s.delivered_invitation
 
     def test_invitation_delivery_method(self):
-        err_msg = u'invitation_delivery_method must be ' + \
-            u'InvitationDeliveryMethod, not {}'
-        with self.assertRaises(TypeError, err_msg):
-            self.s(invitation_delivery_method={})
-
-        err_msg = u'invitation_delivery_method could be ' + \
-            u"InvitationDeliveryMethod's variant name, not: wrong"
-        with self.assertRaises(ValueError, err_msg):
-            self.s(invitation_delivery_method='wrong')
-
-        # check default ctor value
-        s = self.s()
-        self.assertEqual(IDM.email, s.invitation_delivery_method)
-
-        s = self.s(invitation_delivery_method='email_and_mobile')
-        self.assertEqual(IDM.email_and_mobile, s.invitation_delivery_method)
-
-        s = self.s(invitation_delivery_method=IDM.mobile)
-        self.assertEqual(IDM.mobile, s.invitation_delivery_method)
-
-        err_msg = u'invitation_delivery_method must be ' + \
-            u'InvitationDeliveryMethod, not 0'
-        with self.assertRaises(TypeError, err_msg):
-            s.invitation_delivery_method = 0
-
-        self.assertEqual(u'mobile', s._to_json_obj()[u'delivery'])
-
-        s.invitation_delivery_method = IDM.pad
-        self.assertEqual(IDM.pad, s.invitation_delivery_method)
-        self.assertEqual(u'pad', s._to_json_obj()[u'delivery'])
-
-        s.invitation_delivery_method = IDM.email_and_mobile
-        self.assertEqual(IDM.email_and_mobile, s.invitation_delivery_method)
-
-        self.assertEqual(u'email_mobile', s._to_json_obj()[u'delivery'])
+        self._test_field('invitation_delivery_method',
+                         bad_value={}, correct_type=IDM,
+                         default_good_value=IDM.email,
+                         other_good_values=[IDM.pad,
+                                            ('email_and_mobile',
+                                             IDM.email_and_mobile),
+                                            IDM.mobile],
+                         serialized_name=u'delivery',
+                         serialized_default_good_value=u'email',
+                         bad_enum_value='wrong')
 
     def test_confirmation_delivery_method(self):
-        err_msg = u'confirmation_delivery_method must be ' + \
-            u'ConfirmationDeliveryMethod, not {}'
-        with self.assertRaises(TypeError, err_msg):
-            self.s(confirmation_delivery_method={})
-
-        err_msg = u'confirmation_delivery_method could be ' + \
-            u"ConfirmationDeliveryMethod's variant name, not: wrong"
-        with self.assertRaises(ValueError, err_msg):
-            self.s(confirmation_delivery_method='wrong')
-
-        # check default ctor value
-        s = self.s()
-        self.assertEqual(CDM.email, s.confirmation_delivery_method)
-
-        s = self.s(confirmation_delivery_method='email_and_mobile')
-        self.assertEqual(CDM.email_and_mobile, s.confirmation_delivery_method)
-
-        s = self.s(confirmation_delivery_method=CDM.mobile)
-        self.assertEqual(CDM.mobile, s.confirmation_delivery_method)
-
-        err_msg = u'confirmation_delivery_method must be ' + \
-            u'ConfirmationDeliveryMethod, not 0'
-        with self.assertRaises(TypeError, err_msg):
-            s.confirmation_delivery_method = 0
-
-        self.assertEqual(u'mobile', s._to_json_obj()[u'confirmationdelivery'])
-
-        s.confirmation_delivery_method = CDM.none
-        self.assertEqual(CDM.none, s.confirmation_delivery_method)
-        self.assertEqual(u'none', s._to_json_obj()[u'confirmationdelivery'])
-
-        s.confirmation_delivery_method = CDM.email_and_mobile
-        self.assertEqual(CDM.email_and_mobile, s.confirmation_delivery_method)
-
-        self.assertEqual(u'email_mobile',
-                         s._to_json_obj()[u'confirmationdelivery'])
+        self._test_field('confirmation_delivery_method',
+                         bad_value=0, correct_type=CDM,
+                         default_good_value=CDM.email,
+                         other_good_values=[CDM.none,
+                                            ('email_and_mobile',
+                                             CDM.email_and_mobile),
+                                            CDM.mobile],
+                         serialized_name=u'confirmationdelivery',
+                         serialized_default_good_value=u'email',
+                         bad_enum_value='wrong')
 
     def test_viewer(self):
         self._test_field('viewer',
