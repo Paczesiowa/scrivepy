@@ -2,7 +2,6 @@ from scrivepy import _object, _field, _exceptions
 import enum
 import type_value_unifier as tvu
 from dateutil import parser as dateparser
-    # J.value "rejectionreason" $ signatorylinkrejectionreason siglink
     # J.value "status" $ show $ signatorylinkstatusclass siglink
     # J.objects "attachments" $ map signatoryAttachmentJSON (signatoryattachments siglink)
     # J.value "csv" $ csvcontents <$> signatorylinkcsvupload siglink
@@ -101,6 +100,7 @@ class Signatory(_object.ScriveObject):
         self._view_time = None
         self._invitation_view_time = None
         self._rejection_time = None
+        self._rejection_message = None
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -138,6 +138,7 @@ class Signatory(_object.ScriveObject):
             if json[u'rejecteddate'] is not None:
                 signatory._rejection_time = \
                     dateparser.parse(json[u'rejecteddate'])
+            signatory._rejection_message = json[u'rejectionreason']
             return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -265,3 +266,7 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def rejection_time(self):
         return self._rejection_time
+
+    @scrive_property
+    def rejection_message(self):
+        return self._rejection_message

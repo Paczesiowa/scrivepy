@@ -1,6 +1,5 @@
 * write a signatory.py
 ** attributes
-*** rejectionreason
 *** status
 *** attachments
 *** csv

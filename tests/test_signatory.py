@@ -30,6 +30,7 @@ class SignatoryTest(utils.TestCase):
                      u'seendate': None,
                      u'readdate': None,
                      u'rejecteddate': None,
+                     u'rejectionreason': u'will not sign just because',
                      u'fields': [self.f1._to_json_obj(),
                                  self.f2._to_json_obj()]}
 
@@ -107,6 +108,7 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(s.view_time, None)
         self.assertEqual(s.invitation_view_time, None)
         self.assertEqual(s.rejection_time, None)
+        self.assertEqual(s.rejection_message, u'will not sign just because')
 
         self.assertEqual(sorted([f._to_json_obj()
                                  for f in s.fields]),
@@ -342,3 +344,6 @@ class SignatoryTest(utils.TestCase):
 
     def test_rejection_time(self):
         self._test_time_field('rejection_time', u'rejecteddate')
+
+    def test_rejection_message(self):
+        self._test_server_field('rejection_message')
