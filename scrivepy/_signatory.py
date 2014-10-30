@@ -2,9 +2,6 @@ from scrivepy import _object, _field, _exceptions
 import enum
 import type_value_unifier as tvu
 from dateutil import parser as dateparser
-    # J.value "status" $ show $ signatorylinkstatusclass siglink
-    # J.objects "attachments" $ map signatoryAttachmentJSON (signatoryattachments siglink)
-    # J.value "csv" $ csvcontents <$> signatorylinkcsvupload siglink
     # J.value "inpadqueue"  $ (fmap fst pq == Just (documentid doc)) && (fmap snd pq == Just (signatorylinkid siglink))
     # J.value "userid" $ show <$> maybesignatory siglink
     # J.value "signsuccessredirect" $ signatorylinksignredirecturl siglink
@@ -17,26 +14,17 @@ from dateutil import parser as dateparser
 # instance FromJSValueWithUpdate SignatoryLink where
 #     fromJSValueWithUpdate ms = do
 #         mfields <- fromJSValueFieldCustom "fields" (fromJSValueManyWithUpdate $ fromMaybe [] (signatoryfields <$> ms))
-#         attachments <- fromJSValueField "attachments"
-#         (csv :: Maybe (Maybe CSVUpload)) <- fromJSValueField "csv"
 #         (sredirecturl :: Maybe (Maybe String)) <- fromJSValueField "signsuccessredirect"
 #         (rredirecturl :: Maybe (Maybe String)) <- fromJSValueField "rejectredirect"
 #         authentication' <-  fromJSValueField "authentication"
 #         delivery' <-  fromJSValueField "delivery"
 #         case (mfields) of
 #              (Just fields) -> return $ Just $ defaultValue {
-#                     signatorylinkid            = fromMaybe (unsafeSignatoryLinkID 0) (signatorylinkid <$> ms)
-#                   , signatorysignorder     = updateWithDefaultAndField (SignOrder 1) signatorysignorder (SignOrder <$> signorder)
-#                   , signatorylinkcsvupload       = updateWithDefaultAndField Nothing signatorylinkcsvupload csv
-#                   , signatoryattachments         = updateWithDefaultAndField [] signatoryattachments attachments
 #                   , signatorylinksignredirecturl = updateWithDefaultAndField Nothing signatorylinksignredirecturl sredirecturl
 #                   , signatorylinkrejectredirecturl = updateWithDefaultAndField Nothing signatorylinkrejectredirecturl rredirecturl
 #                   , signatorylinkauthenticationmethod = updateWithDefaultAndField StandardAuthentication signatorylinkauthenticationmethod authentication'
 #                 }
 #              _ -> return Nothing
-#       where
-#        updateWithDefaultAndField :: a -> (SignatoryLink -> a) -> Maybe a -> a
-#        updateWithDefaultAndField df uf mv = fromMaybe df (mv `mplus` (fmap uf ms))
 scrive_property = _object.scrive_property
 
 
@@ -162,6 +150,22 @@ class Signatory(_object.ScriveObject):
                 self.confirmation_delivery_method.value,
                 u'signs': not self.viewer,
                 u'author': self.author}
+
+#     @property
+#     def status(self):
+# documents.status                                == DocumentError => SCError           ~ "problem"
+# documents.status                                == Preparation   => SCDraft           ~ "draft"
+# signatory_links.sign_time                       != NULL          => SCSigned          ~ "signed"
+# documents.status                                == Canceled      => SCCancelled       ~ "cancelled"
+# documents.status                                == Timedout      => SCTimedout        ~ "timeouted"
+# documents.status                                == Rejected      => SCRejected        ~ "rejected"
+# signatory_links.seen_time                       != NULL          => SCOpened          ~ "opened"
+# signatory_links.read_invitation                 != NULL          => SCRead            ~ "read"
+# signatory_links.mail_invitation_delivery_status == Undelivered   => SCDeliveryProblem ~ "deliveryproblem"
+# signatory_links.sms_invitation_delivery_status  == Undelivered   => SCDeliveryProblem ~ "deliveryproblem"
+# signatory_links.mail_invitation_delivery_status == Delivered     => SCDelivered       ~ "delivered"
+# signatory_links.sms_invitation_delivery_status  == Delivered     => SCDelivered       ~ "delivered"
+# otherwise                                                        => SCSent            ~ "sent"
 
     @scrive_property
     def fields(self):

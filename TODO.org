@@ -1,8 +1,5 @@
 * write a signatory.py
 ** attributes
-*** status
-*** attachments
-*** csv
 *** inpadqueue
 *** userid
 *** signsuccessredirect
@@ -10,6 +7,24 @@
 *** authentication
 *** signlink
 * FieldSet could be a different collection
+* ScriveFile object
+** read only
+** should not be consturctable by users
+** id field
+** name field
+** needs a method to download target file
+** needs some access to oauth credentials
+* Signatory needs attachments field
+** research why it is updatable
+** read only set of attachments
+** attachment
+*** read only
+*** requested_name field (name requested by author)
+*** description (filled by author)
+*** ScriveFile object
+* Signatory needs a csv field
+** research update validation
+** list of lists of unicode objects
 * add tests for failing _from_json_obj()
 * add field_handler
 * from_json should trigger read_only
