@@ -106,3 +106,21 @@ class PositiveInt(TypeValueUnifier):
     def validate(self, value):
         if value < 1:
             self.error(u'a positive integer')
+
+
+def nullable(tvu):
+
+    class NullableTypeValueUnifier(tvu):
+        TYPES = tvu.TYPES + (type(None),)
+
+        def unify(self, value):
+            if value is None:
+                return value
+            return super(NullableTypeValueUnifier, self).unify(value)
+
+        def validate(self, value):
+            if value is None:
+                return
+            super(NullableTypeValueUnifier, self).validate(value)
+
+    return NullableTypeValueUnifier

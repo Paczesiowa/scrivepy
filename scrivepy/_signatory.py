@@ -2,10 +2,6 @@ from scrivepy import _object, _field, _exceptions
 import enum
 import type_value_unifier as tvu
 from dateutil import parser as dateparser
-    # J.value "inpadqueue"  $ (fmap fst pq == Just (documentid doc)) && (fmap snd pq == Just (signatorylinkid siglink))
-    # J.value "userid" $ show <$> maybesignatory siglink
-    # J.value "signsuccessredirect" $ signatorylinksignredirecturl siglink
-    # J.value "rejectredirect" $ signatorylinkrejectredirecturl siglink
     # J.value "authentication" $ authenticationJSON $ signatorylinkauthenticationmethod siglink
 
     # when (not (isPreparation doc) && forauthor && forapi && signatorylinkdeliverymethod siglink == APIDelivery) $ do
@@ -14,14 +10,10 @@ from dateutil import parser as dateparser
 # instance FromJSValueWithUpdate SignatoryLink where
 #     fromJSValueWithUpdate ms = do
 #         mfields <- fromJSValueFieldCustom "fields" (fromJSValueManyWithUpdate $ fromMaybe [] (signatoryfields <$> ms))
-#         (sredirecturl :: Maybe (Maybe String)) <- fromJSValueField "signsuccessredirect"
-#         (rredirecturl :: Maybe (Maybe String)) <- fromJSValueField "rejectredirect"
 #         authentication' <-  fromJSValueField "authentication"
 #         delivery' <-  fromJSValueField "delivery"
 #         case (mfields) of
 #              (Just fields) -> return $ Just $ defaultValue {
-#                   , signatorylinksignredirecturl = updateWithDefaultAndField Nothing signatorylinksignredirecturl sredirecturl
-#                   , signatorylinkrejectredirecturl = updateWithDefaultAndField Nothing signatorylinkrejectredirecturl rredirecturl
 #                   , signatorylinkauthenticationmethod = updateWithDefaultAndField StandardAuthentication signatorylinkauthenticationmethod authentication'
 #                 }
 #              _ -> return Nothing
@@ -56,6 +48,8 @@ class ConfirmationDeliveryMethod(unicode, enum.Enum):
 IDM = InvitationDeliveryMethod
 CDM = ConfirmationDeliveryMethod
 
+MaybeUnicode = tvu.nullable(tvu.instance(unicode))
+
 
 class Signatory(_object.ScriveObject):
 
@@ -65,10 +59,14 @@ class Signatory(_object.ScriveObject):
                             confirmation_delivery_method=
                             tvu.instance(CDM, enum=True),
                             viewer=tvu.instance(bool),
-                            author=tvu.instance(bool))
+                            author=tvu.instance(bool),
+                            sign_success_redirect_url=MaybeUnicode,
+                            rejection_redirect_url=MaybeUnicode)
     def __init__(self, fields=set(), sign_order=1, viewer=False, author=False,
                  invitation_delivery_method=IDM.email,
-                 confirmation_delivery_method=CDM.email):
+                 confirmation_delivery_method=CDM.email,
+                 sign_success_redirect_url=None,
+                 rejection_redirect_url=None):
         super(Signatory, self).__init__()
         self._fields = set(fields)
         self._id = None
@@ -89,6 +87,8 @@ class Signatory(_object.ScriveObject):
         self._invitation_view_time = None
         self._rejection_time = None
         self._rejection_message = None
+        self._sign_success_redirect_url = sign_success_redirect_url
+        self._rejection_redirect_url = rejection_redirect_url
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -102,7 +102,10 @@ class Signatory(_object.ScriveObject):
                           confirmation_delivery_method=CDM(
                               json[u'confirmationdelivery']),
                           viewer=not json[u'signs'],
-                          author=json[u'author'])
+                          author=json[u'author'],
+                          sign_success_redirect_url=
+                          json[u'signsuccessredirect'],
+                          rejection_redirect_url=json[u'rejectredirect'])
             signatory._id = json[u'id']
             signatory._current = json[u'current']
             signatory._undelivered_invitation = json[u'undeliveredInvitation']
@@ -149,7 +152,9 @@ class Signatory(_object.ScriveObject):
                 u'confirmationdelivery':
                 self.confirmation_delivery_method.value,
                 u'signs': not self.viewer,
-                u'author': self.author}
+                u'author': self.author,
+                u'signsuccessredirect': self.sign_success_redirect_url,
+                u'rejectredirect': self.rejection_redirect_url}
 
 #     @property
 #     def status(self):
@@ -274,3 +279,21 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def rejection_message(self):
         return self._rejection_message
+
+    @scrive_property
+    def sign_success_redirect_url(self):
+        return self._sign_success_redirect_url
+
+    @sign_success_redirect_url.setter
+    @tvu.validate_and_unify(sign_success_redirect_url=MaybeUnicode)
+    def sign_success_redirect_url(self, sign_success_redirect_url):
+        self._sign_success_redirect_url = sign_success_redirect_url
+
+    @scrive_property
+    def rejection_redirect_url(self):
+        return self._rejection_redirect_url
+
+    @rejection_redirect_url.setter
+    @tvu.validate_and_unify(rejection_redirect_url=MaybeUnicode)
+    def rejection_redirect_url(self, rejection_redirect_url):
+        self._rejection_redirect_url = rejection_redirect_url

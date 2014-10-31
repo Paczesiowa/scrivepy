@@ -1,9 +1,5 @@
 * write a signatory.py
 ** attributes
-*** inpadqueue
-*** userid
-*** signsuccessredirect
-*** rejectredirect
 *** authentication
 *** signlink
 * FieldSet could be a different collection
@@ -25,6 +21,8 @@
 * Signatory needs a csv field
 ** research update validation
 ** list of lists of unicode objects
+* Signatory needs a userid field
+** maybe a whole User type?
 * add tests for failing _from_json_obj()
 * add field_handler
 * from_json should trigger read_only

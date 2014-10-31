@@ -31,6 +31,8 @@ class SignatoryTest(utils.TestCase):
                      u'readdate': None,
                      u'rejecteddate': None,
                      u'rejectionreason': u'will not sign just because',
+                     u'signsuccessredirect': u'http://example.com/',
+                     u'rejectredirect': u'http://example.net/',
                      u'fields': [self.f1._to_json_obj(),
                                  self.f2._to_json_obj()]}
 
@@ -78,14 +80,18 @@ class SignatoryTest(utils.TestCase):
         s = self.s(fields=set([self.f1]), sign_order=2,
                    invitation_delivery_method='api',
                    confirmation_delivery_method='none',
-                   viewer=True, author=True)
+                   viewer=True, author=True,
+                   sign_success_redirect_url=u'http://example.com/',
+                   rejection_redirect_url=u'http://example.net/')
 
         json = {u'fields': [self.f1],
                 u'signorder': 2,
                 u'delivery': u'api',
                 u'confirmationdelivery': u'none',
                 u'signs': False,
-                u'author': True}
+                u'author': True,
+                u'signsuccessredirect': u'http://example.com/',
+                u'rejectredirect': u'http://example.net/'}
 
         self.assertEqual(json, s._to_json_obj())
 
@@ -109,6 +115,8 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(s.invitation_view_time, None)
         self.assertEqual(s.rejection_time, None)
         self.assertEqual(s.rejection_message, u'will not sign just because')
+        self.assertEqual(s.sign_success_redirect_url, u'http://example.com/')
+        self.assertEqual(s.rejection_redirect_url, u'http://example.net/')
 
         self.assertEqual(sorted([f._to_json_obj()
                                  for f in s.fields]),
@@ -347,3 +355,17 @@ class SignatoryTest(utils.TestCase):
 
     def test_rejection_message(self):
         self._test_server_field('rejection_message')
+
+    def test_sign_success_redirect_url(self):
+        self._test_field('sign_success_redirect_url',
+                         bad_value=[], correct_type='unicode or NoneType',
+                         default_good_value=None,
+                         other_good_values=[u'http://example.com/'],
+                         serialized_name=u'signsuccessredirect')
+
+    def test_rejection_redirect_url(self):
+        self._test_field('rejection_redirect_url',
+                         bad_value=[], correct_type='unicode or NoneType',
+                         default_good_value=None,
+                         other_good_values=[u'http://example.net/'],
+                         serialized_name=u'rejectredirect')
