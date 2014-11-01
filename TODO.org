@@ -1,7 +1,3 @@
-* write a signatory.py
-** attributes
-*** authentication
-*** signlink
 * FieldSet could be a different collection
 * ScriveFile object
 ** read only

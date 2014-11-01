@@ -1,22 +1,10 @@
-from scrivepy import _object, _field, _exceptions
 import enum
-import type_value_unifier as tvu
 from dateutil import parser as dateparser
-    # J.value "authentication" $ authenticationJSON $ signatorylinkauthenticationmethod siglink
 
-    # when (not (isPreparation doc) && forauthor && forapi && signatorylinkdeliverymethod siglink == APIDelivery) $ do
-    #     J.value "signlink" $ show $ LinkSignDoc doc siglink
+import type_value_unifier as tvu
+from scrivepy import _object, _field, _exceptions
 
-# instance FromJSValueWithUpdate SignatoryLink where
-#     fromJSValueWithUpdate ms = do
-#         mfields <- fromJSValueFieldCustom "fields" (fromJSValueManyWithUpdate $ fromMaybe [] (signatoryfields <$> ms))
-#         authentication' <-  fromJSValueField "authentication"
-#         delivery' <-  fromJSValueField "delivery"
-#         case (mfields) of
-#              (Just fields) -> return $ Just $ defaultValue {
-#                   , signatorylinkauthenticationmethod = updateWithDefaultAndField StandardAuthentication signatorylinkauthenticationmethod authentication'
-#                 }
-#              _ -> return Nothing
+
 scrive_property = _object.scrive_property
 
 
@@ -45,8 +33,15 @@ class ConfirmationDeliveryMethod(unicode, enum.Enum):
     none = u'none'
 
 
+class AuthenticationMethod(unicode, enum.Enum):
+    standard = u'standard'
+    eleg = u'eleg'
+    sms_pin = u'sms_pin'
+
+
 IDM = InvitationDeliveryMethod
 CDM = ConfirmationDeliveryMethod
+AM = AuthenticationMethod
 
 MaybeUnicode = tvu.nullable(tvu.instance(unicode))
 
@@ -58,6 +53,8 @@ class Signatory(_object.ScriveObject):
                             tvu.instance(IDM, enum=True),
                             confirmation_delivery_method=
                             tvu.instance(CDM, enum=True),
+                            authentication_method=
+                            tvu.instance(AM, enum=True),
                             viewer=tvu.instance(bool),
                             author=tvu.instance(bool),
                             sign_success_redirect_url=MaybeUnicode,
@@ -65,6 +62,7 @@ class Signatory(_object.ScriveObject):
     def __init__(self, fields=set(), sign_order=1, viewer=False, author=False,
                  invitation_delivery_method=IDM.email,
                  confirmation_delivery_method=CDM.email,
+                 authentication_method=AM.standard,
                  sign_success_redirect_url=None,
                  rejection_redirect_url=None):
         super(Signatory, self).__init__()
@@ -89,6 +87,8 @@ class Signatory(_object.ScriveObject):
         self._rejection_message = None
         self._sign_success_redirect_url = sign_success_redirect_url
         self._rejection_redirect_url = rejection_redirect_url
+        self._authentication_method = authentication_method
+        self._sign_url = None
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -101,6 +101,7 @@ class Signatory(_object.ScriveObject):
                           invitation_delivery_method=IDM(json[u'delivery']),
                           confirmation_delivery_method=CDM(
                               json[u'confirmationdelivery']),
+                          authentication_method=AM(json[u'authentication']),
                           viewer=not json[u'signs'],
                           author=json[u'author'],
                           sign_success_redirect_url=
@@ -130,6 +131,7 @@ class Signatory(_object.ScriveObject):
                 signatory._rejection_time = \
                     dateparser.parse(json[u'rejecteddate'])
             signatory._rejection_message = json[u'rejectionreason']
+            signatory._sign_url = json[u'signlink']
             return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -151,6 +153,7 @@ class Signatory(_object.ScriveObject):
                 u'delivery': self.invitation_delivery_method.value,
                 u'confirmationdelivery':
                 self.confirmation_delivery_method.value,
+                u'authentication': self.authentication_method.value,
                 u'signs': not self.viewer,
                 u'author': self.author,
                 u'signsuccessredirect': self.sign_success_redirect_url,
@@ -297,3 +300,17 @@ class Signatory(_object.ScriveObject):
     @tvu.validate_and_unify(rejection_redirect_url=MaybeUnicode)
     def rejection_redirect_url(self, rejection_redirect_url):
         self._rejection_redirect_url = rejection_redirect_url
+
+    @scrive_property
+    def authentication_method(self):
+        return self._authentication_method
+
+    @authentication_method.setter
+    @tvu.validate_and_unify(
+        authentication_method=tvu.instance(AM, enum=True))
+    def authentication_method(self, authentication_method):
+        self._authentication_method = authentication_method
+
+    @scrive_property
+    def sign_url(self):
+        return self._sign_url

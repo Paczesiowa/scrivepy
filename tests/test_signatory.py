@@ -5,6 +5,7 @@ from tests import utils
 S = _signatory.Signatory
 IDM = _signatory.InvitationDeliveryMethod
 CDM = _signatory.ConfirmationDeliveryMethod
+AM = _signatory.AuthenticationMethod
 F = _field
 
 
@@ -22,6 +23,7 @@ class SignatoryTest(utils.TestCase):
                      u'deliveredInvitation': False,
                      u'delivery': u'email_mobile',
                      u'confirmationdelivery': u'none',
+                     u'authentication': u'eleg',
                      u'signs': True,
                      u'author': True,
                      u'saved': True,
@@ -33,6 +35,7 @@ class SignatoryTest(utils.TestCase):
                      u'rejectionreason': u'will not sign just because',
                      u'signsuccessredirect': u'http://example.com/',
                      u'rejectredirect': u'http://example.net/',
+                     u'signlink': u'/s/1/2/3',
                      u'fields': [self.f1._to_json_obj(),
                                  self.f2._to_json_obj()]}
 
@@ -82,7 +85,8 @@ class SignatoryTest(utils.TestCase):
                    confirmation_delivery_method='none',
                    viewer=True, author=True,
                    sign_success_redirect_url=u'http://example.com/',
-                   rejection_redirect_url=u'http://example.net/')
+                   rejection_redirect_url=u'http://example.net/',
+                   authentication_method='sms_pin')
 
         json = {u'fields': [self.f1],
                 u'signorder': 2,
@@ -91,7 +95,8 @@ class SignatoryTest(utils.TestCase):
                 u'signs': False,
                 u'author': True,
                 u'signsuccessredirect': u'http://example.com/',
-                u'rejectredirect': u'http://example.net/'}
+                u'rejectredirect': u'http://example.net/',
+                u'authentication': u'sms_pin'}
 
         self.assertEqual(json, s._to_json_obj())
 
@@ -117,6 +122,8 @@ class SignatoryTest(utils.TestCase):
         self.assertEqual(s.rejection_message, u'will not sign just because')
         self.assertEqual(s.sign_success_redirect_url, u'http://example.com/')
         self.assertEqual(s.rejection_redirect_url, u'http://example.net/')
+        self.assertEqual(s.authentication_method, AM.eleg)
+        self.assertEqual(s.sign_url, u'/s/1/2/3')
 
         self.assertEqual(sorted([f._to_json_obj()
                                  for f in s.fields]),
@@ -369,3 +376,15 @@ class SignatoryTest(utils.TestCase):
                          default_good_value=None,
                          other_good_values=[u'http://example.net/'],
                          serialized_name=u'rejectredirect')
+
+    def test_authentication_method(self):
+        self._test_field('authentication_method',
+                         bad_value=0, correct_type=AM,
+                         default_good_value=AM.standard,
+                         other_good_values=[AM.eleg, ('sms_pin', AM.sms_pin)],
+                         serialized_name=u'authentication',
+                         serialized_default_good_value=u'standard',
+                         bad_enum_value='wrong')
+
+    def test_sign_url(self):
+        self._test_server_field('sign_url')
