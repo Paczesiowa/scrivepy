@@ -87,6 +87,7 @@ class SignatoryTest(utils.TestCase):
                    sign_success_redirect_url=u'http://example.com/',
                    rejection_redirect_url=u'http://example.net/',
                    authentication_method='sms_pin')
+        s._id = u'1'
 
         json = {u'fields': [self.f1],
                 u'signorder': 2,
@@ -96,7 +97,8 @@ class SignatoryTest(utils.TestCase):
                 u'author': True,
                 u'signsuccessredirect': u'http://example.com/',
                 u'rejectredirect': u'http://example.net/',
-                u'authentication': u'sms_pin'}
+                u'authentication': u'sms_pin',
+                u'id': u'1'}
 
         self.assertEqual(json, s._to_json_obj())
 
@@ -130,7 +132,7 @@ class SignatoryTest(utils.TestCase):
                          sorted([self.f1._to_json_obj(),
                                  self.f2._to_json_obj()]))
 
-    def test_modification_of_default_placements_value(self):
+    def test_modification_of_default_fields_value(self):
         s1 = self.s()
         s1._fields.add(1)
         s2 = self.s()

@@ -148,16 +148,19 @@ class Signatory(_object.ScriveObject):
             field._set_read_only()
 
     def _to_json_obj(self):
-        return {u'fields': list(self.fields),
-                u'signorder': self.sign_order,
-                u'delivery': self.invitation_delivery_method.value,
-                u'confirmationdelivery':
-                self.confirmation_delivery_method.value,
-                u'authentication': self.authentication_method.value,
-                u'signs': not self.viewer,
-                u'author': self.author,
-                u'signsuccessredirect': self.sign_success_redirect_url,
-                u'rejectredirect': self.rejection_redirect_url}
+        result = {u'fields': list(self.fields),
+                  u'signorder': self.sign_order,
+                  u'delivery': self.invitation_delivery_method.value,
+                  u'confirmationdelivery':
+                  self.confirmation_delivery_method.value,
+                  u'authentication': self.authentication_method.value,
+                  u'signs': not self.viewer,
+                  u'author': self.author,
+                  u'signsuccessredirect': self.sign_success_redirect_url,
+                  u'rejectredirect': self.rejection_redirect_url}
+        if self.id is not None:
+            result[u'id'] = self.id
+        return result
 
 #     @property
 #     def status(self):
