@@ -131,7 +131,7 @@ class Signatory(_object.ScriveObject):
                 signatory._rejection_time = \
                     dateparser.parse(json[u'rejecteddate'])
             signatory._rejection_message = json[u'rejectionreason']
-            signatory._sign_url = json[u'signlink']
+            signatory._sign_url = json.get(u'signlink')
             return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)

@@ -390,3 +390,7 @@ class SignatoryTest(utils.TestCase):
 
     def test_sign_url(self):
         self._test_server_field('sign_url')
+        json = self.json.copy()
+        del json[u'signlink']
+        s = S._from_json_obj(json)
+        self.assertIsNone(s.sign_url)
