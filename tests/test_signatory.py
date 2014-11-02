@@ -149,35 +149,35 @@ class SignatoryTest(utils.TestCase):
             self.o(fields=set([1]))
 
         # check default ctor value
-        f = self.o()
-        self.assertEqual(set([]), set(f.fields))
+        s = self.o()
+        self.assertEqual(set([]), set(s.fields))
 
-        f = self.o(fields=set([self.f1]))
-        self.assertEqual(set([self.f1]), set(f.fields))
+        s = self.o(fields=set([self.f1]))
+        self.assertEqual(set([self.f1]), set(s.fields))
 
         with self.assertRaises(TypeError, u'fields must be set, not 1'):
-            f.fields = 1
+            s.fields = 1
 
         err_msg = u'fields must be set of Field objects, ' + \
             u'not: set([1])'
         with self.assertRaises(ValueError, err_msg):
-            f.fields = set([1])
+            s.fields = set([1])
 
-        f.fields = set([self.f2])
-        self.assertEqual(set([self.f2]), set(f.fields))
+        s.fields = set([self.f2])
+        self.assertEqual(set([self.f2]), set(s.fields))
 
-        self.assertEqual([self.f2], f._to_json_obj()[u'fields'])
+        self.assertEqual([self.f2], s._to_json_obj()[u'fields'])
 
-        f._set_read_only()
-        self.assertEqual(set([self.f2]), set(f.fields))
+        s._set_read_only()
+        self.assertEqual(set([self.f2]), set(s.fields))
         with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
-            f.fields = set([self.f1])
+            s.fields = set([self.f1])
 
-        f._set_invalid()
+        s._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            f.fields
+            s.fields
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            f.fields = set([self.f1])
+            s.fields = set([self.f1])
 
     def test_id(self):
         self._test_server_field('id')
