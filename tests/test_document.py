@@ -6,7 +6,7 @@ S = _signatory.Signatory
 D = _document.Document
 
 
-class SignatoryTest(utils.TestCase):
+class DocumentTest(utils.TestCase):
 
     def setUp(self):
         s1_json = {u'id': u'1',
@@ -38,7 +38,8 @@ class SignatoryTest(utils.TestCase):
         s2_json[u'author'] = False
         s2_json[u'viewer'] = True
         self.s2 = S._from_json_obj(s2_json)
-        self.json = {u'signatories': [s1_json, s2_json]}
+        self.json = {u'id': u'1234',
+                     u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
         return D(*args, **kwargs)
@@ -89,6 +90,7 @@ class SignatoryTest(utils.TestCase):
 
     def test_from_json_obj(self):
         d = D._from_json_obj(self.json)
+        self.assertEqual(d.id, u'1234')
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -140,3 +142,6 @@ class SignatoryTest(utils.TestCase):
             d.signatories
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             d.signatories = set([self.s1])
+
+    def test_id(self):
+        self._test_server_field('id')

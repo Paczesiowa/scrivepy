@@ -23,6 +23,7 @@ class Document(_object.ScriveObject):
     @tvu.validate_and_unify(signatories=SignatorySet)
     def __init__(self, signatories=set()):
         super(Document, self).__init__()
+        self._id = None
         self._signatories = set(signatories)
 
     @classmethod
@@ -32,6 +33,7 @@ class Document(_object.ScriveObject):
                 set([_signatory.Signatory._from_json_obj(signatory_json)
                      for signatory_json in json[u'signatories']])
             document = Document(signatories=signatories)
+            document._id = json[u'id']
             return document
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -59,6 +61,10 @@ class Document(_object.ScriveObject):
     def signatories(self, signatories):
         self._signatories = set(signatories)
 
+    @scrive_property
+    def id(self):
+        return self._id
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -66,7 +72,6 @@ class Document(_object.ScriveObject):
 #     authorattachmentfiles <- mapM (dbQuery . GetFileByFileID . authorattachmentfile) (documentauthorattachments doc)
 #     evidenceattachments <- if includeEvidenceAttachments then EvidenceAttachments.fetch doc else return []
 #     runJSONGenT $ do
-#       J.value "id" $ show $ documentid doc
 #       J.value "title" $ documenttitle doc
 #       J.value "file" $ fmap fileJSON file
 #       J.value "sealedfile" $ fmap fileJSON sealedfile
