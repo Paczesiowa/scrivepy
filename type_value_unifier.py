@@ -94,20 +94,6 @@ def instance(class_, enum=False):
     return InstanceTypeValueUnifier
 
 
-class PositiveInt(TypeValueUnifier):
-
-    TYPES = (int, float)
-
-    def unify(self, value):
-        if isinstance(value, float) and round(value) != value:
-            self.error(u'a round integer')
-        return int(value)
-
-    def validate(self, value):
-        if value < 1:
-            self.error(u'a positive integer')
-
-
 def nullable(tvu):
 
     class NullableTypeValueUnifier(tvu):
@@ -124,3 +110,38 @@ def nullable(tvu):
             super(NullableTypeValueUnifier, self).validate(value)
 
     return NullableTypeValueUnifier
+
+
+class BoundedInt(TypeValueUnifier):
+
+    TYPES = (int, float)
+
+    def __init__(self, minimum=None, maximum=None):
+        self._minimum = minimum
+        self._maximum = maximum
+
+    def __call__(self, variable_name=None):
+        self._variable_name = \
+            variable_name or self.__class__.__name__ + u'() argument'
+        return self
+
+    def unify(self, value):
+        if isinstance(value, float) and round(value) != value:
+            self.error(u'a round integer')
+        return int(value)
+
+    def validate(self, value):
+        if self._minimum is not None and self._maximum is not None\
+           and not (self._minimum <= value <= self._maximum):
+            err_msg = \
+                u'an integer between %d and %d (inclusive)' % (self._minimum,
+                                                               self._maximum)
+            self.error(err_msg)
+        elif self._minimum is not None and value < self._minimum:
+            err_msg = u'an integer greater or equal than %d' % (self._minimum,)
+            self.error(err_msg)
+        elif self._maximum is not None and value > self._maximum:
+            err_msg = u'an integer lesser or equal than %d' % (self._maximum,)
+            self.error(err_msg)
+
+PositiveInt = BoundedInt(1)

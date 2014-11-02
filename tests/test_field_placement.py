@@ -289,7 +289,7 @@ class FieldPlacementTest(utils.TestCase):
                                u'page must be int or float, not []'):
             self._make_fp(page=[])
 
-        err_msg = u'page must be a positive integer, not: 0'
+        err_msg = u'page must be an integer greater or equal than 1, not: 0'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(page=0)
 
@@ -311,7 +311,7 @@ class FieldPlacementTest(utils.TestCase):
                                u'page must be int or float, not []'):
             fp.page = []
 
-        err_msg = u'page must be a positive integer, not: 0'
+        err_msg = u'page must be an integer greater or equal than 1, not: 0'
         with self.assertRaises(ValueError, err_msg):
             fp.page = 0
 

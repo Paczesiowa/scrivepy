@@ -192,7 +192,8 @@ class SignatoryTest(utils.TestCase):
                          other_good_values=[(8., 8), 2],
                          serialized_name=u'signorder')
 
-        err_msg = u'sign_order must be a positive integer, not: 0'
+        err_msg = \
+            u'sign_order must be an integer greater or equal than 1, not: 0'
         with self.assertRaises(ValueError, err_msg):
             self.o(sign_order=0)
 
@@ -202,7 +203,8 @@ class SignatoryTest(utils.TestCase):
 
         s = self.o()
 
-        err_msg = u'sign_order must be a positive integer, not: 0'
+        err_msg = \
+            u'sign_order must be an integer greater or equal than 1, not: 0'
         with self.assertRaises(ValueError, err_msg):
             s.sign_order = 0
 
