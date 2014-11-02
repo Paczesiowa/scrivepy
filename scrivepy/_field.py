@@ -53,7 +53,8 @@ class Field(_object.ScriveObject):
                     placement_json) for placement_json in json[u'placements']])
 
             if type_ == u'standard':
-                field = StandardField(name=name, value=value)
+                field = StandardField(name=StandardFieldType(name),
+                                      value=value)
             elif type_ == u'custom':
                 field = CustomField(name=name, value=value)
             elif type_ == u'signature':

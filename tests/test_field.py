@@ -232,7 +232,7 @@ class StandardFieldTest(FieldTest):
 
     def test_from_json_obj(self):
         json = {u'type': u'standard',
-                u'name': self.FIELD_NAME,
+                u'name': self.FIELD_NAME.value,
                 u'value': u'bar',
                 u'closed': False,
                 u'obligatory': True,

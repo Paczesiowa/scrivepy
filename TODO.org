@@ -1,3 +1,4 @@
+* write a document.py
 * FieldSet could be a different collection
 * ScriveFile object
 ** read only
@@ -23,7 +24,6 @@
 * add field_handler
 * from_json should trigger read_only
 * write a documentation from code and get someone from scrive to review it
-* write a document.py
 * update __init__.py
 * add tests
 * write a documentation
@@ -35,3 +35,4 @@
 *** add_placement
 * polish type_value_unifier
 ** move it to utils
+* MaybeTipSide could use nullable
