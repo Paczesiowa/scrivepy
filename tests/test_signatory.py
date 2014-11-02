@@ -39,13 +39,13 @@ class SignatoryTest(utils.TestCase):
                      u'fields': [self.f1._to_json_obj(),
                                  self.f2._to_json_obj()]}
 
-    def s(self, *args, **kwargs):
+    def o(self, *args, **kwargs):
         return S(*args, **kwargs)
 
     def test_flags(self):
         f1 = F.StandardField(name='first_name', value=u'John')
         f2 = F.CustomField(name=u'field', value=u'value')
-        s = self.s(fields=set([f1, f2]))
+        s = self.o(fields=set([f1, f2]))
 
         self.assertIsNone(s._check_getter())
         self.assertIsNone(f1._check_getter())
@@ -80,7 +80,7 @@ class SignatoryTest(utils.TestCase):
                           f2._check_setter)
 
     def test_to_json_obj(self):
-        s = self.s(fields=set([self.f1]), sign_order=2,
+        s = self.o(fields=set([self.f1]), sign_order=2,
                    invitation_delivery_method='api',
                    confirmation_delivery_method='none',
                    viewer=True, author=True,
@@ -133,26 +133,26 @@ class SignatoryTest(utils.TestCase):
                                  self.f2._to_json_obj()]))
 
     def test_modification_of_default_fields_value(self):
-        s1 = self.s()
+        s1 = self.o()
         s1._fields.add(1)
-        s2 = self.s()
+        s2 = self.o()
         self.assertEqual(set(), set(s2.fields))
 
     def test_fields(self):
         err_msg = u'fields must be set, not 1'
         with self.assertRaises(TypeError, err_msg):
-            self.s(fields=1)
+            self.o(fields=1)
 
         err_msg = u'fields must be set of Field objects, ' + \
             u'not: set([1])'
         with self.assertRaises(ValueError, err_msg):
-            self.s(fields=set([1]))
+            self.o(fields=set([1]))
 
         # check default ctor value
-        f = self.s()
+        f = self.o()
         self.assertEqual(set([]), set(f.fields))
 
-        f = self.s(fields=set([self.f1]))
+        f = self.o(fields=set([self.f1]))
         self.assertEqual(set([self.f1]), set(f.fields))
 
         with self.assertRaises(TypeError, u'fields must be set, not 1'):
@@ -194,13 +194,13 @@ class SignatoryTest(utils.TestCase):
 
         err_msg = u'sign_order must be a positive integer, not: 0'
         with self.assertRaises(ValueError, err_msg):
-            self.s(sign_order=0)
+            self.o(sign_order=0)
 
         err_msg = u'sign_order must be a round integer, not: 1.1'
         with self.assertRaises(ValueError, err_msg):
-            self.s(sign_order=1.1)
+            self.o(sign_order=1.1)
 
-        s = self.s()
+        s = self.o()
 
         err_msg = u'sign_order must be a positive integer, not: 0'
         with self.assertRaises(ValueError, err_msg):
@@ -221,17 +221,6 @@ class SignatoryTest(utils.TestCase):
 
     def test_delivered_invitation(self):
         self._test_server_field('delivered_invitation')
-
-    def _test_server_field(self, field_name):
-        s = self.s()
-        self.assertIsNone(getattr(s, field_name))
-
-        s._set_read_only()
-        self.assertIsNone(getattr(s, field_name))
-
-        s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            getattr(s, field_name)
 
     def test_invitation_delivery_method(self):
         self._test_field('invitation_delivery_method',
@@ -264,65 +253,6 @@ class SignatoryTest(utils.TestCase):
                          other_good_values=[True],
                          serialized_name=u'signs',
                          serialized_default_good_value=True)
-
-    def _test_field(self, field_name, bad_value, correct_type,
-                    default_good_value, other_good_values,
-                    serialized_name=None, serialized_default_good_value=None,
-                    bad_enum_value=None):
-        if serialized_name is None:
-            serialized_name = field_name
-        if serialized_default_good_value is None:
-            serialized_default_good_value = default_good_value
-        if isinstance(correct_type, str):
-            correct_type_name = correct_type
-        else:
-            correct_type_name = correct_type.__name__
-
-        type_err_msg = (field_name + u' must be ' + correct_type_name +
-                        ', not ' + str(bad_value))
-        with self.assertRaises(TypeError, type_err_msg):
-            self.s(**{field_name: bad_value})
-
-        if bad_enum_value is not None:
-            enum_type_err_msg = (field_name + u' could be ' +
-                                 correct_type_name +
-                                 "'s variant name, not: " + bad_enum_value)
-            with self.assertRaises(ValueError, enum_type_err_msg):
-                self.s(**{field_name: bad_enum_value})
-
-        # check default ctor value
-        s = self.s()
-        self.assertEqual(default_good_value, getattr(s, field_name))
-
-        for good_value in other_good_values:
-            if isinstance(good_value, tuple):
-                good_value, unified_good_value = good_value
-            else:
-                unified_good_value = good_value
-            s = self.s(**{field_name: good_value})
-            self.assertEqual(unified_good_value, getattr(s, field_name))
-
-        with self.assertRaises(TypeError, type_err_msg):
-            setattr(s, field_name, bad_value)
-
-        setattr(s, field_name, default_good_value)
-        self.assertEqual(default_good_value, getattr(s, field_name))
-
-        self.assertEqual(serialized_default_good_value,
-                         s._to_json_obj()[serialized_name])
-
-        s._set_read_only()
-        self.assertEqual(default_good_value, getattr(s, field_name))
-        for good_value in other_good_values:
-            with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
-                setattr(s, field_name, good_value)
-
-        s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            getattr(s, field_name)
-        for good_value in other_good_values:
-            with self.assertRaises(_exceptions.InvalidScriveObject, None):
-                setattr(s, field_name, good_value)
 
     def test_author(self):
         self._test_field('author',
