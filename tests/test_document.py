@@ -40,6 +40,7 @@ class DocumentTest(utils.TestCase):
         self.s2 = S._from_json_obj(s2_json)
         self.json = {u'id': u'1234',
                      u'title': u'a document',
+                     u'daystosign': 20,
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -84,9 +85,11 @@ class DocumentTest(utils.TestCase):
 
     def test_to_json_obj(self):
         d = self.o(title=u'the document',
+                   number_of_days_to_sign=30,
                    signatories=set([self.s1]))
 
         json = {u'title': u'the document',
+                u'daystosign': 30,
                 u'signatories': [self.s1]}
 
         self.assertEqual(json, d._to_json_obj())
@@ -95,6 +98,7 @@ class DocumentTest(utils.TestCase):
         d = D._from_json_obj(self.json)
         self.assertEqual(d.id, u'1234')
         self.assertEqual(d.title, u'a document')
+        self.assertEqual(d.number_of_days_to_sign, 20)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -155,3 +159,20 @@ class DocumentTest(utils.TestCase):
                          bad_value=[], correct_type=unicode,
                          default_good_value=u'',
                          other_good_values=[u'some document'])
+
+    def test_number_of_days_to_sign(self):
+        self._test_field('number_of_days_to_sign',
+                         bad_value=[], correct_type='int or float',
+                         default_good_value=14,
+                         other_good_values=[1, 45, 90],
+                         serialized_name=u'daystosign')
+
+        err_msg = u'number_of_days_to_sign must be an integer ' + \
+                  u'between 1 and 90 (inclusive), not: 0'
+        with self.assertRaises(ValueError, err_msg):
+            self.o(number_of_days_to_sign=0)
+
+        err_msg = u'number_of_days_to_sign must be an integer ' + \
+                  u'between 1 and 90 (inclusive), not: 91.0'
+        with self.assertRaises(ValueError, err_msg):
+            self.o(number_of_days_to_sign=91.)

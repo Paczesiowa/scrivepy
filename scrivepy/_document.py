@@ -21,11 +21,14 @@ class SignatorySet(tvu.TypeValueUnifier):
 class Document(_object.ScriveObject):
 
     @tvu.validate_and_unify(title=tvu.instance(unicode),
+                            number_of_days_to_sign=tvu.BoundedInt(1, 90),
                             signatories=SignatorySet)
-    def __init__(self, title=u'', signatories=set()):
+    def __init__(self, title=u'', number_of_days_to_sign=14,
+                 signatories=set()):
         super(Document, self).__init__()
         self._id = None
         self._title = title
+        self._number_of_days_to_sign = number_of_days_to_sign
         self._signatories = set(signatories)
 
     @classmethod
@@ -35,6 +38,7 @@ class Document(_object.ScriveObject):
                 set([_signatory.Signatory._from_json_obj(signatory_json)
                      for signatory_json in json[u'signatories']])
             document = Document(title=json[u'title'],
+                                number_of_days_to_sign=json['daystosign'],
                                 signatories=signatories)
             document._id = json[u'id']
             return document
@@ -54,6 +58,7 @@ class Document(_object.ScriveObject):
 
     def _to_json_obj(self):
         return {u'title': self.title,
+                u'daystosign': self.number_of_days_to_sign,
                 u'signatories': list(self.signatories)}
 
     @scrive_property
@@ -77,6 +82,15 @@ class Document(_object.ScriveObject):
     @tvu.validate_and_unify(title=tvu.instance(unicode))
     def title(self, title):
         self._title = title
+
+    @scrive_property
+    def number_of_days_to_sign(self):
+        return self._number_of_days_to_sign
+
+    @number_of_days_to_sign.setter
+    @tvu.validate_and_unify(number_of_days_to_sign=tvu.BoundedInt(1, 90))
+    def number_of_days_to_sign(self, number_of_days_to_sign):
+        self._number_of_days_to_sign = number_of_days_to_sign
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
@@ -113,7 +127,6 @@ class Document(_object.ScriveObject):
 #                                    [EmailAndMobileDelivery]-> "email_mobile"
 #                                    _                 -> "mixed"
 #       J.value "template" $ isTemplate doc
-#       J.value "daystosign" $ documentdaystosign doc
 #       J.value "daystoremind" $ documentdaystoremind doc
 #       J.value "showheader" $ documentshowheader doc
 #       J.value "showpdfdownload" $ documentshowpdfdownload doc
@@ -149,7 +162,6 @@ class Document(_object.ScriveObject):
 #     fromJSValueWithUpdate mdoc = do
 #         (invitationmessage :: Maybe (Maybe String)) <-  fromJSValueField "invitationmessage"
 #         (confirmationmessage :: Maybe (Maybe String)) <-  fromJSValueField "confirmationmessage"
-#         daystosign <- fromJSValueField "daystosign"
 #         daystoremind <- fromJSValueField "daystoremind"
 #         showheader <- fromJSValueField "showheader"
 #         showpdfdownload <- fromJSValueField "showpdfdownload"
@@ -165,7 +177,6 @@ class Document(_object.ScriveObject):
 #         (apicallbackurl :: Maybe (Maybe String)) <- fromJSValueField "apicallbackurl"
 #         saved <- fromJSValueField "saved"
 #         authorattachments <- fromJSValueFieldCustom "authorattachments" $ fromJSValueCustomMany $ fmap (join . (fmap maybeRead)) $ (fromJSValueField "id")
-#         let daystosign'  = min 90 $ max 1 $ updateWithDefaultAndField 14 documentdaystosign daystosign
 #         let daystoremind' = min daystosign' <$> max 1 <$> updateWithDefaultAndField Nothing documentdaystoremind daystoremind
 
 #         return $ Just defaultValue {
@@ -178,7 +189,6 @@ class Document(_object.ScriveObject):
 #                                      Nothing -> fromMaybe "" $ documentconfirmtext <$> mdoc
 #                                      Just Nothing -> ""
 #                                      Just (Just s) -> fromMaybe "" (resultToMaybe $ asValidInviteText s),
-#             documentdaystosign   = daystosign',
 #             documentdaystoremind = daystoremind',
 #             documentshowheader = updateWithDefaultAndField True documentshowheader showheader,
 #             documentshowpdfdownload = updateWithDefaultAndField True documentshowpdfdownload showpdfdownload,
