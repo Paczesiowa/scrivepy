@@ -20,10 +20,12 @@ class SignatorySet(tvu.TypeValueUnifier):
 
 class Document(_object.ScriveObject):
 
-    @tvu.validate_and_unify(signatories=SignatorySet)
-    def __init__(self, signatories=set()):
+    @tvu.validate_and_unify(title=tvu.instance(unicode),
+                            signatories=SignatorySet)
+    def __init__(self, title=u'', signatories=set()):
         super(Document, self).__init__()
         self._id = None
+        self._title = title
         self._signatories = set(signatories)
 
     @classmethod
@@ -32,7 +34,8 @@ class Document(_object.ScriveObject):
             signatories = \
                 set([_signatory.Signatory._from_json_obj(signatory_json)
                      for signatory_json in json[u'signatories']])
-            document = Document(signatories=signatories)
+            document = Document(title=json[u'title'],
+                                signatories=signatories)
             document._id = json[u'id']
             return document
         except (KeyError, TypeError, ValueError) as e:
@@ -50,7 +53,8 @@ class Document(_object.ScriveObject):
             signatory._set_read_only()
 
     def _to_json_obj(self):
-        return {u'signatories': list(self.signatories)}
+        return {u'title': self.title,
+                u'signatories': list(self.signatories)}
 
     @scrive_property
     def signatories(self):
@@ -65,6 +69,15 @@ class Document(_object.ScriveObject):
     def id(self):
         return self._id
 
+    @scrive_property
+    def title(self):
+        return self._title
+
+    @title.setter
+    @tvu.validate_and_unify(title=tvu.instance(unicode))
+    def title(self, title):
+        self._title = title
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -72,7 +85,6 @@ class Document(_object.ScriveObject):
 #     authorattachmentfiles <- mapM (dbQuery . GetFileByFileID . authorattachmentfile) (documentauthorattachments doc)
 #     evidenceattachments <- if includeEvidenceAttachments then EvidenceAttachments.fetch doc else return []
 #     runJSONGenT $ do
-#       J.value "title" $ documenttitle doc
 #       J.value "file" $ fmap fileJSON file
 #       J.value "sealedfile" $ fmap fileJSON sealedfile
 #       J.value "authorattachments" $ map fileJSON authorattachmentfiles
@@ -135,7 +147,6 @@ class Document(_object.ScriveObject):
 
 # instance FromJSValueWithUpdate Document where
 #     fromJSValueWithUpdate mdoc = do
-#         title <- fromJSValueField "title"
 #         (invitationmessage :: Maybe (Maybe String)) <-  fromJSValueField "invitationmessage"
 #         (confirmationmessage :: Maybe (Maybe String)) <-  fromJSValueField "confirmationmessage"
 #         daystosign <- fromJSValueField "daystosign"
@@ -158,7 +169,6 @@ class Document(_object.ScriveObject):
 #         let daystoremind' = min daystosign' <$> max 1 <$> updateWithDefaultAndField Nothing documentdaystoremind daystoremind
 
 #         return $ Just defaultValue {
-#             documenttitle = updateWithDefaultAndField "" documenttitle title,
 #             documentlang  = updateWithDefaultAndField LANG_SV documentlang lang,
 #             documentinvitetext = case (invitationmessage) of
 #                                      Nothing -> fromMaybe "" $ documentinvitetext <$> mdoc

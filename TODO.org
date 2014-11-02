@@ -1,4 +1,5 @@
 * write a document.py
+** downloaded document in pending/closed status should be read only
 * FieldSet could be a different collection
 * ScriveFile object
 ** read only

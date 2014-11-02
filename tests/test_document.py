@@ -39,6 +39,7 @@ class DocumentTest(utils.TestCase):
         s2_json[u'viewer'] = True
         self.s2 = S._from_json_obj(s2_json)
         self.json = {u'id': u'1234',
+                     u'title': u'a document',
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -82,15 +83,18 @@ class DocumentTest(utils.TestCase):
                           s2._check_setter)
 
     def test_to_json_obj(self):
-        d = self.o(signatories=set([self.s1]))
+        d = self.o(title=u'the document',
+                   signatories=set([self.s1]))
 
-        json = {u'signatories': [self.s1]}
+        json = {u'title': u'the document',
+                u'signatories': [self.s1]}
 
         self.assertEqual(json, d._to_json_obj())
 
     def test_from_json_obj(self):
         d = D._from_json_obj(self.json)
         self.assertEqual(d.id, u'1234')
+        self.assertEqual(d.title, u'a document')
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -145,3 +149,9 @@ class DocumentTest(utils.TestCase):
 
     def test_id(self):
         self._test_server_field('id')
+
+    def test_title(self):
+        self._test_field('title',
+                         bad_value=[], correct_type=unicode,
+                         default_good_value=u'',
+                         other_good_values=[u'some document'])
