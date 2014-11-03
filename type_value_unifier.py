@@ -109,39 +109,42 @@ def nullable(tvu):
                 return
             super(NullableTypeValueUnifier, self).validate(value)
 
+        def error(self, err_msg):
+            err_msg = u'None or ' + err_msg
+            return super(NullableTypeValueUnifier, self).error(err_msg)
+
     return NullableTypeValueUnifier
 
 
-class BoundedInt(TypeValueUnifier):
+def bounded_int(minimum=None, maximum=None):
 
-    TYPES = (int, float)
+    class BoundedInt(TypeValueUnifier):
 
-    def __init__(self, minimum=None, maximum=None):
-        self._minimum = minimum
-        self._maximum = maximum
+        TYPES = (int, float)
 
-    def __call__(self, variable_name=None):
-        self._variable_name = \
-            variable_name or self.__class__.__name__ + u'() argument'
-        return self
+        def __init__(self, variable_name=None):
+            self._variable_name = \
+                variable_name or self.__class__.__name__ + u'() argument'
 
-    def unify(self, value):
-        if isinstance(value, float) and round(value) != value:
-            self.error(u'a round integer')
-        return int(value)
+        def unify(self, value):
+            if isinstance(value, float) and round(value) != value:
+                self.error(u'a round integer')
+            return int(value)
 
-    def validate(self, value):
-        if self._minimum is not None and self._maximum is not None\
-           and not (self._minimum <= value <= self._maximum):
-            err_msg = \
-                u'an integer between %d and %d (inclusive)' % (self._minimum,
-                                                               self._maximum)
-            self.error(err_msg)
-        elif self._minimum is not None and value < self._minimum:
-            err_msg = u'an integer greater or equal than %d' % (self._minimum,)
-            self.error(err_msg)
-        elif self._maximum is not None and value > self._maximum:
-            err_msg = u'an integer lesser or equal than %d' % (self._maximum,)
-            self.error(err_msg)
+        def validate(self, value):
+            if minimum is not None and maximum is not None\
+               and not (minimum <= value <= maximum):
+                err_msg = \
+                    u'an integer between %d and %d (inclusive)' % (minimum,
+                                                                   maximum)
+                self.error(err_msg)
+            elif minimum is not None and value < minimum:
+                err_msg = u'an integer greater or equal than %d' % (minimum,)
+                self.error(err_msg)
+            elif maximum is not None and value > maximum:
+                err_msg = u'an integer lesser or equal than %d' % (maximum,)
+                self.error(err_msg)
 
-PositiveInt = BoundedInt(1)
+    return BoundedInt
+
+PositiveInt = bounded_int(1)

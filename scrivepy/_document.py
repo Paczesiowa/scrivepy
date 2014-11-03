@@ -31,7 +31,7 @@ class DocumentStatus(unicode, enum.Enum):
 class Document(_object.ScriveObject):
 
     @tvu.validate_and_unify(title=tvu.instance(unicode),
-                            number_of_days_to_sign=tvu.BoundedInt(1, 90),
+                            number_of_days_to_sign=tvu.bounded_int(1, 90),
                             is_template=tvu.instance(bool),
                             signatories=SignatorySet)
     def __init__(self, title=u'', number_of_days_to_sign=14,
@@ -120,7 +120,7 @@ class Document(_object.ScriveObject):
         return self._number_of_days_to_sign
 
     @number_of_days_to_sign.setter
-    @tvu.validate_and_unify(number_of_days_to_sign=tvu.BoundedInt(1, 90))
+    @tvu.validate_and_unify(number_of_days_to_sign=tvu.bounded_int(1, 90))
     def number_of_days_to_sign(self, number_of_days_to_sign):
         self._number_of_days_to_sign = number_of_days_to_sign
 
