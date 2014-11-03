@@ -40,6 +40,7 @@ class Document(_object.ScriveObject):
         self._title = title
         self._number_of_days_to_sign = number_of_days_to_sign
         self._status = None
+        self._modification_time = None
         self._signatories = set(signatories)
 
     @classmethod
@@ -52,6 +53,8 @@ class Document(_object.ScriveObject):
                                 number_of_days_to_sign=json[u'daystosign'],
                                 signatories=signatories)
             document._id = json[u'id']
+            if json[u'time'] is not None:
+                document._modification_time = dateparser.parse(json[u'time'])
             document._status = DocumentStatus(json[u'status'])
             return document
         except (KeyError, TypeError, ValueError) as e:
@@ -107,6 +110,10 @@ class Document(_object.ScriveObject):
     @scrive_property
     def status(self):
         return self._status
+
+    @scrive_property
+    def modification_time(self):
+        return self._modification_time
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do

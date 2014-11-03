@@ -111,3 +111,17 @@ class TestCase(unittest.TestCase):
         for good_value in other_good_values:
             with self.assertRaises(_exceptions.InvalidScriveObject, None):
                 setattr(o, field_name, good_value)
+
+    def _test_time_field(self, field_name, serialized_field_name):
+        self._test_server_field(field_name)
+        json = dict(self.json)
+        json[serialized_field_name] = u'2014-10-29T15:40:20Z'
+        o = self.O._from_json_obj(json)
+        date_field = getattr(o, field_name)
+        self.assertEqual(date_field.year, 2014)
+        self.assertEqual(date_field.month, 10)
+        self.assertEqual(date_field.day, 29)
+        self.assertEqual(date_field.hour, 15)
+        self.assertEqual(date_field.minute, 40)
+        self.assertEqual(date_field.second, 20)
+        self.assertEqual(date_field.microsecond, 0)

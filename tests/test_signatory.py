@@ -12,6 +12,7 @@ F = _field
 class SignatoryTest(utils.TestCase):
 
     def setUp(self):
+        self.O = S
         self.f1 = F.StandardField(name='first_name', value=u'John')
         self.f2 = F.CustomField(name=u'field', value=u'value')
         self.json = {u'id': u'123abc',
@@ -267,20 +268,6 @@ class SignatoryTest(utils.TestCase):
 
     def test_eleg_mismatch_message(self):
         self._test_server_field('eleg_mismatch_message')
-
-    def _test_time_field(self, field_name, serialized_field_name):
-        self._test_server_field(field_name)
-        json = dict(self.json)
-        json[serialized_field_name] = u'2014-10-29T15:40:20Z'
-        s = S._from_json_obj(json)
-        date_field = getattr(s, field_name)
-        self.assertEqual(date_field.year, 2014)
-        self.assertEqual(date_field.month, 10)
-        self.assertEqual(date_field.day, 29)
-        self.assertEqual(date_field.hour, 15)
-        self.assertEqual(date_field.minute, 40)
-        self.assertEqual(date_field.second, 20)
-        self.assertEqual(date_field.microsecond, 0)
 
     def test_sign_time(self):
         self._test_time_field('sign_time', u'signdate')

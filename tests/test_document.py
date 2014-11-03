@@ -10,6 +10,7 @@ DS = _document.DocumentStatus
 class DocumentTest(utils.TestCase):
 
     def setUp(self):
+        self.O = D
         s1_json = {u'id': u'1',
                    u'current': True,
                    u'signorder': 1,
@@ -43,6 +44,7 @@ class DocumentTest(utils.TestCase):
                      u'title': u'a document',
                      u'daystosign': 20,
                      u'status': u'Pending',
+                     u'time': None,
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -102,6 +104,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.title, u'a document')
         self.assertEqual(d.number_of_days_to_sign, 20)
         self.assertEqual(d.status, DS.pending)
+        self.assertEqual(d.modification_time, None)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -182,3 +185,6 @@ class DocumentTest(utils.TestCase):
 
     def test_status(self):
         self._test_server_field('status')
+
+    def test_modification_time(self):
+        self._test_time_field('modification_time', u'time')
