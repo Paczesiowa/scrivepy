@@ -45,6 +45,9 @@ class DocumentTest(utils.TestCase):
                      u'daystosign': 20,
                      u'status': u'Pending',
                      u'time': None,
+                     u'ctime': None,
+                     u'timeouttime': None,
+                     u'autoremindtime': None,
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -105,6 +108,9 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.number_of_days_to_sign, 20)
         self.assertEqual(d.status, DS.pending)
         self.assertEqual(d.modification_time, None)
+        self.assertEqual(d.creation_time, None)
+        self.assertEqual(d.signing_deadline, None)
+        self.assertEqual(d.autoremind_time, None)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -188,3 +194,12 @@ class DocumentTest(utils.TestCase):
 
     def test_modification_time(self):
         self._test_time_field('modification_time', u'time')
+
+    def test_creation_time(self):
+        self._test_time_field('creation_time', u'ctime')
+
+    def test_signing_deadline(self):
+        self._test_time_field('signing_deadline', u'timeouttime')
+
+    def test_autoremind_time(self):
+        self._test_time_field('autoremind_time', u'autoremindtime')

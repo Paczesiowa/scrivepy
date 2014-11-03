@@ -41,6 +41,9 @@ class Document(_object.ScriveObject):
         self._number_of_days_to_sign = number_of_days_to_sign
         self._status = None
         self._modification_time = None
+        self._creation_time = None
+        self._signing_deadline = None
+        self._autoremind_time = None
         self._signatories = set(signatories)
 
     @classmethod
@@ -55,6 +58,14 @@ class Document(_object.ScriveObject):
             document._id = json[u'id']
             if json[u'time'] is not None:
                 document._modification_time = dateparser.parse(json[u'time'])
+            if json[u'ctime'] is not None:
+                document._creation_time = dateparser.parse(json[u'ctime'])
+            if json[u'timeouttime'] is not None:
+                document._signing_deadline = \
+                    dateparser.parse(json[u'timeouttime'])
+            if json[u'autoremindtime'] is not None:
+                document._autoremind_time = \
+                    dateparser.parse(json[u'autoremindtime'])
             document._status = DocumentStatus(json[u'status'])
             return document
         except (KeyError, TypeError, ValueError) as e:
@@ -115,6 +126,18 @@ class Document(_object.ScriveObject):
     def modification_time(self):
         return self._modification_time
 
+    @scrive_property
+    def creation_time(self):
+        return self._creation_time
+
+    @scrive_property
+    def signing_deadline(self):
+        return self._signing_deadline
+
+    @scrive_property
+    def autoremind_time(self):
+        return self._autoremind_time
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -129,11 +152,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "time" $ jsonDate (Just $ documentmtime doc)
-#       J.value "ctime" $ jsonDate (Just $ documentctime doc)
-#       J.value "timeouttime" $ jsonDate $ documenttimeouttime doc
-#       J.value "autoremindtime" $ jsonDate $ documentautoremindtime doc
-#       J.objects "signatories" $ map (signatoryJSON forapi forauthor doc msl) (documentsignatorylinks doc)
 #       J.value "signorder" $ unSignOrder $ documentcurrentsignorder doc
 #       J.value "authentication" $ case nub (map signatorylinkauthenticationmethod (documentsignatorylinks doc)) of
 #                                    [StandardAuthentication] -> "standard"
@@ -190,7 +208,6 @@ class Document(_object.ScriveObject):
 #         showfooter <- fromJSValueField "showfooter"
 #         authentication <-  fromJSValueField "authentication"
 #         delivery <-  fromJSValueField "delivery"
-#         signatories <-  fromJSValueFieldCustom "signatories" (fromJSValueManyWithUpdate (fromMaybe [] $ documentsignatorylinks <$> mdoc))
 #         lang <- fromJSValueField "lang"
 #         mtimezone <- fromJSValueField "timezone"
 #         doctype <- fmap (\t -> if t then Template else Signable) <$> fromJSValueField "template"
@@ -215,7 +232,6 @@ class Document(_object.ScriveObject):
 #             documentshowpdfdownload = updateWithDefaultAndField True documentshowpdfdownload showpdfdownload,
 #             documentshowrejectoption = updateWithDefaultAndField True documentshowrejectoption showrejectoption,
 #             documentshowfooter = updateWithDefaultAndField True documentshowfooter showfooter,
-#             documentsignatorylinks = mapAuth authentication $ mapDL delivery $ updateWithDefaultAndField [] documentsignatorylinks signatories,
 #             documentauthorattachments = updateWithDefaultAndField [] documentauthorattachments (fmap AuthorAttachment <$> authorattachments),
 #             documenttags = updateWithDefaultAndField Set.empty documenttags (Set.fromList <$> tags),
 #             documenttype = updateWithDefaultAndField Signable documenttype doctype,
