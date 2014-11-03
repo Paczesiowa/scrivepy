@@ -4,6 +4,7 @@ from tests import utils
 
 S = _signatory.Signatory
 D = _document.Document
+DS = _document.DocumentStatus
 
 
 class DocumentTest(utils.TestCase):
@@ -41,6 +42,7 @@ class DocumentTest(utils.TestCase):
         self.json = {u'id': u'1234',
                      u'title': u'a document',
                      u'daystosign': 20,
+                     u'status': u'Pending',
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -99,6 +101,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.id, u'1234')
         self.assertEqual(d.title, u'a document')
         self.assertEqual(d.number_of_days_to_sign, 20)
+        self.assertEqual(d.status, DS.pending)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -176,3 +179,6 @@ class DocumentTest(utils.TestCase):
                   u'between 1 and 90 (inclusive), not: 91.0'
         with self.assertRaises(ValueError, err_msg):
             self.o(number_of_days_to_sign=91.)
+
+    def test_status(self):
+        self._test_server_field('status')

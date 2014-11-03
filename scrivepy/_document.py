@@ -18,6 +18,16 @@ class SignatorySet(tvu.TypeValueUnifier):
                 self.error(u'set of Signatory objects')
 
 
+class DocumentStatus(unicode, enum.Enum):
+    preparation = u'Preparation'
+    pending = u'Pending'
+    closed = u'Closed'
+    canceled = u'Canceled'
+    timedout = u'Timedout'
+    rejected = u'Rejected'
+    error = u'DocumentError'
+
+
 class Document(_object.ScriveObject):
 
     @tvu.validate_and_unify(title=tvu.instance(unicode),
@@ -29,6 +39,7 @@ class Document(_object.ScriveObject):
         self._id = None
         self._title = title
         self._number_of_days_to_sign = number_of_days_to_sign
+        self._status = None
         self._signatories = set(signatories)
 
     @classmethod
@@ -38,9 +49,10 @@ class Document(_object.ScriveObject):
                 set([_signatory.Signatory._from_json_obj(signatory_json)
                      for signatory_json in json[u'signatories']])
             document = Document(title=json[u'title'],
-                                number_of_days_to_sign=json['daystosign'],
+                                number_of_days_to_sign=json[u'daystosign'],
                                 signatories=signatories)
             document._id = json[u'id']
+            document._status = DocumentStatus(json[u'status'])
             return document
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -92,6 +104,10 @@ class Document(_object.ScriveObject):
     def number_of_days_to_sign(self, number_of_days_to_sign):
         self._number_of_days_to_sign = number_of_days_to_sign
 
+    @scrive_property
+    def status(self):
+        return self._status
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -110,8 +126,6 @@ class Document(_object.ScriveObject):
 #       J.value "ctime" $ jsonDate (Just $ documentctime doc)
 #       J.value "timeouttime" $ jsonDate $ documenttimeouttime doc
 #       J.value "autoremindtime" $ jsonDate $ documentautoremindtime doc
-#       J.value "status" $ show $ documentstatus doc
-#       J.value "state" $ show $ documentstatus doc
 #       J.objects "signatories" $ map (signatoryJSON forapi forauthor doc msl) (documentsignatorylinks doc)
 #       J.value "signorder" $ unSignOrder $ documentcurrentsignorder doc
 #       J.value "authentication" $ case nub (map signatorylinkauthenticationmethod (documentsignatorylinks doc)) of
