@@ -32,14 +32,18 @@ class Document(_object.ScriveObject):
 
     @tvu.validate_and_unify(title=tvu.instance(unicode),
                             number_of_days_to_sign=tvu.bounded_int(1, 90),
+                            number_of_days_to_remind=
+                            tvu.nullable(tvu.PositiveInt),
                             is_template=tvu.instance(bool),
                             signatories=SignatorySet)
     def __init__(self, title=u'', number_of_days_to_sign=14,
+                 number_of_days_to_remind=None,
                  is_template=False, signatories=set()):
         super(Document, self).__init__()
         self._id = None
         self._title = title
         self._number_of_days_to_sign = number_of_days_to_sign
+        self._number_of_days_to_remind = number_of_days_to_remind
         self._status = None
         self._modification_time = None
         self._creation_time = None
@@ -57,6 +61,7 @@ class Document(_object.ScriveObject):
                      for signatory_json in json[u'signatories']])
             document = Document(title=json[u'title'],
                                 number_of_days_to_sign=json[u'daystosign'],
+                                number_of_days_to_remind=json[u'daystoremind'],
                                 is_template=json[u'template'],
                                 signatories=signatories)
             document._id = json[u'id']
@@ -90,6 +95,7 @@ class Document(_object.ScriveObject):
     def _to_json_obj(self):
         return {u'title': self.title,
                 u'daystosign': self.number_of_days_to_sign,
+                u'daystoremind': self.number_of_days_to_remind,
                 u'template': self.is_template,
                 u'signatories': list(self.signatories)}
 
@@ -189,6 +195,16 @@ class Document(_object.ScriveObject):
     def is_template(self, is_template):
         self._is_template = is_template
 
+    @scrive_property
+    def number_of_days_to_remind(self):
+        return self._number_of_days_to_remind
+
+    @number_of_days_to_remind.setter
+    @tvu.validate_and_unify(
+        number_of_days_to_remind=tvu.nullable(tvu.PositiveInt))
+    def number_of_days_to_remind(self, number_of_days_to_remind):
+        self._number_of_days_to_remind = number_of_days_to_remind
+
 
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
@@ -205,7 +221,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "daystoremind" $ documentdaystoremind doc
 #       J.value "showheader" $ documentshowheader doc
 #       J.value "showpdfdownload" $ documentshowpdfdownload doc
 #       J.value "showrejectoption" $ documentshowrejectoption doc
@@ -240,7 +255,6 @@ class Document(_object.ScriveObject):
 #     fromJSValueWithUpdate mdoc = do
 #         (invitationmessage :: Maybe (Maybe String)) <-  fromJSValueField "invitationmessage"
 #         (confirmationmessage :: Maybe (Maybe String)) <-  fromJSValueField "confirmationmessage"
-#         daystoremind <- fromJSValueField "daystoremind"
 #         showheader <- fromJSValueField "showheader"
 #         showpdfdownload <- fromJSValueField "showpdfdownload"
 #         showrejectoption <- fromJSValueField "showrejectoption"
@@ -252,8 +266,6 @@ class Document(_object.ScriveObject):
 #         (apicallbackurl :: Maybe (Maybe String)) <- fromJSValueField "apicallbackurl"
 #         saved <- fromJSValueField "saved"
 #         authorattachments <- fromJSValueFieldCustom "authorattachments" $ fromJSValueCustomMany $ fmap (join . (fmap maybeRead)) $ (fromJSValueField "id")
-#         let daystoremind' = min daystosign' <$> max 1 <$> updateWithDefaultAndField Nothing documentdaystoremind daystoremind
-
 #         return $ Just defaultValue {
 #             documentlang  = updateWithDefaultAndField LANG_SV documentlang lang,
 #             documentinvitetext = case (invitationmessage) of
@@ -264,7 +276,6 @@ class Document(_object.ScriveObject):
 #                                      Nothing -> fromMaybe "" $ documentconfirmtext <$> mdoc
 #                                      Just Nothing -> ""
 #                                      Just (Just s) -> fromMaybe "" (resultToMaybe $ asValidInviteText s),
-#             documentdaystoremind = daystoremind',
 #             documentshowheader = updateWithDefaultAndField True documentshowheader showheader,
 #             documentshowpdfdownload = updateWithDefaultAndField True documentshowpdfdownload showpdfdownload,
 #             documentshowrejectoption = updateWithDefaultAndField True documentshowrejectoption showrejectoption,

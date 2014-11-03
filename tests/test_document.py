@@ -43,6 +43,7 @@ class DocumentTest(utils.TestCase):
         self.json = {u'id': u'1234',
                      u'title': u'a document',
                      u'daystosign': 20,
+                     u'daystoremind': 10,
                      u'status': u'Pending',
                      u'time': None,
                      u'ctime': None,
@@ -95,11 +96,13 @@ class DocumentTest(utils.TestCase):
     def test_to_json_obj(self):
         d = self.o(title=u'the document',
                    number_of_days_to_sign=30,
+                   number_of_days_to_remind=20,
                    is_template=True,
                    signatories=set([self.s1]))
 
         json = {u'title': u'the document',
                 u'daystosign': 30,
+                u'daystoremind': 20,
                 u'template': True,
                 u'signatories': [self.s1]}
 
@@ -110,6 +113,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.id, u'1234')
         self.assertEqual(d.title, u'a document')
         self.assertEqual(d.number_of_days_to_sign, 20)
+        self.assertEqual(d.number_of_days_to_remind, 10)
         self.assertEqual(d.status, DS.pending)
         self.assertEqual(d.modification_time, None)
         self.assertEqual(d.creation_time, None)
@@ -261,3 +265,10 @@ class DocumentTest(utils.TestCase):
                          default_good_value=False,
                          other_good_values=[True],
                          serialized_name=u'template')
+
+    def test_number_of_days_to_remind(self):
+        self._test_field('number_of_days_to_remind',
+                         bad_value=[], correct_type='int, float or NoneType',
+                         default_good_value=None,
+                         other_good_values=[1, 20.],
+                         serialized_name=u'daystoremind')

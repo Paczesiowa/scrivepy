@@ -37,3 +37,4 @@
 * polish type_value_unifier
 ** move it to utils
 * MaybeTipSide could use nullable
+* Document.number_of_days_to_remind needs info that it's clipped on the backend to max of days to sign
