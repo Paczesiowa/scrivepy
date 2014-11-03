@@ -32,9 +32,10 @@ class Document(_object.ScriveObject):
 
     @tvu.validate_and_unify(title=tvu.instance(unicode),
                             number_of_days_to_sign=tvu.BoundedInt(1, 90),
+                            is_template=tvu.instance(bool),
                             signatories=SignatorySet)
     def __init__(self, title=u'', number_of_days_to_sign=14,
-                 signatories=set()):
+                 is_template=False, signatories=set()):
         super(Document, self).__init__()
         self._id = None
         self._title = title
@@ -45,6 +46,7 @@ class Document(_object.ScriveObject):
         self._signing_deadline = None
         self._autoremind_time = None
         self._current_sign_order = None
+        self._is_template = is_template
         self._signatories = set(signatories)
 
     @classmethod
@@ -55,6 +57,7 @@ class Document(_object.ScriveObject):
                      for signatory_json in json[u'signatories']])
             document = Document(title=json[u'title'],
                                 number_of_days_to_sign=json[u'daystosign'],
+                                is_template=json[u'template'],
                                 signatories=signatories)
             document._id = json[u'id']
             if json[u'time'] is not None:
@@ -87,6 +90,7 @@ class Document(_object.ScriveObject):
     def _to_json_obj(self):
         return {u'title': self.title,
                 u'daystosign': self.number_of_days_to_sign,
+                u'template': self.is_template,
                 u'signatories': list(self.signatories)}
 
     @scrive_property
@@ -176,6 +180,16 @@ class Document(_object.ScriveObject):
         # all signatories have the same invitation delivery method
         return result.value
 
+    @scrive_property
+    def is_template(self):
+        return self._is_template
+
+    @is_template.setter
+    @tvu.validate_and_unify(is_template=tvu.instance(bool))
+    def is_template(self, is_template):
+        self._is_template = is_template
+
+
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
@@ -191,7 +205,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "template" $ isTemplate doc
 #       J.value "daystoremind" $ documentdaystoremind doc
 #       J.value "showheader" $ documentshowheader doc
 #       J.value "showpdfdownload" $ documentshowpdfdownload doc
@@ -235,7 +248,6 @@ class Document(_object.ScriveObject):
 #         delivery <-  fromJSValueField "delivery"
 #         lang <- fromJSValueField "lang"
 #         mtimezone <- fromJSValueField "timezone"
-#         doctype <- fmap (\t -> if t then Template else Signable) <$> fromJSValueField "template"
 #         tags <- fromJSValueFieldCustom "tags" $ fromJSValueCustomMany  fromJSValue
 #         (apicallbackurl :: Maybe (Maybe String)) <- fromJSValueField "apicallbackurl"
 #         saved <- fromJSValueField "saved"
@@ -259,7 +271,6 @@ class Document(_object.ScriveObject):
 #             documentshowfooter = updateWithDefaultAndField True documentshowfooter showfooter,
 #             documentauthorattachments = updateWithDefaultAndField [] documentauthorattachments (fmap AuthorAttachment <$> authorattachments),
 #             documenttags = updateWithDefaultAndField Set.empty documenttags (Set.fromList <$> tags),
-#             documenttype = updateWithDefaultAndField Signable documenttype doctype,
 #             documentapicallbackurl = updateWithDefaultAndField Nothing documentapicallbackurl apicallbackurl,
 #             documentunsaveddraft = updateWithDefaultAndField False documentunsaveddraft (fmap not saved),
 #             documenttimezonename = updateWithDefaultAndField defaultTimeZoneName documenttimezonename (unsafeTimeZoneName <$> mtimezone)

@@ -49,6 +49,7 @@ class DocumentTest(utils.TestCase):
                      u'timeouttime': None,
                      u'autoremindtime': None,
                      u'signorder': 1,
+                     u'template': True,
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -94,10 +95,12 @@ class DocumentTest(utils.TestCase):
     def test_to_json_obj(self):
         d = self.o(title=u'the document',
                    number_of_days_to_sign=30,
+                   is_template=True,
                    signatories=set([self.s1]))
 
         json = {u'title': u'the document',
                 u'daystosign': 30,
+                u'template': True,
                 u'signatories': [self.s1]}
 
         self.assertEqual(json, d._to_json_obj())
@@ -115,6 +118,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.current_sign_order, 1)
         self.assertEqual(d.authentication_method, u'standard')
         self.assertEqual(d.invitation_delivery_method, u'email')
+        self.assertEqual(d.is_template, True)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -250,3 +254,10 @@ class DocumentTest(utils.TestCase):
         # if signatories have different methods, document has mixed
         s2.invitation_delivery_method = 'pad'
         self.assertEqual(d.invitation_delivery_method, u'mixed')
+
+    def test_is_template(self):
+        self._test_field('is_template',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=False,
+                         other_good_values=[True],
+                         serialized_name=u'template')
