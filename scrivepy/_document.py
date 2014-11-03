@@ -44,6 +44,7 @@ class Document(_object.ScriveObject):
         self._creation_time = None
         self._signing_deadline = None
         self._autoremind_time = None
+        self._current_sign_order = None
         self._signatories = set(signatories)
 
     @classmethod
@@ -67,6 +68,7 @@ class Document(_object.ScriveObject):
                 document._autoremind_time = \
                     dateparser.parse(json[u'autoremindtime'])
             document._status = DocumentStatus(json[u'status'])
+            document._current_sign_order = json[u'signorder']
             return document
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -138,6 +140,10 @@ class Document(_object.ScriveObject):
     def autoremind_time(self):
         return self._autoremind_time
 
+    @scrive_property
+    def current_sign_order(self):
+        return self._current_sign_order
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -152,7 +158,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "signorder" $ unSignOrder $ documentcurrentsignorder doc
 #       J.value "authentication" $ case nub (map signatorylinkauthenticationmethod (documentsignatorylinks doc)) of
 #                                    [StandardAuthentication] -> "standard"
 #                                    [ELegAuthentication]     -> "eleg"
