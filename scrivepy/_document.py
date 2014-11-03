@@ -144,6 +144,23 @@ class Document(_object.ScriveObject):
     def current_sign_order(self):
         return self._current_sign_order
 
+    @scrive_property
+    def authentication_method(self):
+        signatories = list(self.signatories)
+        if not signatories:
+            return u'mixed'
+
+        # at least 1 signatory
+        first_signatory = signatories.pop(0)
+        result = first_signatory.authentication_method
+        for signatory in signatories:
+            if signatory.authentication_method != result:
+                # signatories use various auth methods
+                return u'mixed'
+        # all signatories have the same auth method
+        return result.value
+
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -158,11 +175,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "authentication" $ case nub (map signatorylinkauthenticationmethod (documentsignatorylinks doc)) of
-#                                    [StandardAuthentication] -> "standard"
-#                                    [ELegAuthentication]     -> "eleg"
-#                                    [SMSPinAuthentication]   -> "sms_pin"
-#                                    _                        -> "mixed"
 #       J.value "delivery" $ case nub (map signatorylinkdeliverymethod (documentsignatorylinks doc)) of
 #                                    [EmailDelivery]   -> "email"
 #                                    [PadDelivery]     -> "pad"
@@ -211,7 +223,6 @@ class Document(_object.ScriveObject):
 #         showpdfdownload <- fromJSValueField "showpdfdownload"
 #         showrejectoption <- fromJSValueField "showrejectoption"
 #         showfooter <- fromJSValueField "showfooter"
-#         authentication <-  fromJSValueField "authentication"
 #         delivery <-  fromJSValueField "delivery"
 #         lang <- fromJSValueField "lang"
 #         mtimezone <- fromJSValueField "timezone"
@@ -247,9 +258,3 @@ class Document(_object.ScriveObject):
 #       where
 #        updateWithDefaultAndField :: a -> (Document -> a) -> Maybe a -> a
 #        updateWithDefaultAndField df uf mv = fromMaybe df (mv `mplus` (fmap uf mdoc))
-#        mapDL :: Maybe DeliveryMethod -> [SignatoryLink] -> [SignatoryLink]
-#        mapDL Nothing sls = sls
-#        mapDL (Just dl) sls = map (\sl -> sl {signatorylinkdeliverymethod = dl}) sls
-#        mapAuth :: Maybe AuthenticationMethod -> [SignatoryLink] -> [SignatoryLink]
-#        mapAuth Nothing sls = sls
-#        mapAuth (Just au) sls = map (\sl -> sl {signatorylinkauthenticationmethod = au}) sls
