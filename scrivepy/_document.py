@@ -160,6 +160,22 @@ class Document(_object.ScriveObject):
         # all signatories have the same auth method
         return result.value
 
+    @scrive_property
+    def invitation_delivery_method(self):
+        signatories = list(self.signatories)
+        if not signatories:
+            return u'mixed'
+
+        # at least 1 signatory
+        first_signatory = signatories.pop(0)
+        result = first_signatory.invitation_delivery_method
+        for signatory in signatories:
+            if signatory.invitation_delivery_method != result:
+                # signatories use various invitation delivery methods
+                return u'mixed'
+        # all signatories have the same invitation delivery method
+        return result.value
+
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
@@ -175,13 +191,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "delivery" $ case nub (map signatorylinkdeliverymethod (documentsignatorylinks doc)) of
-#                                    [EmailDelivery]   -> "email"
-#                                    [PadDelivery]     -> "pad"
-#                                    [APIDelivery]     -> "api"
-#                                    [MobileDelivery]  -> "mobile"
-#                                    [EmailAndMobileDelivery]-> "email_mobile"
-#                                    _                 -> "mixed"
 #       J.value "template" $ isTemplate doc
 #       J.value "daystoremind" $ documentdaystoremind doc
 #       J.value "showheader" $ documentshowheader doc

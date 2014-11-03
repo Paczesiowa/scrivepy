@@ -114,6 +114,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.autoremind_time, None)
         self.assertEqual(d.current_sign_order, 1)
         self.assertEqual(d.authentication_method, u'standard')
+        self.assertEqual(d.invitation_delivery_method, u'email')
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -229,3 +230,23 @@ class DocumentTest(utils.TestCase):
         # if signatories have different methods, document has mixed
         s2.authentication_method = 'standard'
         self.assertEqual(d.authentication_method, u'mixed')
+
+    def test_invitation_delivery_method(self):
+        # by default, without signatories it's mixed
+        d = self.o()
+        self.assertEqual(d.invitation_delivery_method, u'mixed')
+
+        # if all signatories have the same method, document has that as well
+        s1 = S()
+        s2 = S()
+        s1.invitation_delivery_method = 'email'
+        s2.invitation_delivery_method = 'email'
+        d.signatories = set([s1, s2])
+        self.assertEqual(d.invitation_delivery_method, u'email')
+        s1.invitation_delivery_method = 'api'
+        s2.invitation_delivery_method = 'api'
+        self.assertEqual(d.invitation_delivery_method, u'api')
+
+        # if signatories have different methods, document has mixed
+        s2.invitation_delivery_method = 'pad'
+        self.assertEqual(d.invitation_delivery_method, u'mixed')
