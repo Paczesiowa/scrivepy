@@ -31,6 +31,21 @@ class DocumentStatus(unicode, enum.Enum):
 MaybeUnicode = tvu.nullable(tvu.instance(unicode))
 
 
+class Language(unicode, enum.Enum):
+    english = u'en'
+    swedish = u'sv'
+    german = u'de'
+    french = u'fr'
+    italian = u'it'
+    spanish = u'es'
+    portuguese = u'pt'
+    dutch = u'nl'
+    danish = u'da'
+    norwegian = u'no'
+    greek = u'el'
+    finnish = u'fi'
+
+
 class Document(_object.ScriveObject):
 
     @tvu.validate_and_unify(title=tvu.instance(unicode),
@@ -44,12 +59,15 @@ class Document(_object.ScriveObject):
                             show_footer=tvu.instance(bool),
                             invitation_message=MaybeUnicode,
                             confirmation_message=MaybeUnicode,
+                            api_callback_url=MaybeUnicode,
+                            language=tvu.instance(Language, enum=True),
                             signatories=SignatorySet)
     def __init__(self, title=u'', number_of_days_to_sign=14,
                  number_of_days_to_remind=None,
                  show_header=True, show_pdf_download=True,
                  show_reject_option=True, show_footer=True,
                  invitation_message=None, confirmation_message=None,
+                 api_callback_url=None, language=Language.swedish,
                  is_template=False, signatories=set()):
         super(Document, self).__init__()
         self._id = None
@@ -70,6 +88,8 @@ class Document(_object.ScriveObject):
         self.invitation_message = invitation_message  # setter has better logic
         self.confirmation_message = \
             confirmation_message  # setter has better logic
+        self._api_callback_url = api_callback_url
+        self._language = language
         self._signatories = set(signatories)
 
     @classmethod
@@ -78,6 +98,9 @@ class Document(_object.ScriveObject):
             signatories = \
                 set([_signatory.Signatory._from_json_obj(signatory_json)
                      for signatory_json in json[u'signatories']])
+            lang_code = json[u'lang']
+            if lang_code == u'gb':
+                lang_code = u'en'
             document = Document(title=json[u'title'],
                                 number_of_days_to_sign=json[u'daystosign'],
                                 number_of_days_to_remind=json[u'daystoremind'],
@@ -89,6 +112,8 @@ class Document(_object.ScriveObject):
                                 invitation_message=json[u'invitationmessage'],
                                 confirmation_message=
                                 json[u'confirmationmessage'],
+                                api_callback_url=json[u'apicallbackurl'],
+                                language=Language(lang_code),
                                 signatories=signatories)
             document._id = json[u'id']
             if json[u'time'] is not None:
@@ -129,6 +154,8 @@ class Document(_object.ScriveObject):
                 u'showfooter': self.show_footer,
                 u'invitationmessage': self.invitation_message or u'',
                 u'confirmationmessage': self.confirmation_message or u'',
+                u'apicallbackurl': self.api_callback_url,
+                u'lang': self.language.value,
                 u'signatories': list(self.signatories)}
 
     @scrive_property
@@ -297,6 +324,26 @@ class Document(_object.ScriveObject):
             confirmation_message = None
         self._confirmation_message = confirmation_message
 
+    @scrive_property
+    def api_callback_url(self):
+        return self._api_callback_url
+
+    @api_callback_url.setter
+    @tvu.validate_and_unify(api_callback_url=MaybeUnicode)
+    def api_callback_url(self, api_callback_url):
+        self._api_callback_url = api_callback_url
+
+    @scrive_property
+    def language(self):
+        return self._language
+
+    @language.setter
+    @tvu.validate_and_unify(language=tvu.instance(Language, enum=True))
+    def language(self, language):
+        self._language = language
+
+
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -311,14 +358,9 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "lang" $  case (getLang doc) of -- We keep some old lang codes for old integrations. We should drop it on new API release
-#                              LANG_EN -> "gb"
-#                              LANG_SV -> "sv"
-#                              l -> codeFromLang l
 #       J.objects "tags" $ for (Set.toList $ documenttags doc) $ \(DocumentTag n v) -> do
 #                                     J.value "name"  n
 #                                     J.value "value" v
-#       J.value "apicallbackurl" $ documentapicallbackurl doc
 #       J.value "saved" $ not (documentunsaveddraft doc)
 #       J.value "deleted" $ fromMaybe False $ documentDeletedForUser doc <$> userid <$> muser
 #       J.value "reallydeleted" $ fromMaybe False $ documentReallyDeletedForUser doc <$> userid <$>  muser
@@ -337,17 +379,13 @@ class Document(_object.ScriveObject):
 
 # instance FromJSValueWithUpdate Document where
 #     fromJSValueWithUpdate mdoc = do
-#         lang <- fromJSValueField "lang"
 #         mtimezone <- fromJSValueField "timezone"
 #         tags <- fromJSValueFieldCustom "tags" $ fromJSValueCustomMany  fromJSValue
-#         (apicallbackurl :: Maybe (Maybe String)) <- fromJSValueField "apicallbackurl"
 #         saved <- fromJSValueField "saved"
 #         authorattachments <- fromJSValueFieldCustom "authorattachments" $ fromJSValueCustomMany $ fmap (join . (fmap maybeRead)) $ (fromJSValueField "id")
 #         return $ Just defaultValue {
-#             documentlang  = updateWithDefaultAndField LANG_SV documentlang lang,
 #             documentauthorattachments = updateWithDefaultAndField [] documentauthorattachments (fmap AuthorAttachment <$> authorattachments),
 #             documenttags = updateWithDefaultAndField Set.empty documenttags (Set.fromList <$> tags),
-#             documentapicallbackurl = updateWithDefaultAndField Nothing documentapicallbackurl apicallbackurl,
 #             documentunsaveddraft = updateWithDefaultAndField False documentunsaveddraft (fmap not saved),
 #             documenttimezonename = updateWithDefaultAndField defaultTimeZoneName documenttimezonename (unsafeTimeZoneName <$> mtimezone)
 #           }

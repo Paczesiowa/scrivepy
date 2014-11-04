@@ -5,6 +5,7 @@ from tests import utils
 S = _signatory.Signatory
 D = _document.Document
 DS = _document.DocumentStatus
+Lang = _document.Language
 
 
 class DocumentTest(utils.TestCase):
@@ -57,6 +58,8 @@ class DocumentTest(utils.TestCase):
                      u'showfooter': False,
                      u'invitationmessage': u'',
                      u'confirmationmessage': u'',
+                     u'apicallbackurl': u'http://example.net/',
+                     u'lang': u'pt',
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -110,6 +113,8 @@ class DocumentTest(utils.TestCase):
                    show_footer=False,
                    invitation_message=u'some text',
                    confirmation_message=u'some confirmation text',
+                   api_callback_url=u'http://example.com/',
+                   language='spanish',
                    signatories=set([self.s1]))
 
         json = {u'title': u'the document',
@@ -122,6 +127,8 @@ class DocumentTest(utils.TestCase):
                 u'showfooter': False,
                 u'invitationmessage': u'some text',
                 u'confirmationmessage': u'some confirmation text',
+                u'apicallbackurl': u'http://example.com/',
+                u'lang': u'es',
                 u'signatories': [self.s1]}
 
         self.assertEqual(json, d._to_json_obj())
@@ -147,6 +154,8 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.show_footer, False)
         self.assertEqual(d.invitation_message, None)
         self.assertEqual(d.confirmation_message, None)
+        self.assertEqual(d.api_callback_url, u'http://example.net/')
+        self.assertEqual(d.language, Lang.portuguese)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -370,3 +379,25 @@ class DocumentTest(utils.TestCase):
             for d in [d1, d2, d3]:
                 self.assertEqual(u'', d._to_json_obj()[u'confirmationmessage'])
                 self.assertIsNone(d.confirmation_message)
+
+    def test_api_callback_url(self):
+        self._test_field('api_callback_url',
+                         bad_value=[], correct_type='unicode or NoneType',
+                         default_good_value=None,
+                         other_good_values=[u'http://example.com/'],
+                         serialized_name=u'apicallbackurl')
+
+    def test_language(self):
+        self._test_field('language',
+                         bad_value={}, correct_type=Lang,
+                         default_good_value=Lang.swedish,
+                         other_good_values=[Lang.english,
+                                            ('greek', Lang.greek),
+                                            Lang.finnish],
+                         serialized_name=u'lang',
+                         bad_enum_value='wrong')
+
+        json = self.json.copy()
+        json[u'lang'] = u'gb'
+        d = self.O._from_json_obj(json)
+        self.assertEqual(d.language, Lang.english)
