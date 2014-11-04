@@ -35,9 +35,15 @@ class Document(_object.ScriveObject):
                             number_of_days_to_remind=
                             tvu.nullable(tvu.PositiveInt),
                             is_template=tvu.instance(bool),
+                            show_header=tvu.instance(bool),
+                            show_pdf_download=tvu.instance(bool),
+                            show_reject_option=tvu.instance(bool),
+                            show_footer=tvu.instance(bool),
                             signatories=SignatorySet)
     def __init__(self, title=u'', number_of_days_to_sign=14,
                  number_of_days_to_remind=None,
+                 show_header=True, show_pdf_download=True,
+                 show_reject_option=True, show_footer=True,
                  is_template=False, signatories=set()):
         super(Document, self).__init__()
         self._id = None
@@ -51,6 +57,10 @@ class Document(_object.ScriveObject):
         self._autoremind_time = None
         self._current_sign_order = None
         self._is_template = is_template
+        self._show_header = show_header
+        self._show_pdf_download = show_pdf_download
+        self._show_reject_option = show_reject_option
+        self._show_footer = show_footer
         self._signatories = set(signatories)
 
     @classmethod
@@ -63,6 +73,10 @@ class Document(_object.ScriveObject):
                                 number_of_days_to_sign=json[u'daystosign'],
                                 number_of_days_to_remind=json[u'daystoremind'],
                                 is_template=json[u'template'],
+                                show_header=json[u'showheader'],
+                                show_pdf_download=json[u'showpdfdownload'],
+                                show_reject_option=json[u'showrejectoption'],
+                                show_footer=json[u'showfooter'],
                                 signatories=signatories)
             document._id = json[u'id']
             if json[u'time'] is not None:
@@ -97,6 +111,10 @@ class Document(_object.ScriveObject):
                 u'daystosign': self.number_of_days_to_sign,
                 u'daystoremind': self.number_of_days_to_remind,
                 u'template': self.is_template,
+                u'showheader': self.show_header,
+                u'showpdfdownload': self.show_pdf_download,
+                u'showrejectoption': self.show_reject_option,
+                u'showfooter': self.show_footer,
                 u'signatories': list(self.signatories)}
 
     @scrive_property
@@ -205,6 +223,43 @@ class Document(_object.ScriveObject):
     def number_of_days_to_remind(self, number_of_days_to_remind):
         self._number_of_days_to_remind = number_of_days_to_remind
 
+    @scrive_property
+    def show_header(self):
+        return self._show_header
+
+    @show_header.setter
+    @tvu.validate_and_unify(show_header=tvu.instance(bool))
+    def show_header(self, show_header):
+        self._show_header = show_header
+
+    @scrive_property
+    def show_pdf_download(self):
+        return self._show_pdf_download
+
+    @show_pdf_download.setter
+    @tvu.validate_and_unify(show_pdf_download=tvu.instance(bool))
+    def show_pdf_download(self, show_pdf_download):
+        self._show_pdf_download = show_pdf_download
+
+    @scrive_property
+    def show_reject_option(self):
+        return self._show_reject_option
+
+    @show_reject_option.setter
+    @tvu.validate_and_unify(show_reject_option=tvu.instance(bool))
+    def show_reject_option(self, show_reject_option):
+        self._show_reject_option = show_reject_option
+
+    @scrive_property
+    def show_footer(self):
+        return self._show_footer
+
+    @show_footer.setter
+    @tvu.validate_and_unify(show_footer=tvu.instance(bool))
+    def show_footer(self, show_footer):
+        self._show_footer = show_footer
+
+
 
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
@@ -221,10 +276,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "showheader" $ documentshowheader doc
-#       J.value "showpdfdownload" $ documentshowpdfdownload doc
-#       J.value "showrejectoption" $ documentshowrejectoption doc
-#       J.value "showfooter" $ documentshowfooter doc
 #       J.value "invitationmessage" $ documentinvitetext doc
 #       J.value "confirmationmessage" $ documentconfirmtext doc
 #       J.value "lang" $  case (getLang doc) of -- We keep some old lang codes for old integrations. We should drop it on new API release
@@ -255,11 +306,6 @@ class Document(_object.ScriveObject):
 #     fromJSValueWithUpdate mdoc = do
 #         (invitationmessage :: Maybe (Maybe String)) <-  fromJSValueField "invitationmessage"
 #         (confirmationmessage :: Maybe (Maybe String)) <-  fromJSValueField "confirmationmessage"
-#         showheader <- fromJSValueField "showheader"
-#         showpdfdownload <- fromJSValueField "showpdfdownload"
-#         showrejectoption <- fromJSValueField "showrejectoption"
-#         showfooter <- fromJSValueField "showfooter"
-#         delivery <-  fromJSValueField "delivery"
 #         lang <- fromJSValueField "lang"
 #         mtimezone <- fromJSValueField "timezone"
 #         tags <- fromJSValueFieldCustom "tags" $ fromJSValueCustomMany  fromJSValue
@@ -276,10 +322,6 @@ class Document(_object.ScriveObject):
 #                                      Nothing -> fromMaybe "" $ documentconfirmtext <$> mdoc
 #                                      Just Nothing -> ""
 #                                      Just (Just s) -> fromMaybe "" (resultToMaybe $ asValidInviteText s),
-#             documentshowheader = updateWithDefaultAndField True documentshowheader showheader,
-#             documentshowpdfdownload = updateWithDefaultAndField True documentshowpdfdownload showpdfdownload,
-#             documentshowrejectoption = updateWithDefaultAndField True documentshowrejectoption showrejectoption,
-#             documentshowfooter = updateWithDefaultAndField True documentshowfooter showfooter,
 #             documentauthorattachments = updateWithDefaultAndField [] documentauthorattachments (fmap AuthorAttachment <$> authorattachments),
 #             documenttags = updateWithDefaultAndField Set.empty documenttags (Set.fromList <$> tags),
 #             documentapicallbackurl = updateWithDefaultAndField Nothing documentapicallbackurl apicallbackurl,

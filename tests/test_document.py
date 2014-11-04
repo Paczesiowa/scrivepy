@@ -51,6 +51,10 @@ class DocumentTest(utils.TestCase):
                      u'autoremindtime': None,
                      u'signorder': 1,
                      u'template': True,
+                     u'showheader': False,
+                     u'showpdfdownload': False,
+                     u'showrejectoption': False,
+                     u'showfooter': False,
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -98,12 +102,20 @@ class DocumentTest(utils.TestCase):
                    number_of_days_to_sign=30,
                    number_of_days_to_remind=20,
                    is_template=True,
+                   show_header=False,
+                   show_pdf_download=False,
+                   show_reject_option=False,
+                   show_footer=False,
                    signatories=set([self.s1]))
 
         json = {u'title': u'the document',
                 u'daystosign': 30,
                 u'daystoremind': 20,
                 u'template': True,
+                u'showheader': False,
+                u'showpdfdownload': False,
+                u'showrejectoption': False,
+                u'showfooter': False,
                 u'signatories': [self.s1]}
 
         self.assertEqual(json, d._to_json_obj())
@@ -123,6 +135,10 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.authentication_method, u'standard')
         self.assertEqual(d.invitation_delivery_method, u'email')
         self.assertEqual(d.is_template, True)
+        self.assertEqual(d.show_header, False)
+        self.assertEqual(d.show_pdf_download, False)
+        self.assertEqual(d.show_reject_option, False)
+        self.assertEqual(d.show_footer, False)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -272,3 +288,31 @@ class DocumentTest(utils.TestCase):
                          default_good_value=None,
                          other_good_values=[1, 20.],
                          serialized_name=u'daystoremind')
+
+    def test_show_header(self):
+        self._test_field('show_header',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=True,
+                         other_good_values=[False],
+                         serialized_name=u'showheader')
+
+    def test_show_pdf_download(self):
+        self._test_field('show_pdf_download',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=True,
+                         other_good_values=[False],
+                         serialized_name=u'showpdfdownload')
+
+    def test_show_reject_option(self):
+        self._test_field('show_reject_option',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=True,
+                         other_good_values=[False],
+                         serialized_name=u'showrejectoption')
+
+    def test_show_footer(self):
+        self._test_field('show_footer',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=True,
+                         other_good_values=[False],
+                         serialized_name=u'showfooter')
