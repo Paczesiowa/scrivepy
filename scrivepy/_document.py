@@ -28,6 +28,9 @@ class DocumentStatus(unicode, enum.Enum):
     error = u'DocumentError'
 
 
+MaybeUnicode = tvu.nullable(tvu.instance(unicode))
+
+
 class Document(_object.ScriveObject):
 
     @tvu.validate_and_unify(title=tvu.instance(unicode),
@@ -39,11 +42,13 @@ class Document(_object.ScriveObject):
                             show_pdf_download=tvu.instance(bool),
                             show_reject_option=tvu.instance(bool),
                             show_footer=tvu.instance(bool),
+                            invitation_message=MaybeUnicode,
                             signatories=SignatorySet)
     def __init__(self, title=u'', number_of_days_to_sign=14,
                  number_of_days_to_remind=None,
                  show_header=True, show_pdf_download=True,
                  show_reject_option=True, show_footer=True,
+                 invitation_message=None,
                  is_template=False, signatories=set()):
         super(Document, self).__init__()
         self._id = None
@@ -61,6 +66,7 @@ class Document(_object.ScriveObject):
         self._show_pdf_download = show_pdf_download
         self._show_reject_option = show_reject_option
         self._show_footer = show_footer
+        self.invitation_message = invitation_message  # setter has better logic
         self._signatories = set(signatories)
 
     @classmethod
@@ -77,6 +83,7 @@ class Document(_object.ScriveObject):
                                 show_pdf_download=json[u'showpdfdownload'],
                                 show_reject_option=json[u'showrejectoption'],
                                 show_footer=json[u'showfooter'],
+                                invitation_message=json[u'invitationmessage'],
                                 signatories=signatories)
             document._id = json[u'id']
             if json[u'time'] is not None:
@@ -115,6 +122,7 @@ class Document(_object.ScriveObject):
                 u'showpdfdownload': self.show_pdf_download,
                 u'showrejectoption': self.show_reject_option,
                 u'showfooter': self.show_footer,
+                u'invitationmessage': self.invitation_message or u'',
                 u'signatories': list(self.signatories)}
 
     @scrive_property
@@ -259,8 +267,17 @@ class Document(_object.ScriveObject):
     def show_footer(self, show_footer):
         self._show_footer = show_footer
 
+    @scrive_property
+    def invitation_message(self):
+        return self._invitation_message
 
-
+    @invitation_message.setter
+    @tvu.validate_and_unify(invitation_message=MaybeUnicode)
+    def invitation_message(self, invitation_message):
+        if invitation_message is not None and invitation_message.isspace()\
+           or invitation_message == u'':
+            invitation_message = None
+        self._invitation_message = invitation_message
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
@@ -276,7 +293,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "invitationmessage" $ documentinvitetext doc
 #       J.value "confirmationmessage" $ documentconfirmtext doc
 #       J.value "lang" $  case (getLang doc) of -- We keep some old lang codes for old integrations. We should drop it on new API release
 #                              LANG_EN -> "gb"
@@ -304,7 +320,6 @@ class Document(_object.ScriveObject):
 
 # instance FromJSValueWithUpdate Document where
 #     fromJSValueWithUpdate mdoc = do
-#         (invitationmessage :: Maybe (Maybe String)) <-  fromJSValueField "invitationmessage"
 #         (confirmationmessage :: Maybe (Maybe String)) <-  fromJSValueField "confirmationmessage"
 #         lang <- fromJSValueField "lang"
 #         mtimezone <- fromJSValueField "timezone"
@@ -314,10 +329,6 @@ class Document(_object.ScriveObject):
 #         authorattachments <- fromJSValueFieldCustom "authorattachments" $ fromJSValueCustomMany $ fmap (join . (fmap maybeRead)) $ (fromJSValueField "id")
 #         return $ Just defaultValue {
 #             documentlang  = updateWithDefaultAndField LANG_SV documentlang lang,
-#             documentinvitetext = case (invitationmessage) of
-#                                      Nothing -> fromMaybe "" $ documentinvitetext <$> mdoc
-#                                      Just Nothing -> ""
-#                                      Just (Just s) -> fromMaybe "" (resultToMaybe $ asValidInviteText s),
 #             documentconfirmtext = case (confirmationmessage) of
 #                                      Nothing -> fromMaybe "" $ documentconfirmtext <$> mdoc
 #                                      Just Nothing -> ""

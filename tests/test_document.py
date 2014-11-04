@@ -55,6 +55,7 @@ class DocumentTest(utils.TestCase):
                      u'showpdfdownload': False,
                      u'showrejectoption': False,
                      u'showfooter': False,
+                     u'invitationmessage': u'',
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -106,6 +107,7 @@ class DocumentTest(utils.TestCase):
                    show_pdf_download=False,
                    show_reject_option=False,
                    show_footer=False,
+                   invitation_message=u'some text',
                    signatories=set([self.s1]))
 
         json = {u'title': u'the document',
@@ -116,6 +118,7 @@ class DocumentTest(utils.TestCase):
                 u'showpdfdownload': False,
                 u'showrejectoption': False,
                 u'showfooter': False,
+                u'invitationmessage': u'some text',
                 u'signatories': [self.s1]}
 
         self.assertEqual(json, d._to_json_obj())
@@ -139,6 +142,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.show_pdf_download, False)
         self.assertEqual(d.show_reject_option, False)
         self.assertEqual(d.show_footer, False)
+        self.assertEqual(d.invitation_message, None)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -316,3 +320,26 @@ class DocumentTest(utils.TestCase):
                          default_good_value=True,
                          other_good_values=[False],
                          serialized_name=u'showfooter')
+
+    def test_invitation_message(self):
+        self._test_field('invitation_message',
+                         bad_value={}, correct_type='unicode or NoneType',
+                         default_good_value=None,
+                         other_good_values=[u'some text'],
+                         serialized_name=u'invitationmessage',
+                         serialized_default_good_value=u'')
+        d1 = self.o()
+        self.assertIsNone(d1.invitation_message)
+        for x in [None, u'', u'   ', u'  \n  ']:
+            d1.invitation_message = x
+
+            d2 = self.o(invitation_message=x)
+
+            json = self.json.copy()
+            json[u'invitationmessage'] = x
+
+            d3 = self.O._from_json_obj(json)
+
+            for d in [d1, d2, d3]:
+                self.assertEqual(u'', d._to_json_obj()[u'invitationmessage'])
+                self.assertIsNone(d.invitation_message)
