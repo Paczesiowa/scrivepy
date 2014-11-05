@@ -60,6 +60,8 @@ class DocumentTest(utils.TestCase):
                      u'confirmationmessage': u'',
                      u'apicallbackurl': u'http://example.net/',
                      u'lang': u'pt',
+                     u'tags': [{u'name': u'key1', u'value': u'val1'},
+                               {u'name': u'key2', u'value': u'val2'}],
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -115,6 +117,7 @@ class DocumentTest(utils.TestCase):
                    confirmation_message=u'some confirmation text',
                    api_callback_url=u'http://example.com/',
                    language='spanish',
+                   tags={u'key1': u'val2', u'key3': u'val4'},
                    signatories=set([self.s1]))
 
         json = {u'title': u'the document',
@@ -129,9 +132,14 @@ class DocumentTest(utils.TestCase):
                 u'confirmationmessage': u'some confirmation text',
                 u'apicallbackurl': u'http://example.com/',
                 u'lang': u'es',
+                u'tags': [{u'name': u'key1', u'value': u'val2'},
+                          {u'name': u'key3', u'value': u'val4'}],
                 u'signatories': [self.s1]}
 
-        self.assertEqual(json, d._to_json_obj())
+        d_json = d._to_json_obj()
+        d_json[u'tags'] = sorted(d_json[u'tags'], key=lambda x: x[u'name'])
+
+        self.assertEqual(json, d_json)
 
     def test_from_json_obj(self):
         d = D._from_json_obj(self.json)
@@ -156,6 +164,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.confirmation_message, None)
         self.assertEqual(d.api_callback_url, u'http://example.net/')
         self.assertEqual(d.language, Lang.portuguese)
+        self.assertEqual(d.tags, {u'key1': u'val1', u'key2': u'val2'})
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -401,3 +410,26 @@ class DocumentTest(utils.TestCase):
         json[u'lang'] = u'gb'
         d = self.O._from_json_obj(json)
         self.assertEqual(d.language, Lang.english)
+
+    def test_tags(self):
+        self._test_field('tags',
+                         bad_value=[], correct_type='dict',
+                         default_good_value={},
+                         other_good_values=[{u'k': u'v'},
+                                            {u'k1': u'v1', u'k2': u'v2'}],
+                         serialized_default_good_value=[])
+
+        type_err_msg = \
+            u"tags must be dict with unicode keys and values, not: {1: u''}"
+        with self.assertRaises(ValueError, type_err_msg):
+            self.o(tags={1: u''})
+
+        type_err_msg = \
+            u"tags must be dict with unicode keys and values, not: {u'': 1}"
+        with self.assertRaises(ValueError, type_err_msg):
+            self.o(tags={u'': 1})
+
+        d1 = self.o()
+        d1._tags[u'foo'] = u'bar'
+        d2 = self.o()
+        self.assertEqual({}, d2.tags)

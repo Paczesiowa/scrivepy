@@ -61,6 +61,7 @@ class Document(_object.ScriveObject):
                             confirmation_message=MaybeUnicode,
                             api_callback_url=MaybeUnicode,
                             language=tvu.instance(Language, enum=True),
+                            tags=tvu.UnicodeDict,
                             signatories=SignatorySet)
     def __init__(self, title=u'', number_of_days_to_sign=14,
                  number_of_days_to_remind=None,
@@ -68,7 +69,7 @@ class Document(_object.ScriveObject):
                  show_reject_option=True, show_footer=True,
                  invitation_message=None, confirmation_message=None,
                  api_callback_url=None, language=Language.swedish,
-                 is_template=False, signatories=set()):
+                 tags={}, is_template=False, signatories=set()):
         super(Document, self).__init__()
         self._id = None
         self._title = title
@@ -90,6 +91,7 @@ class Document(_object.ScriveObject):
             confirmation_message  # setter has better logic
         self._api_callback_url = api_callback_url
         self._language = language
+        self._tags = tags.copy()
         self._signatories = set(signatories)
 
     @classmethod
@@ -114,6 +116,8 @@ class Document(_object.ScriveObject):
                                 json[u'confirmationmessage'],
                                 api_callback_url=json[u'apicallbackurl'],
                                 language=Language(lang_code),
+                                tags={elem[u'name']: elem[u'value']
+                                      for elem in json[u'tags']},
                                 signatories=signatories)
             document._id = json[u'id']
             if json[u'time'] is not None:
@@ -156,6 +160,8 @@ class Document(_object.ScriveObject):
                 u'confirmationmessage': self.confirmation_message or u'',
                 u'apicallbackurl': self.api_callback_url,
                 u'lang': self.language.value,
+                u'tags': [{u'name': key, u'value': val}
+                          for key, val in self.tags.items()],
                 u'signatories': list(self.signatories)}
 
     @scrive_property
@@ -342,6 +348,15 @@ class Document(_object.ScriveObject):
     def language(self, language):
         self._language = language
 
+    @scrive_property
+    def tags(self):
+        return self._tags
+
+    @tags.setter
+    @tvu.validate_and_unify(tags=tvu.UnicodeDict)
+    def tags(self, tags):
+        self._tags = tags
+
 
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
@@ -358,9 +373,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.objects "tags" $ for (Set.toList $ documenttags doc) $ \(DocumentTag n v) -> do
-#                                     J.value "name"  n
-#                                     J.value "value" v
 #       J.value "saved" $ not (documentunsaveddraft doc)
 #       J.value "deleted" $ fromMaybe False $ documentDeletedForUser doc <$> userid <$> muser
 #       J.value "reallydeleted" $ fromMaybe False $ documentReallyDeletedForUser doc <$> userid <$>  muser
@@ -380,12 +392,10 @@ class Document(_object.ScriveObject):
 # instance FromJSValueWithUpdate Document where
 #     fromJSValueWithUpdate mdoc = do
 #         mtimezone <- fromJSValueField "timezone"
-#         tags <- fromJSValueFieldCustom "tags" $ fromJSValueCustomMany  fromJSValue
 #         saved <- fromJSValueField "saved"
 #         authorattachments <- fromJSValueFieldCustom "authorattachments" $ fromJSValueCustomMany $ fmap (join . (fmap maybeRead)) $ (fromJSValueField "id")
 #         return $ Just defaultValue {
 #             documentauthorattachments = updateWithDefaultAndField [] documentauthorattachments (fmap AuthorAttachment <$> authorattachments),
-#             documenttags = updateWithDefaultAndField Set.empty documenttags (Set.fromList <$> tags),
 #             documentunsaveddraft = updateWithDefaultAndField False documentunsaveddraft (fmap not saved),
 #             documenttimezonename = updateWithDefaultAndField defaultTimeZoneName documenttimezonename (unsafeTimeZoneName <$> mtimezone)
 #           }
