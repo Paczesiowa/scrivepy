@@ -5,6 +5,7 @@ from tests import utils
 S = _signatory.Signatory
 D = _document.Document
 DS = _document.DocumentStatus
+DelS = _document.DeletionStatus
 Lang = _document.Language
 
 
@@ -62,6 +63,10 @@ class DocumentTest(utils.TestCase):
                      u'lang': u'pt',
                      u'tags': [{u'name': u'key1', u'value': u'val1'},
                                {u'name': u'key2', u'value': u'val2'}],
+                     u'saved': True,
+                     u'deleted': False,
+                     u'reallydeleted': False,
+                     u'canperformsigning': True,
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -118,6 +123,7 @@ class DocumentTest(utils.TestCase):
                    api_callback_url=u'http://example.com/',
                    language='spanish',
                    tags={u'key1': u'val2', u'key3': u'val4'},
+                   saved_as_draft=False,
                    signatories=set([self.s1]))
 
         json = {u'title': u'the document',
@@ -134,6 +140,7 @@ class DocumentTest(utils.TestCase):
                 u'lang': u'es',
                 u'tags': [{u'name': u'key1', u'value': u'val2'},
                           {u'name': u'key3', u'value': u'val4'}],
+                u'saved': False,
                 u'signatories': [self.s1]}
 
         d_json = d._to_json_obj()
@@ -165,6 +172,9 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.api_callback_url, u'http://example.net/')
         self.assertEqual(d.language, Lang.portuguese)
         self.assertEqual(d.tags, {u'key1': u'val1', u'key2': u'val2'})
+        self.assertEqual(d.saved_as_draft, True)
+        self.assertEqual(d.deletion_status, DelS.not_deleted)
+        self.assertEqual(d.signing_possible, True)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -433,3 +443,26 @@ class DocumentTest(utils.TestCase):
         d1._tags[u'foo'] = u'bar'
         d2 = self.o()
         self.assertEqual({}, d2.tags)
+
+    def test_saved_as_draft(self):
+        self._test_field('saved_as_draft',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=False,
+                         other_good_values=[True],
+                         serialized_name=u'saved')
+
+    def test_deletion_status(self):
+        json = self.json.copy()
+
+        json[u'deleted'] = True
+        json[u'reallydeleted'] = False
+        self.assertEqual(self.O._from_json_obj(json).deletion_status,
+                         DelS.in_trash)
+
+        json[u'deleted'] = True
+        json[u'reallydeleted'] = True
+        self.assertEqual(self.O._from_json_obj(json).deletion_status,
+                         DelS.deleted)
+
+    def test_signing_possible(self):
+        self._test_server_field('signing_possible')

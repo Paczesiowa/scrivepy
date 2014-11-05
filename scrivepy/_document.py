@@ -46,6 +46,12 @@ class Language(unicode, enum.Enum):
     finnish = u'fi'
 
 
+class DeletionStatus(enum.Enum):
+    not_deleted = 0
+    in_trash = 1
+    deleted = 2
+
+
 class Document(_object.ScriveObject):
 
     @tvu.validate_and_unify(title=tvu.instance(unicode),
@@ -62,6 +68,7 @@ class Document(_object.ScriveObject):
                             api_callback_url=MaybeUnicode,
                             language=tvu.instance(Language, enum=True),
                             tags=tvu.UnicodeDict,
+                            saved_as_draft=tvu.instance(bool),
                             signatories=SignatorySet)
     def __init__(self, title=u'', number_of_days_to_sign=14,
                  number_of_days_to_remind=None,
@@ -69,7 +76,8 @@ class Document(_object.ScriveObject):
                  show_reject_option=True, show_footer=True,
                  invitation_message=None, confirmation_message=None,
                  api_callback_url=None, language=Language.swedish,
-                 tags={}, is_template=False, signatories=set()):
+                 tags={}, is_template=False, saved_as_draft=False,
+                 signatories=set()):
         super(Document, self).__init__()
         self._id = None
         self._title = title
@@ -92,6 +100,9 @@ class Document(_object.ScriveObject):
         self._api_callback_url = api_callback_url
         self._language = language
         self._tags = tags.copy()
+        self._saved_as_draft = saved_as_draft
+        self._deletion_status = DeletionStatus.not_deleted
+        self._signing_possible = None
         self._signatories = set(signatories)
 
     @classmethod
@@ -118,6 +129,7 @@ class Document(_object.ScriveObject):
                                 language=Language(lang_code),
                                 tags={elem[u'name']: elem[u'value']
                                       for elem in json[u'tags']},
+                                saved_as_draft=json[u'saved'],
                                 signatories=signatories)
             document._id = json[u'id']
             if json[u'time'] is not None:
@@ -132,6 +144,13 @@ class Document(_object.ScriveObject):
                     dateparser.parse(json[u'autoremindtime'])
             document._status = DocumentStatus(json[u'status'])
             document._current_sign_order = json[u'signorder']
+            deleted = json[u'deleted']
+            really_deleted = json[u'reallydeleted']
+            if deleted and really_deleted:
+                document._deletion_status = DeletionStatus.deleted
+            elif deleted:
+                document._deletion_status = DeletionStatus.in_trash
+            document._signing_possible = json[u'canperformsigning']
             return document
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -162,6 +181,7 @@ class Document(_object.ScriveObject):
                 u'lang': self.language.value,
                 u'tags': [{u'name': key, u'value': val}
                           for key, val in self.tags.items()],
+                u'saved': self.saved_as_draft,
                 u'signatories': list(self.signatories)}
 
     @scrive_property
@@ -357,7 +377,22 @@ class Document(_object.ScriveObject):
     def tags(self, tags):
         self._tags = tags
 
+    @scrive_property
+    def saved_as_draft(self):
+        return self._saved_as_draft
 
+    @saved_as_draft.setter
+    @tvu.validate_and_unify(saved_as_draft=tvu.instance(bool))
+    def saved_as_draft(self, saved_as_draft):
+        self._saved_as_draft = saved_as_draft
+
+    @scrive_property
+    def deletion_status(self):
+        return self._deletion_status
+
+    @scrive_property
+    def signing_possible(self):
+        return self._signing_possible
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
@@ -373,30 +408,18 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "saved" $ not (documentunsaveddraft doc)
-#       J.value "deleted" $ fromMaybe False $ documentDeletedForUser doc <$> userid <$> muser
-#       J.value "reallydeleted" $ fromMaybe False $ documentReallyDeletedForUser doc <$> userid <$>  muser
-#       when (isJust muser) $
-#         J.value "canperformsigning" $ userCanPerformSigningAction (userid $ fromJust muser) doc
 #       J.value "objectversion" $ documentobjectversion doc
 #       J.value "process" $ "Contract"
 #       J.value "isviewedbyauthor" $ isSigLinkFor muser (getAuthorSigLink doc)
-#       when (not $ forapi) $ do
-#         J.value "canberestarted" $ isAuthor msl && ((documentstatus doc) `elem` [Canceled, Timedout, Rejected])
-#         J.value "canbeprolonged" $ isAuthor msl && ((documentstatus doc) `elem` [Timedout])
-#         J.value "canbecanceled" $ (isAuthor msl || fromMaybe False (useriscompanyadmin <$> muser)) && documentstatus doc == Pending
-#         J.value "canseeallattachments" $ isAuthor msl || fromMaybe False (useriscompanyadmin <$> muser)
 #       J.value "accesstoken" $ show (documentmagichash doc)
 #       J.value "timezone" $ toString $ documenttimezonename doc
 
 # instance FromJSValueWithUpdate Document where
 #     fromJSValueWithUpdate mdoc = do
 #         mtimezone <- fromJSValueField "timezone"
-#         saved <- fromJSValueField "saved"
 #         authorattachments <- fromJSValueFieldCustom "authorattachments" $ fromJSValueCustomMany $ fmap (join . (fmap maybeRead)) $ (fromJSValueField "id")
 #         return $ Just defaultValue {
 #             documentauthorattachments = updateWithDefaultAndField [] documentauthorattachments (fmap AuthorAttachment <$> authorattachments),
-#             documentunsaveddraft = updateWithDefaultAndField False documentunsaveddraft (fmap not saved),
 #             documenttimezonename = updateWithDefaultAndField defaultTimeZoneName documenttimezonename (unsafeTimeZoneName <$> mtimezone)
 #           }
 #       where
