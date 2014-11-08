@@ -103,6 +103,7 @@ class Document(_object.ScriveObject):
         self._saved_as_draft = saved_as_draft
         self._deletion_status = DeletionStatus.not_deleted
         self._signing_possible = None
+        self._object_version = None
         self._signatories = set(signatories)
 
     @classmethod
@@ -151,6 +152,7 @@ class Document(_object.ScriveObject):
             elif deleted:
                 document._deletion_status = DeletionStatus.in_trash
             document._signing_possible = json[u'canperformsigning']
+            document._object_version = json[u'objectversion']
             return document
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -394,6 +396,10 @@ class Document(_object.ScriveObject):
     def signing_possible(self):
         return self._signing_possible
 
+    @scrive_property
+    def object_version(self):
+        return self._object_version
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -408,8 +414,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "objectversion" $ documentobjectversion doc
-#       J.value "process" $ "Contract"
 #       J.value "isviewedbyauthor" $ isSigLinkFor muser (getAuthorSigLink doc)
 #       J.value "accesstoken" $ show (documentmagichash doc)
 #       J.value "timezone" $ toString $ documenttimezonename doc

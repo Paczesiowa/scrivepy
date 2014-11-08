@@ -67,6 +67,7 @@ class DocumentTest(utils.TestCase):
                      u'deleted': False,
                      u'reallydeleted': False,
                      u'canperformsigning': True,
+                     u'objectversion': 1,
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -175,6 +176,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.saved_as_draft, True)
         self.assertEqual(d.deletion_status, DelS.not_deleted)
         self.assertEqual(d.signing_possible, True)
+        self.assertEqual(d.object_version, 1)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -466,3 +468,6 @@ class DocumentTest(utils.TestCase):
 
     def test_signing_possible(self):
         self._test_server_field('signing_possible')
+
+    def test_object_version(self):
+        self._test_server_field('object_version')
