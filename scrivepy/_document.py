@@ -69,6 +69,7 @@ class Document(_object.ScriveObject):
                             language=tvu.instance(Language, enum=True),
                             tags=tvu.UnicodeDict,
                             saved_as_draft=tvu.instance(bool),
+                            timezone=tvu.instance(unicode),
                             signatories=SignatorySet)
     def __init__(self, title=u'', number_of_days_to_sign=14,
                  number_of_days_to_remind=None,
@@ -77,6 +78,7 @@ class Document(_object.ScriveObject):
                  invitation_message=None, confirmation_message=None,
                  api_callback_url=None, language=Language.swedish,
                  tags={}, is_template=False, saved_as_draft=False,
+                 timezone=u'Europe/Stockholm',
                  signatories=set()):
         super(Document, self).__init__()
         self._id = None
@@ -104,6 +106,7 @@ class Document(_object.ScriveObject):
         self._deletion_status = DeletionStatus.not_deleted
         self._signing_possible = None
         self._object_version = None
+        self._timezone = timezone
         self._signatories = set(signatories)
 
     @classmethod
@@ -131,6 +134,7 @@ class Document(_object.ScriveObject):
                                 tags={elem[u'name']: elem[u'value']
                                       for elem in json[u'tags']},
                                 saved_as_draft=json[u'saved'],
+                                timezone=json[u'timezone'],
                                 signatories=signatories)
             document._id = json[u'id']
             if json[u'time'] is not None:
@@ -184,6 +188,7 @@ class Document(_object.ScriveObject):
                 u'tags': [{u'name': key, u'value': val}
                           for key, val in self.tags.items()],
                 u'saved': self.saved_as_draft,
+                u'timezone': self.timezone,
                 u'signatories': list(self.signatories)}
 
     @scrive_property
@@ -400,6 +405,15 @@ class Document(_object.ScriveObject):
     def object_version(self):
         return self._object_version
 
+    @scrive_property
+    def timezone(self):
+        return self._timezone
+
+    @timezone.setter
+    @tvu.validate_and_unify(timezone=tvu.instance(unicode))
+    def timezone(self, timezone):
+        self._timezone = timezone
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -416,16 +430,10 @@ class Document(_object.ScriveObject):
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
 #       J.value "isviewedbyauthor" $ isSigLinkFor muser (getAuthorSigLink doc)
 #       J.value "accesstoken" $ show (documentmagichash doc)
-#       J.value "timezone" $ toString $ documenttimezonename doc
 
 # instance FromJSValueWithUpdate Document where
 #     fromJSValueWithUpdate mdoc = do
-#         mtimezone <- fromJSValueField "timezone"
 #         authorattachments <- fromJSValueFieldCustom "authorattachments" $ fromJSValueCustomMany $ fmap (join . (fmap maybeRead)) $ (fromJSValueField "id")
 #         return $ Just defaultValue {
 #             documentauthorattachments = updateWithDefaultAndField [] documentauthorattachments (fmap AuthorAttachment <$> authorattachments),
-#             documenttimezonename = updateWithDefaultAndField defaultTimeZoneName documenttimezonename (unsafeTimeZoneName <$> mtimezone)
 #           }
-#       where
-#        updateWithDefaultAndField :: a -> (Document -> a) -> Maybe a -> a
-#        updateWithDefaultAndField df uf mv = fromMaybe df (mv `mplus` (fmap uf mdoc))

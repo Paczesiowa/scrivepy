@@ -68,6 +68,7 @@ class DocumentTest(utils.TestCase):
                      u'reallydeleted': False,
                      u'canperformsigning': True,
                      u'objectversion': 1,
+                     u'timezone': u'Europe/Berlin',
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -125,6 +126,7 @@ class DocumentTest(utils.TestCase):
                    language='spanish',
                    tags={u'key1': u'val2', u'key3': u'val4'},
                    saved_as_draft=False,
+                   timezone=u'Europe/Warsaw',
                    signatories=set([self.s1]))
 
         json = {u'title': u'the document',
@@ -142,6 +144,7 @@ class DocumentTest(utils.TestCase):
                 u'tags': [{u'name': u'key1', u'value': u'val2'},
                           {u'name': u'key3', u'value': u'val4'}],
                 u'saved': False,
+                u'timezone': u'Europe/Warsaw',
                 u'signatories': [self.s1]}
 
         d_json = d._to_json_obj()
@@ -177,6 +180,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.deletion_status, DelS.not_deleted)
         self.assertEqual(d.signing_possible, True)
         self.assertEqual(d.object_version, 1)
+        self.assertEqual(d.timezone, u'Europe/Berlin')
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -471,3 +475,9 @@ class DocumentTest(utils.TestCase):
 
     def test_object_version(self):
         self._test_server_field('object_version')
+
+    def test_timezone(self):
+        self._test_field('timezone',
+                         bad_value=[], correct_type=unicode,
+                         default_good_value=u'Europe/Stockholm',
+                         other_good_values=[u'Europe/Berlin'])
