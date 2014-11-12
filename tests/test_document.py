@@ -70,6 +70,7 @@ class DocumentTest(utils.TestCase):
                      u'objectversion': 1,
                      u'timezone': u'Europe/Berlin',
                      u'isviewedbyauthor': True,
+                     u'accesstoken': u'1234567890abcdef',
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -183,6 +184,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.object_version, 1)
         self.assertEqual(d.timezone, u'Europe/Berlin')
         self.assertEqual(d.viewed_by_author, True)
+        self.assertEqual(d.access_token, u'1234567890abcdef')
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -486,3 +488,6 @@ class DocumentTest(utils.TestCase):
 
     def test_viewed_by_author(self):
         self._test_server_field('viewed_by_author')
+
+    def test_access_token(self):
+        self._test_server_field('access_token')

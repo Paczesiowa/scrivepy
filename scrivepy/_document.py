@@ -108,6 +108,7 @@ class Document(_object.ScriveObject):
         self._object_version = None
         self._timezone = timezone
         self._viewed_by_author = None
+        self._access_token = None
         self._signatories = set(signatories)
 
     @classmethod
@@ -159,6 +160,7 @@ class Document(_object.ScriveObject):
             document._signing_possible = json[u'canperformsigning']
             document._object_version = json[u'objectversion']
             document._viewed_by_author = json[u'isviewedbyauthor']
+            document._access_token = json[u'accesstoken']
             return document
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)
@@ -420,6 +422,10 @@ class Document(_object.ScriveObject):
     def viewed_by_author(self):
         return self._viewed_by_author
 
+    @scrive_property
+    def access_token(self):
+        return self._access_token
+
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
 #     file <- documentfileM doc
@@ -434,7 +440,6 @@ class Document(_object.ScriveObject):
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-#       J.value "accesstoken" $ show (documentmagichash doc)
 
 # instance FromJSValueWithUpdate Document where
 #     fromJSValueWithUpdate mdoc = do
