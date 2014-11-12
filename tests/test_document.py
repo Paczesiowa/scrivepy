@@ -69,6 +69,7 @@ class DocumentTest(utils.TestCase):
                      u'canperformsigning': True,
                      u'objectversion': 1,
                      u'timezone': u'Europe/Berlin',
+                     u'isviewedbyauthor': True,
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -181,6 +182,7 @@ class DocumentTest(utils.TestCase):
         self.assertEqual(d.signing_possible, True)
         self.assertEqual(d.object_version, 1)
         self.assertEqual(d.timezone, u'Europe/Berlin')
+        self.assertEqual(d.viewed_by_author, True)
         self.assertEqual(sorted([s._to_json_obj()
                                  for s in d.signatories]),
                          sorted([self.s1._to_json_obj(),
@@ -481,3 +483,6 @@ class DocumentTest(utils.TestCase):
                          bad_value=[], correct_type=unicode,
                          default_good_value=u'Europe/Stockholm',
                          other_good_values=[u'Europe/Berlin'])
+
+    def test_viewed_by_author(self):
+        self._test_server_field('viewed_by_author')
