@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 from os import path
 
+import testconfig
 from dateutil import tz
 
 from scrivepy import _scrive, _document, _signatory
@@ -19,16 +20,15 @@ DelS = _document.DeletionStatus
 class ScriveTest(utils.TestCase):
 
     def setUp(self):
-        self.api = _scrive.Scrive(
-            client_credentials_identifier='ed52a831d563ccfb_1',
-            client_credentials_secret='6b4b77652c9d4fa5',
-            token_credentials_identifier='0360b3489a7bb486_1',
-            token_credentials_secret='db77f2bd6c99f104',
-            api_hostname='127.0.0.1:7000',
-            https=False)
-
-        self.test_doc_path = path.join(path.dirname(path.abspath(__file__)),
-                                       'document.pdf')
+        try:
+            cfg = testconfig.config['test_api_server']
+        except KeyError:
+            print 'You need to set api server configuration in'
+            print 'tests/test_config.json (see tests/test_config_example.json)'
+        else:
+            self.api = _scrive.Scrive(**cfg)
+            self.test_doc_path = \
+                path.join(path.dirname(path.abspath(__file__)), 'document.pdf')
 
     @utils.integration
     def test_create_document_from_file(self):
