@@ -30,6 +30,7 @@ class ScriveTest(utils.TestCase):
         self.test_doc_path = path.join(path.dirname(path.abspath(__file__)),
                                        'document.pdf')
 
+    @utils.integration
     def test_create_document_from_file(self):
         d = self.api.create_document_from_file(self.test_doc_path)
 
@@ -70,6 +71,7 @@ class ScriveTest(utils.TestCase):
         self.assertTrue(d.viewed_by_author)
         self.assertIsNotNone(d.access_token)
 
+    @utils.integration
     def test_update_document(self):
         d = self.api.create_document_from_file(self.test_doc_path)
         d.title = u'document2'
@@ -125,6 +127,7 @@ class ScriveTest(utils.TestCase):
         self.assertTrue(d.viewed_by_author)
         self.assertIsNotNone(d.access_token)
 
+    @utils.integration
     def test_get_document(self):
         d = self.api.create_document_from_file(self.test_doc_path)
         d.title = u'document2'
@@ -180,6 +183,7 @@ class ScriveTest(utils.TestCase):
         self.assertEqual(d.viewed_by_author, d2.viewed_by_author)
         self.assertEqual(d.access_token, d2.access_token)
 
+    @utils.integration
     def test_create_document_from_template(self):
         t = self.api.create_document_from_file(self.test_doc_path)
         t.title = u'document2'
@@ -240,6 +244,7 @@ class ScriveTest(utils.TestCase):
         self.assertTrue(d.viewed_by_author)
         self.assertIsNotNone(d.access_token)
 
+    @utils.integration
     def test_ready(self):
         d = self.api.create_document_from_file(self.test_doc_path)
         time.sleep(1)  # make sure that modification time is greater than ctime

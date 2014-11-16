@@ -1,6 +1,8 @@
 import sys
 import unittest
 
+import nose
+
 from scrivepy import _exceptions
 
 
@@ -23,6 +25,17 @@ class AssertRaisesContext(object):
         if self._exc_msg is not None:
             self._test_case.assertEqual(str(exc_value), self._exc_msg)
         return True
+
+
+def integration(f):
+    @nose.plugins.attrib.attr('integration')
+    def wrapper(*args, **kwargs):
+        if 'integration' in sys.argv:
+            return f(*args, **kwargs)
+        else:
+            raise nose.plugins.skip.SkipTest
+    wrapper.__name__ = f.__name__
+    return wrapper
 
 
 class TestCase(unittest.TestCase):
