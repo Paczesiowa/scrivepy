@@ -109,12 +109,13 @@ class ScriveSetTest(utils.TestCase):
 
     def test_difference_update(self):
         s = S([1, 2, 3])
-        s.difference_update([2, 4])
+        s.difference_update([2, 4], [5])
         self.assertEqual(2, len(s))
         self.assertTrue(1 in s)
         self.assertFalse(2 in s)
         self.assertTrue(3 in s)
         self.assertFalse(4 in s)
+        self.assertFalse(5 in s)
 
         s._set_read_only()
         with self.assertRaises(RO):
@@ -122,3 +123,48 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.difference_update([])
+
+    def test_intersection(self):
+        s1 = S([1, 2, 3])
+        s2 = S([1, 2])
+        s3 = S([1])
+        s = s1.intersection(s2, s3)
+        self.assertTrue(isinstance(s, S))
+        self.assertEqual(1, len(s))
+        self.assertTrue(1 in s)
+        self.assertFalse(2 in s)
+        self.assertFalse(3 in s)
+
+        s = S()
+        s._set_read_only()
+        s.intersection()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.intersection()
+
+    def test_isdisjoint(self):
+        s = S([1, 2, 3])
+        self.assertTrue(s.isdisjoint([4, 5]))
+        self.assertFalse(s.isdisjoint([1]))
+        self.assertFalse(s.isdisjoint([2, 4, 5]))
+
+        s = S()
+        s._set_read_only()
+        s.isdisjoint([])
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.isdisjoint([])
+
+    def test_issuperset(self):
+        s = S([1, 2, 3])
+        self.assertTrue(s.issuperset([1, 2, 3]))
+        self.assertTrue(s.issuperset([2]))
+        self.assertFalse(s.issuperset([4]))
+        self.assertFalse(s.issuperset([1, 2, 3, 4]))
+
+        s = S()
+        s._set_read_only()
+        s.issuperset([])
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.issuperset([])

@@ -18,15 +18,24 @@ class ScriveSet(set, _object.ScriveObject):
         result._invalid = False
         return result
 
-    def difference_update(self, iterable=()):
+    def difference_update(self, *args):
         self._check_setter()
-        return set.difference_update(self, iterable)
+        return set.difference_update(self, *args)
+
+    def intersection(self, *args):
+        self._check_getter()
+        return set.intersection(self, *args)
+
+    def isdisjoint(self, iterable):
+        self._check_getter()
+        return set.isdisjoint(self, iterable)
+
+    def issuperset(self, iterable):
+        self._check_getter()
+        return set.issuperset(self, iterable)
 
 
-# 4/57
-# intersection
-# isdisjoint
-# issuperset
+# 7/57
 # remove
 # symmetric_difference_update
 # update
