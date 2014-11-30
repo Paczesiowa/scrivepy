@@ -34,10 +34,19 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         return set.issuperset(self, iterable)
 
+    def remove(self, elem):
+        self._check_setter()
+        return set.remove(self, elem)
 
-# 7/57
-# remove
-# symmetric_difference_update
+    def symmetric_difference(self, iterable):
+        self._check_getter()
+        return set.symmetric_difference(self, iterable)
+
+    def symmetric_difference_update(self, iterable):
+        self._check_setter()
+        return set.symmetric_difference_update(self, iterable)
+
+# 10/57
 # update
 # clear
 # difference
@@ -45,7 +54,6 @@ class ScriveSet(set, _object.ScriveObject):
 # intersection_update
 # issubset
 # pop
-# symmetric_difference
 # union
 # __and__
 # __contains__

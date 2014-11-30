@@ -168,3 +168,54 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.issuperset([])
+
+    def test_remove(self):
+        s = S([1, 2])
+        s.remove(1)
+        self.assertEqual(1, len(s))
+        self.assertTrue(2 in s)
+        self.assertFalse(1 in s)
+        s.remove(2)
+        self.assertEqual(0, len(s))
+        self.assertFalse(1 in s)
+        self.assertFalse(2 in s)
+        with self.assertRaises(KeyError):
+            s.remove(0)
+
+        s = S([1])
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s.remove(1)
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.remove(1)
+
+    def test_symmetric_difference(self):
+        s1 = S([1, 2, 3])
+        s = s1.symmetric_difference([2, 3, 4])
+        self.assertTrue(isinstance(s, S))
+        self.assertEqual(2, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(4 in s)
+
+        s = S()
+        s._set_read_only()
+        s.symmetric_difference([])
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.symmetric_difference([])
+
+    def test_symmetric_difference_update(self):
+        s = S([1, 2, 3])
+        s.symmetric_difference_update([2, 4])
+        self.assertEqual(3, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(3 in s)
+        self.assertTrue(4 in s)
+
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s.symmetric_difference_update([])
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.symmetric_difference_update([])
