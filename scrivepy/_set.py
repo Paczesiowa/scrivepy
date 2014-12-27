@@ -50,8 +50,12 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_setter()
         return set.update(self, *args)
 
-# 11/57
-# clear
+    def clear(self):
+        self._check_setter()
+        return set.clear(self)
+
+
+# 12/57
 # difference
 # discard
 # intersection_update

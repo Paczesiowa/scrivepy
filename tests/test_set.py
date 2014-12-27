@@ -237,3 +237,15 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.update()
+
+    def test_clear(self):
+        s = S([1, 2])
+        s.clear()
+        self.assertEqual(0, len(s))
+
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s.clear()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.clear()
