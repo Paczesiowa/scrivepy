@@ -46,8 +46,11 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_setter()
         return set.symmetric_difference_update(self, iterable)
 
-# 10/57
-# update
+    def update(self, *args):
+        self._check_setter()
+        return set.update(self, *args)
+
+# 11/57
 # clear
 # difference
 # discard

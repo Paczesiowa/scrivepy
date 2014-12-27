@@ -219,3 +219,21 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.symmetric_difference_update([])
+
+    def test_update(self):
+        s = S([1, 2, 3])
+        s.update([2, 4], [1, 5], [6])
+        self.assertEqual(6, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(2 in s)
+        self.assertTrue(3 in s)
+        self.assertTrue(4 in s)
+        self.assertTrue(5 in s)
+        self.assertTrue(6 in s)
+
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s.update()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.update()
