@@ -58,9 +58,12 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         return set.difference(self, *args)
 
+    def discard(self, elem):
+        self._check_setter()
+        return set.discard(self, elem)
 
-# 13/57
-# discard
+
+# 14/57
 # intersection_update
 # issubset
 # pop
