@@ -249,3 +249,15 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.clear()
+
+    def test_difference(self):
+        s = S([1, 2, 3, 4])
+        s2 = s.difference([1], [2, 3], [5])
+        self.assertEqual(1, len(s2))
+        self.assertTrue(4 in s2)
+
+        s._set_read_only()
+        s.difference()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.difference()
