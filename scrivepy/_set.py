@@ -62,10 +62,16 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_setter()
         return set.discard(self, elem)
 
+    def intersection_update(self, *args):
+        self._check_setter()
+        return set.intersection_update(self, *args)
 
-# 14/57
-# intersection_update
-# issubset
+    def issubset(self, iterable):
+        self._check_getter()
+        return set.issubset(self, iterable)
+
+
+# 16/57
 # pop
 # union
 # __and__

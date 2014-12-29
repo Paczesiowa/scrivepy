@@ -276,3 +276,30 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.discard(1)
+
+    def test_intersection_update(self):
+        s = S([1, 2, 3])
+        s.intersection_update([2, 4], [2, 5])
+        self.assertEqual(1, len(s))
+        self.assertTrue(2 in s)
+
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s.intersection_update([])
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.intersection_update([])
+
+    def test_issubset(self):
+        s = S([2])
+        self.assertTrue(s.issubset([1, 2, 3]))
+        self.assertTrue(s.issubset([2]))
+        self.assertFalse(s.issubset([4]))
+        self.assertFalse(s.issubset([1, 3, 4]))
+
+        s = S()
+        s._set_read_only()
+        s.issubset([])
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.issubset([])
