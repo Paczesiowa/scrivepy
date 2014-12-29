@@ -303,3 +303,40 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.issubset([])
+
+    def test_pop(self):
+        s = S([1, 2])
+        self.assertTrue(s.pop() in [1, 2])
+        self.assertEqual(1, len(s))
+        self.assertTrue(s.pop() in [1, 2])
+        self.assertEqual(0, len(s))
+        with self.assertRaises(KeyError):
+            s.pop()
+
+        s = S([1])
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s.pop()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.pop()
+
+    def test_union(self):
+        s1 = S([1, 2, 3])
+        s2 = S([1, 2, 4])
+        s3 = S([5])
+        s = s1.union(s2, s3)
+        self.assertTrue(isinstance(s, S))
+        self.assertEqual(5, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(2 in s)
+        self.assertTrue(3 in s)
+        self.assertTrue(4 in s)
+        self.assertTrue(5 in s)
+
+        s = S()
+        s._set_read_only()
+        s.union()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.union()

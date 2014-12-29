@@ -70,10 +70,16 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         return set.issubset(self, iterable)
 
+    def pop(self):
+        self._check_setter()
+        return set.pop(self)
 
-# 16/57
-# pop
-# union
+    def union(self, *args):
+        self._check_getter()
+        return set.union(self, *args)
+
+
+# 18/57
 # __and__
 # __contains__
 # __eq__
