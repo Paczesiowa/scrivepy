@@ -340,3 +340,98 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.union()
+
+    def test___and__(self):
+        s1 = S([1, 2, 3])
+        s2 = S([1, 2])
+        s3 = S([1])
+        s = s1 & (s2 & s3)
+        self.assertTrue(isinstance(s, S))
+        self.assertEqual(1, len(s))
+        self.assertTrue(1 in s)
+        self.assertFalse(2 in s)
+        self.assertFalse(3 in s)
+
+        s = S()
+        s._set_read_only()
+        s & S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s & S()
+        print type(S().__rxor__(None))
+
+    def test___xor__(self):
+        s1 = S([1, 2, 3])
+        s = s1 ^ S([2, 3, 4])
+        self.assertTrue(isinstance(s, S))
+        self.assertEqual(2, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(4 in s)
+
+        s = S()
+        s._set_read_only()
+        s ^ S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s ^ S()
+
+    def test___sub__(self):
+        s = S([1, 2, 3, 4])
+        s2 = s - S([2, 3])
+        self.assertEqual(2, len(s2))
+        self.assertTrue(1 in s2)
+        self.assertTrue(4 in s2)
+
+        s._set_read_only()
+        s - S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s - S()
+
+    def test___or__(self):
+        s1 = S([1, 2, 3])
+        s2 = S([1, 2, 4])
+        s3 = S([5])
+        s = s1 | (s2 | s3)
+        self.assertTrue(isinstance(s, S))
+        self.assertEqual(5, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(2 in s)
+        self.assertTrue(3 in s)
+        self.assertTrue(4 in s)
+        self.assertTrue(5 in s)
+
+        s = S()
+        s._set_read_only()
+        s | S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s | S()
+
+    def test___ge__(self):
+        s = S([1, 2, 3])
+        self.assertTrue(s >= S([1, 2, 3]))
+        self.assertTrue(s >= S([2]))
+        self.assertFalse(s >= S([4]))
+        self.assertFalse(s >= S([1, 2, 3, 4]))
+
+        s = S()
+        s._set_read_only()
+        s >= S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s >= S()
+
+    def test___le__(self):
+        s = S([2])
+        self.assertTrue(s <= S([1, 2, 3]))
+        self.assertTrue(s <= S([2]))
+        self.assertFalse(s <= S([4]))
+        self.assertFalse(s <= S([1, 3, 4]))
+
+        s = S()
+        s._set_read_only()
+        s <= S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s <= S()

@@ -78,21 +78,40 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         return set.union(self, *args)
 
+    def __and__(self, other):
+        self._check_getter()
+        return set.__and__(self, other)
 
-# 18/57
-# __and__
+    def __xor__(self, other):
+        self._check_getter()
+        return set.__xor__(self, other)
+
+    def __sub__(self, other):
+        self._check_getter()
+        return set.__sub__(self, other)
+
+    def __or__(self, other):
+        self._check_getter()
+        return set.__or__(self, other)
+
+    def __ge__(self, other):
+        self._check_getter()
+        return set.__ge__(self, other)
+
+    def __le__(self, other):
+        self._check_getter()
+        return set.__le__(self, other)
+
+
+# 20/57
 # __contains__
 # __eq__
 # __getattribute__
 # __iand__
 # __isub__
-# __le__
 # __ne__
-# __rand__
 # __repr__
-# __rxor__
 # __str__
-# __xor__
 # __class__
 # __delattr__
 # __format__
@@ -101,20 +120,21 @@ class ScriveSet(set, _object.ScriveObject):
 # __len__
 # __new__
 # __reduce__
-# __ror__
 # __setattr__
-# __sub__
 # __cmp__
 # __doc__
-# __ge__
 # __hash__
 # __ior__
 # __ixor__
 # __lt__
-# __or__
 # __reduce_ex__
-# __rsub__
 # __sizeof__
 # __subclasshook__
 # _set_read_only
 # _set_invalid
+
+# HOW DO THESE WORK?!
+# __rand__
+# __rxor__
+# __ror__
+# __rsub__
