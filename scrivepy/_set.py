@@ -134,8 +134,11 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_setter()
         return set.__ixor__(self, other)
 
+    def __contains__(self, item):
+        self._check_getter()
+        return set.__contains__(self, item)
 
-# __contains__
+
 # __eq__
 # __getattribute__
 # __ne__

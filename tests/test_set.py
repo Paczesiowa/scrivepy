@@ -510,3 +510,19 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s ^= S()
+
+    def test___contains__(self):
+        s = S([1, 2])
+        self.assertTrue(1 in s)
+        self.assertTrue(2 in s)
+        self.assertFalse(3 in s)
+        self.assertFalse(4 in s)
+
+        s._set_read_only()
+        self.assertTrue(1 in s)
+        self.assertTrue(2 in s)
+        self.assertFalse(3 in s)
+        self.assertFalse(4 in s)
+        s._set_invalid()
+        with self.assertRaises(INV):
+            1 in s
