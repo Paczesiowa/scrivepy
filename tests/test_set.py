@@ -11,10 +11,16 @@ class ScriveSetTest(utils.TestCase):
     def setUp(self):
         pass
 
+    def assertProperScriveSet(self, s):
+        self.assertTrue(isinstance(s, S))
+        self.assertTrue(hasattr(s, '_invalid'))
+        self.assertTrue(hasattr(s, '_read_only'))
+
     def test_init(self):
         s = S()
         self.assertTrue(isinstance(s, set))
         self.assertTrue(isinstance(s, _object.ScriveObject))
+        self.assertProperScriveSet(s)
 
         self.assertEqual(0, len(s))
 
@@ -66,7 +72,7 @@ class ScriveSetTest(utils.TestCase):
         self.assertFalse(o3 in s1)
 
         s2 = s1.copy()
-        self.assertTrue(isinstance(s2, S))
+        self.assertProperScriveSet(s2)
 
         self.assertTrue(o1 in s2)
         self.assertFalse(o2 in s2)
@@ -129,7 +135,7 @@ class ScriveSetTest(utils.TestCase):
         s2 = S([1, 2])
         s3 = S([1])
         s = s1.intersection(s2, s3)
-        self.assertTrue(isinstance(s, S))
+        self.assertProperScriveSet(s)
         self.assertEqual(1, len(s))
         self.assertTrue(1 in s)
         self.assertFalse(2 in s)
@@ -193,7 +199,7 @@ class ScriveSetTest(utils.TestCase):
     def test_symmetric_difference(self):
         s1 = S([1, 2, 3])
         s = s1.symmetric_difference([2, 3, 4])
-        self.assertTrue(isinstance(s, S))
+        self.assertProperScriveSet(s)
         self.assertEqual(2, len(s))
         self.assertTrue(1 in s)
         self.assertTrue(4 in s)
@@ -253,6 +259,7 @@ class ScriveSetTest(utils.TestCase):
     def test_difference(self):
         s = S([1, 2, 3, 4])
         s2 = s.difference([1], [2, 3], [5])
+        self.assertProperScriveSet(s2)
         self.assertEqual(1, len(s2))
         self.assertTrue(4 in s2)
 
@@ -326,7 +333,7 @@ class ScriveSetTest(utils.TestCase):
         s2 = S([1, 2, 4])
         s3 = S([5])
         s = s1.union(s2, s3)
-        self.assertTrue(isinstance(s, S))
+        self.assertProperScriveSet(s)
         self.assertEqual(5, len(s))
         self.assertTrue(1 in s)
         self.assertTrue(2 in s)
@@ -346,7 +353,7 @@ class ScriveSetTest(utils.TestCase):
         s2 = S([1, 2])
         s3 = S([1])
         s = s1 & (s2 & s3)
-        self.assertTrue(isinstance(s, S))
+        self.assertProperScriveSet(s)
         self.assertEqual(1, len(s))
         self.assertTrue(1 in s)
         self.assertFalse(2 in s)
@@ -363,7 +370,7 @@ class ScriveSetTest(utils.TestCase):
     def test___xor__(self):
         s1 = S([1, 2, 3])
         s = s1 ^ S([2, 3, 4])
-        self.assertTrue(isinstance(s, S))
+        self.assertProperScriveSet(s)
         self.assertEqual(2, len(s))
         self.assertTrue(1 in s)
         self.assertTrue(4 in s)
@@ -378,6 +385,7 @@ class ScriveSetTest(utils.TestCase):
     def test___sub__(self):
         s = S([1, 2, 3, 4])
         s2 = s - S([2, 3])
+        self.assertProperScriveSet(s2)
         self.assertEqual(2, len(s2))
         self.assertTrue(1 in s2)
         self.assertTrue(4 in s2)
@@ -393,7 +401,7 @@ class ScriveSetTest(utils.TestCase):
         s2 = S([1, 2, 4])
         s3 = S([5])
         s = s1 | (s2 | s3)
-        self.assertTrue(isinstance(s, S))
+        self.assertProperScriveSet(s)
         self.assertEqual(5, len(s))
         self.assertTrue(1 in s)
         self.assertTrue(2 in s)

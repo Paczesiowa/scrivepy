@@ -24,7 +24,9 @@ class ScriveSet(set, _object.ScriveObject):
 
     def intersection(self, *args):
         self._check_getter()
-        return set.intersection(self, *args)
+        result = set.intersection(self, *args)
+        _object.ScriveObject.__init__(result)
+        return result
 
     def isdisjoint(self, iterable):
         self._check_getter()
@@ -40,7 +42,9 @@ class ScriveSet(set, _object.ScriveObject):
 
     def symmetric_difference(self, iterable):
         self._check_getter()
-        return set.symmetric_difference(self, iterable)
+        result = set.symmetric_difference(self, iterable)
+        _object.ScriveObject.__init__(result)
+        return result
 
     def symmetric_difference_update(self, iterable):
         self._check_setter()
@@ -56,7 +60,9 @@ class ScriveSet(set, _object.ScriveObject):
 
     def difference(self, *args):
         self._check_getter()
-        return set.difference(self, *args)
+        result = set.difference(self, *args)
+        _object.ScriveObject.__init__(result)
+        return result
 
     def discard(self, elem):
         self._check_setter()
@@ -76,23 +82,33 @@ class ScriveSet(set, _object.ScriveObject):
 
     def union(self, *args):
         self._check_getter()
-        return set.union(self, *args)
+        result = set.union(self, *args)
+        _object.ScriveObject.__init__(result)
+        return result
 
     def __and__(self, other):
         self._check_getter()
-        return set.__and__(self, other)
+        result = set.__and__(self, other)
+        _object.ScriveObject.__init__(result)
+        return result
 
     def __xor__(self, other):
         self._check_getter()
-        return set.__xor__(self, other)
+        result = set.__xor__(self, other)
+        _object.ScriveObject.__init__(result)
+        return result
 
     def __sub__(self, other):
         self._check_getter()
-        return set.__sub__(self, other)
+        result = set.__sub__(self, other)
+        _object.ScriveObject.__init__(result)
+        return result
 
     def __or__(self, other):
         self._check_getter()
-        return set.__or__(self, other)
+        result = set.__or__(self, other)
+        _object.ScriveObject.__init__(result)
+        return result
 
     def __ge__(self, other):
         self._check_getter()
