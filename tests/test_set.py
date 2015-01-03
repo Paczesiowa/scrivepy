@@ -526,3 +526,33 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             1 in s
+
+    def test___gt__(self):
+        s = S([1, 2])
+        self.assertTrue(s > S())
+        self.assertTrue(s > S([1]))
+        self.assertFalse(s > S([1, 2]))
+        self.assertTrue(s > S([2]))
+        self.assertFalse(s > S([4]))
+        self.assertFalse(s > S([1, 2, 3, 4]))
+
+        s = S()
+        s._set_read_only()
+        s > S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s > S()
+
+    def test___lt__(self):
+        s = S([2])
+        self.assertTrue(s < S([1, 2]))
+        self.assertFalse(s < S([2]))
+        self.assertFalse(s < S([4]))
+        self.assertFalse(s < S([1, 3, 4]))
+
+        s = S()
+        s._set_read_only()
+        s < S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s < S()

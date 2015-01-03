@@ -138,6 +138,14 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         return set.__contains__(self, item)
 
+    def __gt__(self, other):
+        self._check_getter()
+        return set.__gt__(self, other)
+
+    def __lt__(self, other):
+        self._check_getter()
+        return set.__lt__(self, other)
+
 
 # __eq__
 # __getattribute__
@@ -147,7 +155,6 @@ class ScriveSet(set, _object.ScriveObject):
 # __class__
 # __delattr__
 # __format__
-# __gt__
 # __iter__
 # __len__
 # __new__
@@ -156,7 +163,6 @@ class ScriveSet(set, _object.ScriveObject):
 # __cmp__
 # __doc__
 # __hash__
-# __lt__
 # __reduce_ex__
 # __sizeof__
 # __subclasshook__
