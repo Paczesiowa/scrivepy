@@ -435,3 +435,70 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s <= S()
+
+    def test___ior__(self):
+        s = S([1, 2, 3])
+        s |= S([2, 4])
+        s |= S([1, 5])
+        s |= S([6])
+        self.assertEqual(6, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(2 in s)
+        self.assertTrue(3 in s)
+        self.assertTrue(4 in s)
+        self.assertTrue(5 in s)
+        self.assertTrue(6 in s)
+
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s |= S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s |= S()
+
+    def test___iand__(self):
+        s = S([1, 2, 3])
+        s &= S([2, 4])
+        s &= S([2, 5])
+        self.assertEqual(1, len(s))
+        self.assertTrue(2 in s)
+
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s &= S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s &= S()
+
+    def test___isub__(self):
+        s = S([1, 2, 3])
+        s -= S([2, 4])
+        s -= S([5])
+        self.assertEqual(2, len(s))
+        self.assertTrue(1 in s)
+        self.assertFalse(2 in s)
+        self.assertTrue(3 in s)
+        self.assertFalse(4 in s)
+        self.assertFalse(5 in s)
+
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s -= S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s -= S()
+
+    def test___ixor__(self):
+        s = S([1, 2, 3])
+        s ^= S([2, 4])
+        self.assertEqual(3, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(3 in s)
+        self.assertTrue(4 in s)
+
+        s._set_read_only()
+        with self.assertRaises(RO):
+            s ^= S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s ^= S()

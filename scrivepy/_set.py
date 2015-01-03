@@ -102,13 +102,26 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         return set.__le__(self, other)
 
+    def __ior__(self, other):
+        self._check_setter()
+        return set.__ior__(self, other)
 
-# 20/57
+    def __iand__(self, other):
+        self._check_setter()
+        return set.__iand__(self, other)
+
+    def __isub__(self, other):
+        self._check_setter()
+        return set.__isub__(self, other)
+
+    def __ixor__(self, other):
+        self._check_setter()
+        return set.__ixor__(self, other)
+
+
 # __contains__
 # __eq__
 # __getattribute__
-# __iand__
-# __isub__
 # __ne__
 # __repr__
 # __str__
@@ -124,8 +137,6 @@ class ScriveSet(set, _object.ScriveObject):
 # __cmp__
 # __doc__
 # __hash__
-# __ior__
-# __ixor__
 # __lt__
 # __reduce_ex__
 # __sizeof__
