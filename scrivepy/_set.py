@@ -146,31 +146,18 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         return set.__lt__(self, other)
 
+    def __eq__(self, other):
+        self._check_getter()
 
-# __eq__
-# __getattribute__
-# __ne__
-# __repr__
-# __str__
-# __class__
-# __delattr__
-# __format__
-# __iter__
-# __len__
-# __new__
-# __reduce__
-# __setattr__
-# __cmp__
-# __doc__
-# __hash__
-# __reduce_ex__
-# __sizeof__
-# __subclasshook__
-# _set_read_only
-# _set_invalid
+        if not isinstance(other, ScriveSet):
+            return False
 
-# HOW DO THESE WORK?!
-# __rand__
-# __rxor__
-# __ror__
-# __rsub__
+        return self._read_only == other._read_only and set.__eq__(self, other)
+
+    def __ne__(self, other):
+        self._check_getter()
+
+        if not isinstance(other, ScriveSet):
+            return True
+
+        return self._read_only != other._read_only or set.__ne__(self, other)

@@ -556,3 +556,41 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s < S()
+
+    def test___eq__(self):
+        self.assertFalse(S() == set())
+
+        self.assertTrue(S([1, 2]) == S([1, 2]))
+        self.assertFalse(S([1]) == S([1, 2]))
+        self.assertFalse(S([1, 2]) == S([2]))
+
+        s1 = S([1, 2])
+        s1._set_read_only()
+        s2 = S([1, 2])
+        self.assertFalse(s1 == s2)
+        s2._set_read_only()
+        self.assertTrue(s1 == s2)
+
+        s = S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s == S()
+
+    def test___ne__(self):
+        self.assertTrue(S() != set())
+
+        self.assertFalse(S([1, 2]) != S([1, 2]))
+        self.assertTrue(S([1]) != S([1, 2]))
+        self.assertTrue(S([1, 2]) != S([2]))
+
+        s1 = S([1, 2])
+        s1._set_read_only()
+        s2 = S([1, 2])
+        self.assertTrue(s1 != s2)
+        s2._set_read_only()
+        self.assertFalse(s1 != s2)
+
+        s = S()
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s != S()
