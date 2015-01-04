@@ -1,4 +1,4 @@
-from scrivepy import _field_placement, _field, _exceptions
+from scrivepy import _field_placement, _field, _set, _exceptions
 from tests import utils
 
 
@@ -6,6 +6,7 @@ FP = _field_placement.FieldPlacement
 TS = _field_placement.TipSide
 F = _field.Field
 SFT = _field.StandardFieldType
+ScriveSet = _set.ScriveSet
 
 
 class FieldTest(object):
@@ -109,45 +110,35 @@ class FieldTest(object):
             f.should_be_filled_by_sender = False
 
     def test_placements(self):
-        err_msg = u'placements must be set, not 1'
-        with self.assertRaises(TypeError, err_msg):
-            self.f(placements=1)
-
-        err_msg = u'placements must be set of FieldPlacement objects, ' + \
-            u'not: set([1])'
-        with self.assertRaises(ValueError, err_msg):
-            self.f(placements=set([1]))
-
         # check default ctor value
         f = self.f()
-        self.assertEqual(set([]), set(f.placements))
+        self.assertEqual(ScriveSet(), f.placements)
 
-        f = self.f(placements=set([self.fp]))
-        self.assertEqual(set([self.fp]), set(f.placements))
+        f.placements.add(self.fp)
+        self.assertEqual(ScriveSet([self.fp]), f.placements)
 
-        with self.assertRaises(TypeError, u'placements must be set, not 1'):
-            f.placements = 1
+        err_msg = u'elem must be FieldPlacement, not 1'
+        with self.assertRaises(TypeError, err_msg):
+            f.placements.add(1)
 
-        err_msg = u'placements must be set of FieldPlacement objects, ' + \
-            u'not: set([1])'
-        with self.assertRaises(ValueError, err_msg):
-            f.placements = set([1])
-
-        f.placements = set([self.fp2])
-        self.assertEqual(set([self.fp2]), set(f.placements))
+        f.placements.clear()
+        f.placements.add(self.fp2)
+        self.assertEqual(ScriveSet([self.fp2]), f.placements)
 
         self.assertEqual([self.fp2], f._to_json_obj()[u'placements'])
 
         f._set_read_only()
-        self.assertEqual(set([self.fp2]), set(f.placements))
+        # set() is because the 2nd one is read only and not really equal
+        self.assertEqual(set(ScriveSet([self.fp2])), set(f.placements))
         with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
-            f.placements = set([self.fp])
+            f.placements.clear()
+            f.placements.add(self.fp)
 
         f._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             f.placements
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            f.placements = set([self.fp])
+            f.placements.add(self.fp)
 
     def test_default_placement_tip(self):
         f = self.f()
@@ -167,7 +158,8 @@ class FieldTest(object):
     def test_flags(self):
         fp1 = FP(left=.5, top=.5, width=.5, height=.5)
         fp2 = FP(left=.7, top=.7, width=.7, height=.7)
-        f = self.f(placements=set([fp1, fp2]))
+        f = self.f()
+        f.placements.update([fp1, fp2])
 
         self.assertIsNone(f._check_getter())
         self.assertIsNone(fp1._check_getter())
@@ -203,7 +195,7 @@ class FieldTest(object):
 
     def test_modification_of_default_placements_value(self):
         f1 = self.f()
-        f1._placements.add(1)
+        f1._placements.add(self.fp)
         f2 = self.f()
         self.assertEqual(set(), set(f2.placements))
 
@@ -218,7 +210,8 @@ class StandardFieldTest(FieldTest):
                 page=6, tip=None)
 
         f = self.f(value=u'foo', obligatory=False,
-                   should_be_filled_by_sender=True, placements=set([fp]))
+                   should_be_filled_by_sender=True)
+        f.placements.add(fp)
 
         json = {u'value': u'foo',
                 u'obligatory': False,
@@ -321,7 +314,8 @@ class CustomFieldTest(FieldTest, utils.TestCase):
                 page=6, tip=None)
 
         f = self.f(name=u'fieldname', value=u'fieldvalue', obligatory=False,
-                   should_be_filled_by_sender=True, placements=set([fp]))
+                   should_be_filled_by_sender=True)
+        f.placements.add(fp)
 
         json = {u'value': u'fieldvalue',
                 u'obligatory': False,
@@ -396,7 +390,8 @@ class SignatureFieldTest(FieldTest, utils.TestCase):
                 page=6, tip=None)
 
         f = self.f(name=u'signature-2', obligatory=False,
-                   should_be_filled_by_sender=True, placements=set([fp]))
+                   should_be_filled_by_sender=True)
+        f.placements.add(fp)
 
         json = {u'value': u'',
                 u'obligatory': False,
@@ -492,7 +487,8 @@ class CheckboxFieldTest(FieldTest, utils.TestCase):
                 page=6, tip=None)
 
         f = self.f(name=u'checkbox-2', obligatory=False,
-                   should_be_filled_by_sender=True, placements=set([fp]))
+                   should_be_filled_by_sender=True)
+        f.placements.add(fp)
 
         json = {u'value': u'',
                 u'obligatory': False,

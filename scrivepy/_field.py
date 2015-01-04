@@ -1,10 +1,11 @@
 import enum
 
 import type_value_unifier as tvu
-from scrivepy import _object, _field_placement, _exceptions
+from scrivepy import _object, _set, _field_placement, _exceptions
 
 
 scrive_property = _object.scrive_property
+ScriveSet = _set.ScriveSet
 
 
 class PlacementSet(tvu.TypeValueUnifier):
@@ -23,16 +24,17 @@ class Field(_object.ScriveObject):
 
     @tvu.validate_and_unify(value=tvu.instance(unicode),
                             obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
+                            should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, value=u'', obligatory=True,
-                 should_be_filled_by_sender=False, placements=set()):
+                 should_be_filled_by_sender=False):
         super(Field, self).__init__()
         self._value = value
         self._closed = None
         self._obligatory = obligatory
         self._should_be_filled_by_sender = should_be_filled_by_sender
-        self._placements = set(placements)
+        self._placements = ScriveSet()
+        self._placements._elem_validator = \
+            tvu.instance(_field_placement.FieldPlacement)
 
     def __str__(self):
         return u'%s(value=%s, %d placements)' % \
@@ -49,8 +51,8 @@ class Field(_object.ScriveObject):
             obligatory = json[u'obligatory']
             should_be_filled_by_sender = json[u'shouldbefilledbysender']
             placements = \
-                set([_field_placement.FieldPlacement._from_json_obj(
-                    placement_json) for placement_json in json[u'placements']])
+                [_field_placement.FieldPlacement._from_json_obj(
+                    placement_json) for placement_json in json[u'placements']]
 
             if type_ == u'standard':
                 field = StandardField(name=StandardFieldType(name),
@@ -70,7 +72,7 @@ class Field(_object.ScriveObject):
 
             field.obligatory = obligatory
             field.should_be_filled_by_sender = should_be_filled_by_sender
-            field.placements = placements
+            field.placements.update(placements)
             if isinstance(closed, (bool, type(None))):
                 field._closed = closed
             else:
@@ -81,14 +83,12 @@ class Field(_object.ScriveObject):
 
     def _set_invalid(self):
         # invalidate placements first, before getter stops working
-        for placement in self.placements:
-            placement._set_invalid()
+        self.placements._set_invalid()
         super(Field, self)._set_invalid()
 
     def _set_read_only(self):
         super(Field, self)._set_read_only()
-        for placement in self.placements:
-            placement._set_read_only()
+        self.placements._set_read_only()
 
     def _to_json_obj(self):
         for placement in self.placements:
@@ -142,12 +142,7 @@ class Field(_object.ScriveObject):
 
     @scrive_property
     def placements(self):
-        return iter(self._placements)
-
-    @placements.setter
-    @tvu.validate_and_unify(placements=PlacementSet)
-    def placements(self, placements):
-        self._placements = set(placements)
+        return self._placements
 
 
 class StandardFieldType(unicode, enum.Enum):
@@ -165,12 +160,11 @@ class StandardField(Field):
     @tvu.validate_and_unify(name=tvu.instance(StandardFieldType, enum=True),
                             value=tvu.instance(unicode),
                             obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
+                            should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, value=u'', obligatory=True,
-                 should_be_filled_by_sender=False, placements=set()):
+                 should_be_filled_by_sender=False):
         super(StandardField, self).__init__(
-            value=value, obligatory=obligatory, placements=placements,
+            value=value, obligatory=obligatory,
             should_be_filled_by_sender=should_be_filled_by_sender)
         self._type = u'standard'
         self._name = name
@@ -181,12 +175,11 @@ class CustomField(Field):
     @tvu.validate_and_unify(name=tvu.instance(unicode),
                             value=tvu.instance(unicode),
                             obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
+                            should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, value=u'', obligatory=True,
-                 should_be_filled_by_sender=False, placements=set()):
+                 should_be_filled_by_sender=False):
         super(CustomField, self).__init__(
-            value=value, obligatory=obligatory, placements=placements,
+            value=value, obligatory=obligatory,
             should_be_filled_by_sender=should_be_filled_by_sender)
         self._type = u'custom'
         self._name = name
@@ -205,12 +198,11 @@ class SignatureField(Field):
 
     @tvu.validate_and_unify(name=tvu.instance(unicode),
                             obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
+                            should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, obligatory=True,
-                 should_be_filled_by_sender=False, placements=set()):
+                 should_be_filled_by_sender=False):
         super(SignatureField, self).__init__(
-            value=u'', obligatory=obligatory, placements=placements,
+            value=u'', obligatory=obligatory,
             should_be_filled_by_sender=should_be_filled_by_sender)
         self._type = u'signature'
         self._name = name
@@ -236,13 +228,11 @@ class CheckboxField(Field):
     @tvu.validate_and_unify(name=tvu.instance(unicode),
                             value=tvu.instance(bool),
                             obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool),
-                            placements=PlacementSet)
+                            should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, value=False, obligatory=False,
-                 should_be_filled_by_sender=False, placements=set()):
+                 should_be_filled_by_sender=False):
         super(CheckboxField, self).__init__(
             value=u'CHECKED' if value else u'', obligatory=obligatory,
-            placements=placements,
             should_be_filled_by_sender=should_be_filled_by_sender)
         self._type = u'checkbox'
         self._name = name
