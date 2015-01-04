@@ -1,5 +1,7 @@
+import type_value_unifier as tvu
 from scrivepy import _set, _object, _exceptions
 from tests import utils
+
 
 S = _set.ScriveSet
 O = _object.ScriveObject
@@ -60,6 +62,12 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.add(3)
+
+        s = S()
+        s._elem_validator = tvu.instance(int)
+        err_msg = u'elem must be int, not []'
+        with self.assertRaises(TypeError, err_msg):
+            s.add([])
 
     def test_copy(self):
         o1 = _object.ScriveObject()
@@ -248,6 +256,12 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s.symmetric_difference_update([])
 
+        s = S()
+        s._elem_validator = tvu.instance(int)
+        err_msg = u'iterable[2] must be int, not {}'
+        with self.assertRaises(TypeError, err_msg):
+            s.symmetric_difference_update([2, 3, {}])
+
     def test_update(self):
         s = S([1, 2, 3])
         s.update([2, 4], [1, 5], [6])
@@ -265,6 +279,12 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.update()
+
+        s = S()
+        s._elem_validator = tvu.instance(int)
+        err_msg = u'iterables[1][2] must be int, not {}'
+        with self.assertRaises(TypeError, err_msg):
+            s.update([1], [2, 3, {}])
 
     def test_clear(self):
         s = S([1, 2])
@@ -527,6 +547,12 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s |= S()
 
+        s = S()
+        s._elem_validator = tvu.instance(int)
+        err_msg = u'other\[\d\] must be int, not None'
+        with self.assertRaises(TypeError, err_msg, regex=True):
+            s |= S([2, 3, None])
+
     def test___iand__(self):
         s = S([1, 2, 3])
         s &= S([2, 4])
@@ -540,6 +566,12 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s &= S()
+
+        s = S()
+        s._elem_validator = tvu.instance(int)
+        err_msg = u'other\[\d\] must be int, not None'
+        with self.assertRaises(TypeError, err_msg, regex=True):
+            s &= S([2, 3, None])
 
     def test___isub__(self):
         s = S([1, 2, 3])
@@ -559,6 +591,12 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s -= S()
 
+        s = S()
+        s._elem_validator = tvu.instance(int)
+        err_msg = u'other\[\d\] must be int, not None'
+        with self.assertRaises(TypeError, err_msg, regex=True):
+            s -= S([2, 3, None])
+
     def test___ixor__(self):
         s = S([1, 2, 3])
         s ^= S([2, 4])
@@ -573,6 +611,12 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s ^= S()
+
+        s = S()
+        s._elem_validator = tvu.instance(int)
+        err_msg = u'other\[\d\] must be int, not None'
+        with self.assertRaises(TypeError, err_msg, regex=True):
+            s ^= S([2, 3, None])
 
     def test___contains__(self):
         s = S([1, 2])
