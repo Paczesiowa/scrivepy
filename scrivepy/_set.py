@@ -1,3 +1,5 @@
+import itertools
+
 from scrivepy import _object
 
 
@@ -6,6 +8,7 @@ class ScriveSet(set, _object.ScriveObject):
     def __init__(self, iterable=()):
         set.__init__(self, iterable)
         _object.ScriveObject.__init__(self)
+        self._derived_objs = []
 
     def add(self, elem):
         self._check_setter()
@@ -14,7 +17,9 @@ class ScriveSet(set, _object.ScriveObject):
     def copy(self):
         self._check_getter()
         result = set.copy(self)
+        result._derived_objs = []
         _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
         if self._read_only:
             result._set_read_only()
         return result
@@ -26,7 +31,9 @@ class ScriveSet(set, _object.ScriveObject):
     def intersection(self, *args):
         self._check_getter()
         result = set.intersection(self, *args)
+        result._derived_objs = []
         _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
         return result
 
     def isdisjoint(self, iterable):
@@ -44,7 +51,9 @@ class ScriveSet(set, _object.ScriveObject):
     def symmetric_difference(self, iterable):
         self._check_getter()
         result = set.symmetric_difference(self, iterable)
+        result._derived_objs = []
         _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
         return result
 
     def symmetric_difference_update(self, iterable):
@@ -62,7 +71,9 @@ class ScriveSet(set, _object.ScriveObject):
     def difference(self, *args):
         self._check_getter()
         result = set.difference(self, *args)
+        result._derived_objs = []
         _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
         return result
 
     def discard(self, elem):
@@ -84,31 +95,41 @@ class ScriveSet(set, _object.ScriveObject):
     def union(self, *args):
         self._check_getter()
         result = set.union(self, *args)
+        result._derived_objs = []
         _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
         return result
 
     def __and__(self, other):
         self._check_getter()
         result = set.__and__(self, other)
+        result._derived_objs = []
         _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
         return result
 
     def __xor__(self, other):
         self._check_getter()
         result = set.__xor__(self, other)
+        result._derived_objs = []
         _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
         return result
 
     def __sub__(self, other):
         self._check_getter()
         result = set.__sub__(self, other)
+        result._derived_objs = []
         _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
         return result
 
     def __or__(self, other):
         self._check_getter()
         result = set.__or__(self, other)
+        result._derived_objs = []
         _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
         return result
 
     def __ge__(self, other):
@@ -172,15 +193,17 @@ class ScriveSet(set, _object.ScriveObject):
         return set.__iter__(self)
 
     def _set_read_only(self):
-        # iterate even if self already invalid/ro
-        for item in set.__iter__(self):
+        for item in itertools.chain(
+                set.__iter__(self),  # iterate even if self already invalid/ro
+                iter(self._derived_objs)):
             if isinstance(item, _object.ScriveObject):
                 item._set_read_only()
         super(ScriveSet, self)._set_read_only()
 
     def _set_invalid(self):
-        # iterate even if self already invalid/ro
-        for item in set.__iter__(self):
+        for item in itertools.chain(
+                set.__iter__(self),  # iterate even if self already invalid/ro
+                iter(self._derived_objs)):
             if isinstance(item, _object.ScriveObject):
                 item._set_invalid()
         super(ScriveSet, self)._set_invalid()

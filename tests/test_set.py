@@ -101,7 +101,7 @@ class ScriveSetTest(utils.TestCase):
 
         s1._set_read_only()
         self.assertTrue(s1._read_only)
-        self.assertFalse(s2._read_only)
+        self.assertTrue(s2._read_only)
 
         s2._set_invalid()
         self.assertFalse(s1._invalid)
@@ -113,6 +113,13 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.copy()
+
+        s1 = S()
+        s2 = s1.copy()
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
 
     def test_difference_update(self):
         s = S([1, 2, 3])
@@ -148,6 +155,13 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.intersection()
+
+        s1 = S()
+        s2 = s1.intersection()
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
 
     def test_isdisjoint(self):
         s = S([1, 2, 3])
@@ -212,6 +226,13 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s.symmetric_difference([])
 
+        s1 = S()
+        s2 = s1.symmetric_difference([])
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
+
     def test_symmetric_difference_update(self):
         s = S([1, 2, 3])
         s.symmetric_difference_update([2, 4])
@@ -269,6 +290,13 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.difference()
+
+        s1 = S()
+        s2 = s1.difference()
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
 
     def test_discard(self):
         s = S([1, 2])
@@ -349,6 +377,13 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s.union()
 
+        s1 = S()
+        s2 = s1.union()
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
+
     def test___and__(self):
         s1 = S([1, 2, 3])
         s2 = S([1, 2])
@@ -366,7 +401,13 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s & S()
-        print type(S().__rxor__(None))
+
+        s1 = S()
+        s2 = s1 & S()
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
 
     def test___xor__(self):
         s1 = S([1, 2, 3])
@@ -383,6 +424,13 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s ^ S()
 
+        s1 = S()
+        s2 = s1 ^ S()
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
+
     def test___sub__(self):
         s = S([1, 2, 3, 4])
         s2 = s - S([2, 3])
@@ -396,6 +444,13 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s - S()
+
+        s1 = S()
+        s2 = s1 - S()
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
 
     def test___or__(self):
         s1 = S([1, 2, 3])
@@ -416,6 +471,13 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s | S()
+
+        s1 = S()
+        s2 = s1 | S()
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
 
     def test___ge__(self):
         s = S([1, 2, 3])
