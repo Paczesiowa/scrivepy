@@ -14,8 +14,9 @@ class ScriveSet(set, _object.ScriveObject):
     def copy(self):
         self._check_getter()
         result = set.copy(self)
-        result._read_only = self._read_only
-        result._invalid = False
+        _object.ScriveObject.__init__(result)
+        if self._read_only:
+            result._set_read_only()
         return result
 
     def difference_update(self, *args):
