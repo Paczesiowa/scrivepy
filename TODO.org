@@ -39,8 +39,6 @@
 * MaybeTipSide could use nullable
 * Document.number_of_days_to_remind needs info that it's clipped on the backend to max of days to sign
 * write version of set (for signatories and fields) and dict (for tags) that can be made read only and invalid
-** __iter__
-** __len__
 ** __hash__
 ** _set_read_only
 ** _set_invalid

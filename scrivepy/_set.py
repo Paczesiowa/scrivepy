@@ -161,3 +161,11 @@ class ScriveSet(set, _object.ScriveObject):
             return True
 
         return self._read_only != other._read_only or set.__ne__(self, other)
+
+    def __len__(self):
+        self._check_getter()
+        return set.__len__(self)
+
+    def __iter__(self):
+        self._check_getter()
+        return set.__iter__(self)

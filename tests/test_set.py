@@ -594,3 +594,32 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s != S()
+
+    def test___len__(self):
+        self.assertEqual(3, len(S([1, 2, 3])))
+        self.assertEqual(2, len(S([1, 2])))
+        self.assertEqual(1, len(S([1])))
+        self.assertEqual(0, len(S()))
+
+        s = S([1, 2])
+        s._set_read_only()
+        self.assertEqual(2, len(s))
+        s._set_invalid()
+        with self.assertRaises(INV):
+            len(s)
+
+    def test___iter__(self):
+        self.assertEqual(set(iter(S([1, 2, 3]))), set([1, 2, 3]))
+        iterator = iter(S([1, 2, 3]))
+        self.assertTrue(iterator.next() in [1, 2, 3])
+        self.assertTrue(iterator.next() in [1, 2, 3])
+        self.assertTrue(iterator.next() in [1, 2, 3])
+        with self.assertRaises(StopIteration):
+            iterator.next()
+
+        s = S([1, 2])
+        s._set_read_only()
+        self.assertEqual(set(iter(s)), set([1, 2]))
+        s._set_invalid()
+        with self.assertRaises(INV):
+            iter(s)
