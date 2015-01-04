@@ -2,6 +2,7 @@ from scrivepy import _set, _object, _exceptions
 from tests import utils
 
 S = _set.ScriveSet
+O = _object.ScriveObject
 RO = _exceptions.ReadOnlyScriveObject
 INV = _exceptions.InvalidScriveObject
 
@@ -19,7 +20,7 @@ class ScriveSetTest(utils.TestCase):
     def test_init(self):
         s = S()
         self.assertTrue(isinstance(s, set))
-        self.assertTrue(isinstance(s, _object.ScriveObject))
+        self.assertTrue(isinstance(s, O))
         self.assertProperScriveSet(s)
 
         self.assertEqual(0, len(s))
@@ -623,3 +624,36 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             iter(s)
+
+    def test__set_read_only(self):
+        o = O()
+        s = S([o, 3])
+        self.assertFalse(s._read_only)
+        self.assertFalse(o._read_only)
+        s._set_read_only()
+        self.assertTrue(s._read_only)
+        self.assertTrue(o._read_only)
+
+        o2 = O()
+        s2 = S([o, 3])
+        s2.add(o2)
+        s2._set_invalid()
+        s2._set_read_only()
+        self.assertTrue(s2._read_only)
+        self.assertTrue(o2._read_only)
+
+    def test__set_invalid(self):
+        o = O()
+        s = S([o, 3])
+        self.assertFalse(s._invalid)
+        self.assertFalse(o._invalid)
+        s._set_invalid()
+        self.assertTrue(s._invalid)
+        self.assertTrue(o._invalid)
+
+        o2 = O()
+        s2 = S([o2, 3])
+        s2._set_read_only()
+        s2._set_invalid()
+        self.assertTrue(s2._invalid)
+        self.assertTrue(o2._invalid)

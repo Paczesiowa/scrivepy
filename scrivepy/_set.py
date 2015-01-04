@@ -170,3 +170,17 @@ class ScriveSet(set, _object.ScriveObject):
     def __iter__(self):
         self._check_getter()
         return set.__iter__(self)
+
+    def _set_read_only(self):
+        # iterate even if self already invalid/ro
+        for item in set.__iter__(self):
+            if isinstance(item, _object.ScriveObject):
+                item._set_read_only()
+        super(ScriveSet, self)._set_read_only()
+
+    def _set_invalid(self):
+        # iterate even if self already invalid/ro
+        for item in set.__iter__(self):
+            if isinstance(item, _object.ScriveObject):
+                item._set_invalid()
+        super(ScriveSet, self)._set_invalid()
