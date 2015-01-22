@@ -763,3 +763,93 @@ class ScriveSetTest(utils.TestCase):
         s2._set_invalid()
         self.assertTrue(s2._invalid)
         self.assertTrue(o2._invalid)
+
+    def test___rxor__(self):
+        s1 = set([1, 2, 3])
+        s = s1 ^ S([2, 3, 4])
+        self.assertProperScriveSet(s)
+        self.assertEqual(2, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(4 in s)
+
+        s = S()
+        s._set_read_only()
+        set() ^ s
+        s._set_invalid()
+        with self.assertRaises(INV):
+            set() ^ s
+
+        s1 = S()
+        s2 = set() ^ s1
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
+
+    def test___rand__(self):
+        s1 = S([1])
+        s2 = set([1, 2]) & s1
+        self.assertProperScriveSet(s2)
+        self.assertEqual(1, len(s2))
+        self.assertTrue(1 in s2)
+        self.assertFalse(2 in s2)
+        self.assertFalse(3 in s2)
+
+        s = S()
+        s._set_read_only()
+        set() & s
+        s._set_invalid()
+        with self.assertRaises(INV):
+            set() & s
+
+        s1 = S()
+        s2 = set() & s1
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
+
+    def test___ror__(self):
+        s1 = S([2, 3])
+        s2 = set([1, 2]) | s1
+        self.assertProperScriveSet(s2)
+        self.assertEqual(3, len(s2))
+        self.assertTrue(1 in s2)
+        self.assertTrue(2 in s2)
+        self.assertTrue(3 in s2)
+
+        s = S()
+        s._set_read_only()
+        set() | s
+        s._set_invalid()
+        with self.assertRaises(INV):
+            set() | s
+
+        s1 = S()
+        s2 = set() | s1
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)
+
+    def test___rsub__(self):
+        s1 = S([2, 3])
+        s2 = set([1, 2, 3, 4]) - s1
+        self.assertProperScriveSet(s2)
+        self.assertEqual(2, len(s2))
+        self.assertTrue(1 in s2)
+        self.assertTrue(4 in s2)
+
+        s = S()
+        s._set_read_only()
+        set() - s
+        s._set_invalid()
+        with self.assertRaises(INV):
+            set() - s
+
+        s1 = S()
+        s2 = set() - s1
+        s1._set_read_only()
+        self.assertTrue(s2._read_only)
+        s1._set_invalid()
+        self.assertTrue(s2._invalid)

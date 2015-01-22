@@ -244,3 +244,38 @@ class ScriveSet(set, _object.ScriveObject):
             if isinstance(item, _object.ScriveObject):
                 item._set_invalid()
         super(ScriveSet, self)._set_invalid()
+
+    def __rxor__(self, other):
+        self._check_getter()
+        # proxy to __xor__, it's ok cause it's symmetric
+        result = set.__xor__(self, other)
+        result.__init_scrive_set__()
+        _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
+        return result
+
+    def __rand__(self, other):
+        self._check_getter()
+        # proxy to __and__, it's ok cause it's symmetric
+        result = set.__and__(self, other)
+        result.__init_scrive_set__()
+        _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
+        return result
+
+    def __ror__(self, other):
+        self._check_getter()
+        # proxy to __or__, it's ok cause it's symmetric
+        result = set.__or__(self, other)
+        result.__init_scrive_set__()
+        _object.ScriveObject.__init__(result)
+        self._derived_objs.append(result)
+        return result
+
+    def __rsub__(self, other):
+        self._check_getter()
+        # __sub__ isn't symmetric, we have to be creative
+        result = ScriveSet(other)
+        result -= self
+        self._derived_objs.append(result)
+        return result

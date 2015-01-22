@@ -1,6 +1,5 @@
 * write a document.py
 ** downloaded document in pending/closed status should be read only
-* FieldSet could be a different collection
 * ScriveFile object
 ** read only
 ** should not be consturctable by users
@@ -39,11 +38,6 @@
 * MaybeTipSide could use nullable
 * Document.number_of_days_to_remind needs info that it's clipped on the backend to max of days to sign
 * write version of set (for signatories and fields) and dict (for tags) that can be made read only and invalid
-** remaining attributes
-*** __rand__
-*** __rxor__
-*** __ror__
-*** __rsub__
 ** add type checking for set methods (so ScriveSet().update(2) gives a nice error)
 ** pickling support
 * Document should not have a publically accesible ctor
