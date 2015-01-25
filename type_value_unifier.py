@@ -50,6 +50,9 @@ class TypeValueUnifier(object):
 
 def validate_and_unify(**arg_validators):
     def wrapper(fun):
+        spec_args, spec_varargs, spec_keywords, spec_defaults = \
+            inspect.getargspec(fun)
+
         def inner_wrapper(*args, **kwargs):
             args_values = inspect.getcallargs(fun, *args, **kwargs)
             for arg in args_values:
@@ -60,7 +63,18 @@ def validate_and_unify(**arg_validators):
                 else:
                     args_values[arg] = \
                         validator(arg).unify_validate(args_values[arg])
-            return fun(**args_values)
+
+            new_args = []
+
+            # TODO: support default arguments
+            try:
+                for arg in spec_args:
+                    new_args.append(args_values.pop(arg))
+                if spec_varargs is not None:
+                    new_args += args_values.pop(spec_varargs)
+            except KeyError:
+                raise TypeError()
+            return fun(*new_args, **args_values)
         return inner_wrapper
     return wrapper
 
