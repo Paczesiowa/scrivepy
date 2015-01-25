@@ -1,4 +1,4 @@
-from scrivepy import _signatory, _field, _exceptions
+from scrivepy import _signatory, _field, _exceptions, _set
 from tests import utils
 
 
@@ -7,6 +7,7 @@ IDM = _signatory.InvitationDeliveryMethod
 CDM = _signatory.ConfirmationDeliveryMethod
 AM = _signatory.AuthenticationMethod
 F = _field
+ScriveSet = _set.ScriveSet
 
 
 class SignatoryTest(utils.TestCase):
@@ -46,7 +47,8 @@ class SignatoryTest(utils.TestCase):
     def test_flags(self):
         f1 = F.StandardField(name='first_name', value=u'John')
         f2 = F.CustomField(name=u'field', value=u'value')
-        s = self.o(fields=set([f1, f2]))
+        s = self.o()
+        s.fields.update([f1, f2])
 
         self.assertIsNone(s._check_getter())
         self.assertIsNone(f1._check_getter())
@@ -81,13 +83,13 @@ class SignatoryTest(utils.TestCase):
                           f2._check_setter)
 
     def test_to_json_obj(self):
-        s = self.o(fields=set([self.f1]), sign_order=2,
-                   invitation_delivery_method='api',
+        s = self.o(sign_order=2, invitation_delivery_method='api',
                    confirmation_delivery_method='none',
                    viewer=True, author=True,
                    sign_success_redirect_url=u'http://example.com/',
                    rejection_redirect_url=u'http://example.net/',
                    authentication_method='sms_pin')
+        s.fields.add(self.f1)
         s._id = u'1'
 
         json = {u'fields': [self.f1],
@@ -135,50 +137,40 @@ class SignatoryTest(utils.TestCase):
 
     def test_modification_of_default_fields_value(self):
         s1 = self.o()
-        s1._fields.add(1)
+        s1._fields.add(self.f1)
         s2 = self.o()
         self.assertEqual(set(), set(s2.fields))
 
     def test_fields(self):
-        err_msg = u'fields must be set, not 1'
-        with self.assertRaises(TypeError, err_msg):
-            self.o(fields=1)
-
-        err_msg = u'fields must be set of Field objects, ' + \
-            u'not: set([1])'
-        with self.assertRaises(ValueError, err_msg):
-            self.o(fields=set([1]))
-
         # check default ctor value
         s = self.o()
-        self.assertEqual(set([]), set(s.fields))
+        self.assertEqual(ScriveSet(), s.fields)
 
-        s = self.o(fields=set([self.f1]))
-        self.assertEqual(set([self.f1]), set(s.fields))
+        s.fields.add(self.f1)
+        self.assertEqual(ScriveSet([self.f1]), s.fields)
 
-        with self.assertRaises(TypeError, u'fields must be set, not 1'):
-            s.fields = 1
+        err_msg = u'elem must be Field, not 1'
+        with self.assertRaises(TypeError, err_msg):
+            s.fields.add(1)
 
-        err_msg = u'fields must be set of Field objects, ' + \
-            u'not: set([1])'
-        with self.assertRaises(ValueError, err_msg):
-            s.fields = set([1])
-
-        s.fields = set([self.f2])
-        self.assertEqual(set([self.f2]), set(s.fields))
+        s.fields.clear()
+        s.fields.add(self.f2)
+        self.assertEqual(ScriveSet([self.f2]), s.fields)
 
         self.assertEqual([self.f2], s._to_json_obj()[u'fields'])
 
         s._set_read_only()
-        self.assertEqual(set([self.f2]), set(s.fields))
+        # set() is because the 2nd one is read only and not really equal
+        self.assertEqual(set(ScriveSet([self.f2])), set(s.fields))
         with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
-            s.fields = set([self.f1])
+            s.fields.clear()
+            s.fields.add(self.f1)
 
         s._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             s.fields
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.fields = set([self.f1])
+            s.fields.add(self.f1)
 
     def test_id(self):
         self._test_server_field('id')

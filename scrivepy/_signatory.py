@@ -2,20 +2,10 @@ import enum
 from dateutil import parser as dateparser
 
 import type_value_unifier as tvu
-from scrivepy import _object, _field, _exceptions
+from scrivepy import _object, _field, _exceptions, _set
 
 
 scrive_property = _object.scrive_property
-
-
-class FieldSet(tvu.TypeValueUnifier):
-
-    TYPES = (set,)
-
-    def validate(self, value):
-        for elem in value:
-            if not isinstance(elem, _field.Field):
-                self.error(u'set of Field objects')
 
 
 class InvitationDeliveryMethod(unicode, enum.Enum):
@@ -48,7 +38,7 @@ MaybeUnicode = tvu.nullable(tvu.instance(unicode))
 
 class Signatory(_object.ScriveObject):
 
-    @tvu.validate_and_unify(fields=FieldSet, sign_order=tvu.PositiveInt,
+    @tvu.validate_and_unify(sign_order=tvu.PositiveInt,
                             invitation_delivery_method=
                             tvu.instance(IDM, enum=True),
                             confirmation_delivery_method=
@@ -59,14 +49,13 @@ class Signatory(_object.ScriveObject):
                             author=tvu.instance(bool),
                             sign_success_redirect_url=MaybeUnicode,
                             rejection_redirect_url=MaybeUnicode)
-    def __init__(self, fields=set(), sign_order=1, viewer=False, author=False,
+    def __init__(self, sign_order=1, viewer=False, author=False,
                  invitation_delivery_method=IDM.email,
                  confirmation_delivery_method=CDM.email,
                  authentication_method=AM.standard,
                  sign_success_redirect_url=None,
                  rejection_redirect_url=None):
         super(Signatory, self).__init__()
-        self._fields = set(fields)
         self._id = None
         self._current = None
         self._sign_order = sign_order
@@ -89,15 +78,16 @@ class Signatory(_object.ScriveObject):
         self._rejection_redirect_url = rejection_redirect_url
         self._authentication_method = authentication_method
         self._sign_url = None
+        self._fields = _set.ScriveSet()
+        self._fields._elem_validator = tvu.instance(_field.Field)
 
     @classmethod
     def _from_json_obj(cls, json):
         try:
-            fields = \
-                set([_field.Field._from_json_obj(field_json)
-                     for field_json in json[u'fields']])
+            fields = [_field.Field._from_json_obj(field_json)
+                      for field_json in json[u'fields']]
             signatory = \
-                Signatory(fields=fields, sign_order=json[u'signorder'],
+                Signatory(sign_order=json[u'signorder'],
                           invitation_delivery_method=IDM(json[u'delivery']),
                           confirmation_delivery_method=CDM(
                               json[u'confirmationdelivery']),
@@ -107,6 +97,7 @@ class Signatory(_object.ScriveObject):
                           sign_success_redirect_url=
                           json[u'signsuccessredirect'],
                           rejection_redirect_url=json[u'rejectredirect'])
+            signatory.fields.update(fields)
             signatory._id = json[u'id']
             signatory._current = json[u'current']
             signatory._undelivered_invitation = json[u'undeliveredInvitation']
@@ -138,14 +129,12 @@ class Signatory(_object.ScriveObject):
 
     def _set_invalid(self):
         # invalidate fields first, before getter stops working
-        for field in self.fields:
-            field._set_invalid()
+        self.fields._set_invalid()
         super(Signatory, self)._set_invalid()
 
     def _set_read_only(self):
         super(Signatory, self)._set_read_only()
-        for field in self.fields:
-            field._set_read_only()
+        self.fields._set_read_only()
 
     def _to_json_obj(self):
         result = {u'fields': list(self.fields),
@@ -180,12 +169,7 @@ class Signatory(_object.ScriveObject):
 
     @scrive_property
     def fields(self):
-        return iter(self._fields)
-
-    @fields.setter
-    @tvu.validate_and_unify(fields=FieldSet)
-    def fields(self, fields):
-        self._fields = set(fields)
+        return self._fields
 
     @scrive_property
     def id(self):

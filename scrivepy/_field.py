@@ -8,16 +8,6 @@ scrive_property = _object.scrive_property
 ScriveSet = _set.ScriveSet
 
 
-class PlacementSet(tvu.TypeValueUnifier):
-
-    TYPES = (set,)
-
-    def validate(self, value):
-        for elem in value:
-            if not isinstance(elem, _field_placement.FieldPlacement):
-                self.error(u'set of FieldPlacement objects')
-
-
 class Field(_object.ScriveObject):
 
     _default_placement_tip = _field_placement.TipSide.right_tip

@@ -1,4 +1,4 @@
-* use ScriveSet for fields and signatories
+* use ScriveSet for signatories
 * write a document.py
 ** downloaded document in pending/closed status should be read only
 * ScriveFile object
