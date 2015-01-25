@@ -172,3 +172,40 @@ class UnicodeDict(TypeValueUnifier):
         for key, val in value.items():
             if not isinstance(key, unicode) or not isinstance(val, unicode):
                 self.error(u'dict with unicode keys and values')
+
+
+class Iterable(TypeValueUnifier):
+
+    def type_check(self):
+        value = self._value
+        try:
+            iter(value)
+            return
+        except TypeError:
+            err_msg = u'%s must be iterable, not %s' % (self._variable_name,
+                                                        unicode(self._value))
+            raise TypeError(err_msg)
+
+
+def args_of(tvu):
+
+    class ArgsOf(TypeValueUnifier):
+
+        def type_check(self):
+            value = self._value
+            try:
+                iter(value)
+            except TypeError:
+                err_msg = u'%s must be iterable, not %s' % \
+                    (self._variable_name, unicode(self._value))
+                raise TypeError(err_msg)
+
+        def unify(self, value):
+            result = []
+            for i, elem in enumerate(value):
+                new_var_name = u'%s[%d]' % (self._variable_name, i)
+                validated_elem = tvu(new_var_name).unify_validate(elem)
+                result.append(validated_elem)
+            return result
+
+    return ArgsOf

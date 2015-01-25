@@ -43,6 +43,10 @@ class ScriveSetTest(utils.TestCase):
         self.assertTrue(1 in s)
         self.assertTrue(2 in s)
 
+        with self.assertRaises(TypeError,
+                               u'iterable must be iterable, not None'):
+            S(None)
+
     def test_add(self):
         s = S([1])
         self.assertEqual(1, len(s))
@@ -146,6 +150,10 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s.difference_update([])
 
+        with self.assertRaises(TypeError,
+                               u'iterables[1] must be iterable, not None'):
+            s.difference_update([], None)
+
     def test_intersection(self):
         s1 = S([1, 2, 3])
         s2 = S([1, 2])
@@ -171,6 +179,11 @@ class ScriveSetTest(utils.TestCase):
         s1._set_invalid()
         self.assertTrue(s2._invalid)
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'args[3] must be iterable, not 2'):
+            s.intersection([], set(), S(), 2)
+
     def test_isdisjoint(self):
         s = S([1, 2, 3])
         self.assertTrue(s.isdisjoint([4, 5]))
@@ -183,6 +196,11 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.isdisjoint([])
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'iterable must be iterable, not 7'):
+            s.isdisjoint(7)
 
     def test_issuperset(self):
         s = S([1, 2, 3])
@@ -197,6 +215,11 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.issuperset([])
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'iterable must be iterable, not 1.5'):
+            s.issuperset(1.5)
 
     def test_remove(self):
         s = S([1, 2])
@@ -241,6 +264,11 @@ class ScriveSetTest(utils.TestCase):
         s1._set_invalid()
         self.assertTrue(s2._invalid)
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'iterable must be iterable, not 7'):
+            s.symmetric_difference(7)
+
     def test_symmetric_difference_update(self):
         s = S([1, 2, 3])
         s.symmetric_difference_update([2, 4])
@@ -261,6 +289,11 @@ class ScriveSetTest(utils.TestCase):
         err_msg = u'iterable[2] must be int, not {}'
         with self.assertRaises(TypeError, err_msg):
             s.symmetric_difference_update([2, 3, {}])
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'iterable must be iterable, not None'):
+            s.symmetric_difference_update(None)
 
     def test_update(self):
         s = S([1, 2, 3])
@@ -285,6 +318,10 @@ class ScriveSetTest(utils.TestCase):
         err_msg = u'iterables[1][2] must be int, not {}'
         with self.assertRaises(TypeError, err_msg):
             s.update([1], [2, 3, {}])
+
+        with self.assertRaises(TypeError,
+                               u'iterables[3] must be iterable, not 2'):
+            s.update([], set(), S(), 2)
 
     def test_clear(self):
         s = S([1, 2])
@@ -318,6 +355,11 @@ class ScriveSetTest(utils.TestCase):
         s1._set_invalid()
         self.assertTrue(s2._invalid)
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'args[3] must be iterable, not 2'):
+            s.difference([], set(), S(), 2)
+
     def test_discard(self):
         s = S([1, 2])
         s.discard(3)
@@ -346,6 +388,12 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s.intersection_update([])
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'args[3] must be iterable, not 2'):
+            s.intersection_update([], set(), S(), 2)
+
+
     def test_issubset(self):
         s = S([2])
         self.assertTrue(s.issubset([1, 2, 3]))
@@ -359,6 +407,11 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s.issubset([])
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'iterable must be iterable, not 1.5'):
+            s.issubset(1.5)
 
     def test_pop(self):
         s = S([1, 2])
@@ -404,6 +457,11 @@ class ScriveSetTest(utils.TestCase):
         s1._set_invalid()
         self.assertTrue(s2._invalid)
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'args[3] must be iterable, not 2'):
+            s.union([], set(), S(), 2)
+
     def test___and__(self):
         s1 = S([1, 2, 3])
         s2 = S([1, 2])
@@ -429,6 +487,11 @@ class ScriveSetTest(utils.TestCase):
         s1._set_invalid()
         self.assertTrue(s2._invalid)
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 2'):
+            s & 2
+
     def test___xor__(self):
         s1 = S([1, 2, 3])
         s = s1 ^ S([2, 3, 4])
@@ -451,6 +514,11 @@ class ScriveSetTest(utils.TestCase):
         s1._set_invalid()
         self.assertTrue(s2._invalid)
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 2'):
+            s ^ 2
+
     def test___sub__(self):
         s = S([1, 2, 3, 4])
         s2 = s - S([2, 3])
@@ -471,6 +539,11 @@ class ScriveSetTest(utils.TestCase):
         self.assertTrue(s2._read_only)
         s1._set_invalid()
         self.assertTrue(s2._invalid)
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 2'):
+            s - 2
 
     def test___or__(self):
         s1 = S([1, 2, 3])
@@ -499,6 +572,11 @@ class ScriveSetTest(utils.TestCase):
         s1._set_invalid()
         self.assertTrue(s2._invalid)
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 2'):
+            s | 2
+
     def test___ge__(self):
         s = S([1, 2, 3])
         self.assertTrue(s >= S([1, 2, 3]))
@@ -513,6 +591,11 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s >= S()
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 2'):
+            s >= 2
+
     def test___le__(self):
         s = S([2])
         self.assertTrue(s <= S([1, 2, 3]))
@@ -526,6 +609,11 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s <= S()
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 2'):
+            s <= 2
 
     def test___ior__(self):
         s = S([1, 2, 3])
@@ -553,6 +641,11 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(TypeError, err_msg, regex=True):
             s |= S([2, 3, None])
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not None'):
+            s |= None
+
     def test___iand__(self):
         s = S([1, 2, 3])
         s &= S([2, 4])
@@ -572,6 +665,11 @@ class ScriveSetTest(utils.TestCase):
         err_msg = u'other\[\d\] must be int, not None'
         with self.assertRaises(TypeError, err_msg, regex=True):
             s &= S([2, 3, None])
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not None'):
+            s &= None
 
     def test___isub__(self):
         s = S([1, 2, 3])
@@ -597,6 +695,11 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(TypeError, err_msg, regex=True):
             s -= S([2, 3, None])
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not None'):
+            s -= None
+
     def test___ixor__(self):
         s = S([1, 2, 3])
         s ^= S([2, 4])
@@ -617,6 +720,11 @@ class ScriveSetTest(utils.TestCase):
         err_msg = u'other\[\d\] must be int, not None'
         with self.assertRaises(TypeError, err_msg, regex=True):
             s ^= S([2, 3, None])
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not None'):
+            s ^= None
 
     def test___contains__(self):
         s = S([1, 2])
@@ -650,6 +758,12 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s > S()
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 1.5'):
+            s > 1.5
+
+
     def test___lt__(self):
         s = S([2])
         self.assertTrue(s < S([1, 2]))
@@ -663,6 +777,11 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s < S()
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 1.5'):
+            s < 1.5
 
     def test___eq__(self):
         self.assertFalse(S() == set())
@@ -683,6 +802,11 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(INV):
             s == S()
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 1.5'):
+            s == 1.5
+
     def test___ne__(self):
         self.assertTrue(S() != set())
 
@@ -701,6 +825,11 @@ class ScriveSetTest(utils.TestCase):
         s._set_invalid()
         with self.assertRaises(INV):
             s != S()
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 1.5'):
+            s != 1.5
 
     def test___len__(self):
         self.assertEqual(3, len(S([1, 2, 3])))
@@ -786,6 +915,11 @@ class ScriveSetTest(utils.TestCase):
         s1._set_invalid()
         self.assertTrue(s2._invalid)
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 1.5'):
+            1.5 ^ s
+
     def test___rand__(self):
         s1 = S([1])
         s2 = set([1, 2]) & s1
@@ -808,6 +942,11 @@ class ScriveSetTest(utils.TestCase):
         self.assertTrue(s2._read_only)
         s1._set_invalid()
         self.assertTrue(s2._invalid)
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 1.5'):
+            1.5 & s
 
     def test___ror__(self):
         s1 = S([2, 3])
@@ -832,6 +971,11 @@ class ScriveSetTest(utils.TestCase):
         s1._set_invalid()
         self.assertTrue(s2._invalid)
 
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 1.5'):
+            1.5 | s
+
     def test___rsub__(self):
         s1 = S([2, 3])
         s2 = set([1, 2, 3, 4]) - s1
@@ -853,3 +997,8 @@ class ScriveSetTest(utils.TestCase):
         self.assertTrue(s2._read_only)
         s1._set_invalid()
         self.assertTrue(s2._invalid)
+
+        s = S()
+        with self.assertRaises(TypeError,
+                               u'other must be set, not 1.5'):
+            1.5 - s
