@@ -247,8 +247,11 @@ class ScriveTest(utils.TestCase):
     @utils.integration
     def test_ready(self):
         d = self.api.create_document_from_file(self.test_doc_path)
+        self.assertEqual(d.status, DS.preparation)
         time.sleep(1)  # make sure that modification time is greater than ctime
         d = self.api.ready(d)
+
+        self.assertTrue(d._read_only)
 
         now = datetime.now(tz.tzutc())
 

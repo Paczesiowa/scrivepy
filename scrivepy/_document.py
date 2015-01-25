@@ -149,6 +149,10 @@ class Document(_object.ScriveObject):
             document._object_version = json[u'objectversion']
             document._viewed_by_author = json[u'isviewedbyauthor']
             document._access_token = json[u'accesstoken']
+
+            if document.status is not DocumentStatus.preparation:
+                document._set_read_only()
+
             return document
         except (KeyError, TypeError, ValueError) as e:
             raise _exceptions.InvalidResponse(e)

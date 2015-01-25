@@ -477,3 +477,14 @@ class DocumentTest(utils.TestCase):
 
     def test_access_token(self):
         self._test_server_field('access_token')
+
+    def test_document_read_only_by_status(self):
+        json = self.json.copy()
+        for status in ['pending', 'closed', 'canceled',
+                       'timedout', 'rejected', 'error']:
+            json['status'] = DS[status].value
+            d = self.O._from_json_obj(json)
+            self.assertTrue(d._read_only)
+        json['status'] = DS['preparation'].value
+        d = self.O._from_json_obj(json)
+        self.assertFalse(d._read_only)
