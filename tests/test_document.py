@@ -1,4 +1,4 @@
-from scrivepy import _signatory, _document, _exceptions
+from scrivepy import _signatory, _document, _exceptions, _set
 from tests import utils
 
 
@@ -7,6 +7,7 @@ D = _document.Document
 DS = _document.DocumentStatus
 DelS = _document.DeletionStatus
 Lang = _document.Language
+ScriveSet = _set.ScriveSet
 
 
 class DocumentTest(utils.TestCase):
@@ -79,7 +80,8 @@ class DocumentTest(utils.TestCase):
     def test_flags(self):
         s1 = S(author=True)
         s2 = S(viewer=True)
-        d = self.o(signatories=set([s1, s2]))
+        d = self.o()
+        d.signatories.update([s1, s2])
 
         self.assertIsNone(d._check_getter())
         self.assertIsNone(s1._check_getter())
@@ -128,8 +130,8 @@ class DocumentTest(utils.TestCase):
                    language='spanish',
                    tags={u'key1': u'val2', u'key3': u'val4'},
                    saved_as_draft=False,
-                   timezone=u'Europe/Warsaw',
-                   signatories=set([self.s1]))
+                   timezone=u'Europe/Warsaw')
+        d.signatories.add(self.s1)
 
         json = {u'title': u'the document',
                 u'daystosign': 30,
@@ -190,52 +192,36 @@ class DocumentTest(utils.TestCase):
                          sorted([self.s1._to_json_obj(),
                                  self.s2._to_json_obj()]))
 
-    def test_modification_of_default_signatories_value(self):
-        d1 = self.o()
-        d1._signatories.add(1)
-        d2 = self.o()
-        self.assertEqual(set(), set(d2.signatories))
-
     def test_signatories(self):
-        err_msg = u'signatories must be set, not 1'
-        with self.assertRaises(TypeError, err_msg):
-            self.o(signatories=1)
-
-        err_msg = u'signatories must be set of Signatory objects, ' + \
-            u'not: set([1])'
-        with self.assertRaises(ValueError, err_msg):
-            self.o(signatories=set([1]))
-
         # check default ctor value
         d = self.o()
-        self.assertEqual(set([]), set(d.signatories))
+        self.assertEqual(ScriveSet(), d.signatories)
 
-        d = self.o(signatories=set([self.s1]))
-        self.assertEqual(set([self.s1]), set(d.signatories))
+        d.signatories.add(self.s1)
+        self.assertEqual(ScriveSet([self.s1]), d.signatories)
 
-        with self.assertRaises(TypeError, u'signatories must be set, not 1'):
-            d.signatories = 1
+        err_msg = u'elem must be Signatory, not 1'
+        with self.assertRaises(TypeError, err_msg):
+            d.signatories.add(1)
 
-        err_msg = u'signatories must be set of Signatory objects, ' + \
-            u'not: set([1])'
-        with self.assertRaises(ValueError, err_msg):
-            d.signatories = set([1])
-
-        d.signatories = set([self.s2])
-        self.assertEqual(set([self.s2]), set(d.signatories))
+        d.signatories.clear()
+        d.signatories.add(self.s2)
+        self.assertEqual(ScriveSet([self.s2]), d.signatories)
 
         self.assertEqual([self.s2], d._to_json_obj()[u'signatories'])
 
         d._set_read_only()
-        self.assertEqual(set([self.s2]), set(d.signatories))
+        # set() is because the 2nd one is read only and not really equal
+        self.assertEqual(set(ScriveSet([self.s2])), set(d.signatories))
         with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
-            d.signatories = set([self.s1])
+            d.signatories.clear()
+            d.signatories.add(self.s1)
 
         d._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             d.signatories
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            d.signatories = set([self.s1])
+            d.signatories.add(self.s1)
 
     def test_id(self):
         self._test_server_field('id')
@@ -291,7 +277,7 @@ class DocumentTest(utils.TestCase):
         s2 = S()
         s1.authentication_method = 'sms_pin'
         s2.authentication_method = 'sms_pin'
-        d.signatories = set([s1, s2])
+        d.signatories.update([s1, s2])
         self.assertEqual(d.authentication_method, u'sms_pin')
         s1.authentication_method = 'eleg'
         s2.authentication_method = 'eleg'
@@ -311,7 +297,7 @@ class DocumentTest(utils.TestCase):
         s2 = S()
         s1.invitation_delivery_method = 'email'
         s2.invitation_delivery_method = 'email'
-        d.signatories = set([s1, s2])
+        d.signatories.update([s1, s2])
         self.assertEqual(d.invitation_delivery_method, u'email')
         s1.invitation_delivery_method = 'api'
         s2.invitation_delivery_method = 'api'

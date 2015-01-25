@@ -193,12 +193,6 @@ class FieldTest(object):
         self.assertRaises(_exceptions.InvalidScriveObject, None,
                           fp2._check_setter)
 
-    def test_modification_of_default_placements_value(self):
-        f1 = self.f()
-        f1._placements.add(self.fp)
-        f2 = self.f()
-        self.assertEqual(set(), set(f2.placements))
-
 
 class StandardFieldTest(FieldTest):
 

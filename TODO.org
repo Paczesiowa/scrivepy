@@ -1,4 +1,4 @@
-* use ScriveSet for signatories
+* seperate author signatory from the rest of the signatories
 * write a document.py
 ** downloaded document in pending/closed status should be read only
 * ScriveFile object

@@ -2,20 +2,10 @@ import enum
 from dateutil import parser as dateparser
 
 import type_value_unifier as tvu
-from scrivepy import _object, _signatory, _exceptions
+from scrivepy import _object, _signatory, _exceptions, _set
 
 
 scrive_property = _object.scrive_property
-
-
-class SignatorySet(tvu.TypeValueUnifier):
-
-    TYPES = (set,)
-
-    def validate(self, value):
-        for elem in value:
-            if not isinstance(elem, _signatory.Signatory):
-                self.error(u'set of Signatory objects')
 
 
 class DocumentStatus(unicode, enum.Enum):
@@ -69,8 +59,7 @@ class Document(_object.ScriveObject):
                             language=tvu.instance(Language, enum=True),
                             tags=tvu.UnicodeDict,
                             saved_as_draft=tvu.instance(bool),
-                            timezone=tvu.instance(unicode),
-                            signatories=SignatorySet)
+                            timezone=tvu.instance(unicode))
     def __init__(self, title=u'', number_of_days_to_sign=14,
                  number_of_days_to_remind=None,
                  show_header=True, show_pdf_download=True,
@@ -78,8 +67,7 @@ class Document(_object.ScriveObject):
                  invitation_message=None, confirmation_message=None,
                  api_callback_url=None, language=Language.swedish,
                  tags={}, is_template=False, saved_as_draft=False,
-                 timezone=u'Europe/Stockholm',
-                 signatories=set()):
+                 timezone=u'Europe/Stockholm'):
         super(Document, self).__init__()
         self._id = None
         self._title = title
@@ -109,14 +97,14 @@ class Document(_object.ScriveObject):
         self._timezone = timezone
         self._viewed_by_author = None
         self._access_token = None
-        self._signatories = set(signatories)
+        self._signatories = _set.ScriveSet()
+        self._signatories._elem_validator = tvu.instance(_signatory.Signatory)
 
     @classmethod
     def _from_json_obj(cls, json):
         try:
-            signatories = \
-                set([_signatory.Signatory._from_json_obj(signatory_json)
-                     for signatory_json in json[u'signatories']])
+            signatories = [_signatory.Signatory._from_json_obj(signatory_json)
+                           for signatory_json in json[u'signatories']]
             lang_code = json[u'lang']
             if lang_code == u'gb':
                 lang_code = u'en'
@@ -136,8 +124,8 @@ class Document(_object.ScriveObject):
                                 tags={elem[u'name']: elem[u'value']
                                       for elem in json[u'tags']},
                                 saved_as_draft=json[u'saved'],
-                                timezone=json[u'timezone'],
-                                signatories=signatories)
+                                timezone=json[u'timezone'])
+            document.signatories.update(signatories)
             document._id = json[u'id']
             if json[u'time'] is not None:
                 document._modification_time = dateparser.parse(json[u'time'])
@@ -167,14 +155,12 @@ class Document(_object.ScriveObject):
 
     def _set_invalid(self):
         # invalidate signatories first, before getter stops working
-        for signatory in self.signatories:
-            signatory._set_invalid()
+        self.signatories._set_invalid()
         super(Document, self)._set_invalid()
 
     def _set_read_only(self):
         super(Document, self)._set_read_only()
-        for signatory in self.signatories:
-            signatory._set_read_only()
+        self.signatories._set_read_only()
 
     def _to_json_obj(self):
         return {u'title': self.title,
@@ -197,12 +183,7 @@ class Document(_object.ScriveObject):
 
     @scrive_property
     def signatories(self):
-        return iter(self._signatories)
-
-    @signatories.setter
-    @tvu.validate_and_unify(signatories=SignatorySet)
-    def signatories(self, signatories):
-        self._signatories = set(signatories)
+        return self._signatories
 
     @scrive_property
     def id(self):

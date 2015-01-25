@@ -135,12 +135,6 @@ class SignatoryTest(utils.TestCase):
                          sorted([self.f1._to_json_obj(),
                                  self.f2._to_json_obj()]))
 
-    def test_modification_of_default_fields_value(self):
-        s1 = self.o()
-        s1._fields.add(self.f1)
-        s2 = self.o()
-        self.assertEqual(set(), set(s2.fields))
-
     def test_fields(self):
         # check default ctor value
         s = self.o()
