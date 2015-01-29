@@ -1,11 +1,9 @@
 import time
 from datetime import datetime
-from os import path
 
-import testconfig
 from dateutil import tz
 
-from scrivepy import _scrive, _document, _signatory
+from scrivepy import _document, _signatory
 from tests import utils
 
 
@@ -17,18 +15,7 @@ Lang = _document.Language
 DelS = _document.DeletionStatus
 
 
-class ScriveTest(utils.TestCase):
-
-    def setUp(self):
-        try:
-            cfg = testconfig.config['test_api_server']
-        except KeyError:
-            print 'You need to set api server configuration in'
-            print 'tests/test_config.json (see tests/test_config_example.json)'
-        else:
-            self.api = _scrive.Scrive(**cfg)
-            self.test_doc_path = \
-                path.join(path.dirname(path.abspath(__file__)), 'document.pdf')
+class ScriveTest(utils.IntegrationTestCase):
 
     @utils.integration
     def test_create_document_from_file(self):

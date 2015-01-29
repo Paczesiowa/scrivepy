@@ -1,10 +1,12 @@
 import re
 import sys
 import unittest
+from os import path
 
 import nose
+import testconfig
 
-from scrivepy import _exceptions
+from scrivepy import _exceptions, _scrive
 
 
 class AssertRaisesContext(object):
@@ -146,3 +148,17 @@ class TestCase(unittest.TestCase):
         self.assertEqual(date_field.minute, 40)
         self.assertEqual(date_field.second, 20)
         self.assertEqual(date_field.microsecond, 0)
+
+
+class IntegrationTestCase(TestCase):
+
+    def setUp(self):
+        try:
+            cfg = testconfig.config['test_api_server']
+        except KeyError:
+            print 'You need to set api server configuration in'
+            print 'tests/test_config.json (see tests/test_config_example.json)'
+        else:
+            self.api = _scrive.Scrive(**cfg)
+            self.test_doc_path = \
+                path.join(path.dirname(path.abspath(__file__)), 'document.pdf')
