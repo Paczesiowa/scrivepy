@@ -250,7 +250,7 @@ class ScriveTest(utils.IntegrationTestCase):
         self.assertEqual(d.status, DS.pending)
         self.assertTrue(abs((d.modification_time - now).total_seconds()) < 120)
         self.assertTrue(d.creation_time < d.modification_time)
-        self.assertEqual((d.signing_deadline - now).days, 14)
+        self.assertTrue(13 <= (d.signing_deadline - now).days <= 14)
         self.assertIsNone(d.autoremind_time)
         self.assertEqual(d.current_sign_order, 1)
         self.assertEqual(d.authentication_method, AM.standard)
