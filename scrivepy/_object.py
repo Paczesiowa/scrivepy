@@ -64,6 +64,5 @@ class scrive_property(property):
         super(scrive_property, self).__init__(fget, fset, fdel, doc)
 
 
-class ID(tvu.TypeValueUnifier):
-
-    TYPES = (unicode,)
+class ID(tvu.NonEmptyUnicode):
+    pass

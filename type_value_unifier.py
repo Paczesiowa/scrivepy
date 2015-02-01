@@ -209,3 +209,12 @@ def args_of(tvu):
             return result
 
     return ArgsOf
+
+
+class NonEmptyUnicode(TypeValueUnifier):
+
+    TYPES = (unicode,)
+
+    def validate(self, value):
+        if value is u'':
+            self.error(u'non-empty string')
