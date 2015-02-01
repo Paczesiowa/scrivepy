@@ -1,5 +1,9 @@
+import contextlib
+import os
 import re
+import shutil
 import sys
+import tempfile
 import unittest
 from os import path
 
@@ -163,3 +167,28 @@ class IntegrationTestCase(TestCase):
             class_.api = _scrive.Scrive(**cfg)
             class_.test_doc_path = \
                 path.join(path.dirname(path.abspath(__file__)), 'document.pdf')
+
+
+@contextlib.contextmanager
+def temporary_file_path():
+    fd, file_path = tempfile.mkstemp()
+    try:
+        os.close(fd)
+        yield file_path
+    finally:
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass
+
+
+@contextlib.contextmanager
+def temporary_dir():
+    dir_path = tempfile.mkdtemp()
+    try:
+        yield dir_path
+    finally:
+        try:
+            shutil.rmtree(dir_path)
+        except OSError:
+            pass
