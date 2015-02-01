@@ -1,11 +1,8 @@
 * seperate author signatory from the rest of the signatories
+* polish all tvus used
 * ScriveFile object
-** read only
 ** should not be consturctable by users
-** id field
-** name field
-** needs a method to download target file
-** needs some access to oauth credentials
+** add tvu thingies for file/dir path args to download methods
 * Signatory needs attachments field
 ** research why it is updatable
 ** read only set of attachments

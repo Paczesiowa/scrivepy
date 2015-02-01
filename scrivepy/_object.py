@@ -17,6 +17,7 @@ class ScriveObject(object):
     def __init__(self):
         self._invalid = False
         self._read_only = False
+        self._api = None
 
     def _to_json(self):
         return json.dumps(self, cls=_JSONEncoder)
@@ -38,6 +39,9 @@ class ScriveObject(object):
         self._check_invalid()
         if self._read_only:
             raise _exceptions.ReadOnlyScriveObject()
+
+    def _set_api(self, api):
+        self._api = api
 
 
 def _scrive_method_wrap(fun, pre_fun_name):
