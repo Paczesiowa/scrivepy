@@ -152,13 +152,14 @@ class TestCase(unittest.TestCase):
 
 class IntegrationTestCase(TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(class_):
         try:
             cfg = testconfig.config['test_api_server']
         except KeyError:
             print 'You need to set api server configuration in'
             print 'tests/test_config.json (see tests/test_config_example.json)'
         else:
-            self.api = _scrive.Scrive(**cfg)
-            self.test_doc_path = \
+            class_.api = _scrive.Scrive(**cfg)
+            class_.test_doc_path = \
                 path.join(path.dirname(path.abspath(__file__)), 'document.pdf')
