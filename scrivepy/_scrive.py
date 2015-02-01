@@ -35,26 +35,33 @@ class Scrive(object):
         if files is None:
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
-        response = method(url, data=data, headers=headers, files=files)
-        doc_data = response.json()
-        return _document.Document._from_json_obj(doc_data)
+        return method(url, data=data, headers=headers, files=files)
+
+    def _make_doc_request(self, url_elems, method=requests.post,
+                          data=None, files=None):
+        response = self._make_request(url_elems, method=method,
+                                      data=data, files=files)
+        document = _document.Document._from_json_obj(response.json())
+        document._set_api(self)
+        return document
 
     def create_document_from_file(self, file_path):
         files = {'file': (path.basename(file_path),
                           open(file_path, 'rb'),
                           'application/pdf')}
 
-        return self._make_request(['createfromfile'], data='', files=files)
+        return self._make_doc_request(['createfromfile'], data='', files=files)
 
     def create_document_from_template(self, template_id):
-        return self._make_request(['createfromtemplate', template_id])
+        return self._make_doc_request(['createfromtemplate', template_id])
 
     def get_document(self, document_id):
-        return self._make_request(['get', document_id], method=requests.get)
+        return self._make_doc_request(['get', document_id],
+                                      method=requests.get)
 
     def update_document(self, document):
-        return self._make_request(['update', document.id],
-                                  data={'json': document._to_json()})
+        return self._make_doc_request(['update', document.id],
+                                      data={'json': document._to_json()})
 
     def ready(self, document):
-        return self._make_request(['ready', document.id])
+        return self._make_doc_request(['ready', document.id])
