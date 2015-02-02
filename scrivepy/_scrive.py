@@ -73,7 +73,16 @@ class Scrive(object):
         url_elems = ['sign', document.id, signatory.id]
         return self._make_doc_request(url_elems=url_elems, data='fields=[]')
 
+    def _cancel_document(self, document):
+        '''
+        WARNING! DO NOT USE! for testing purposes only!
+        '''
+        url_elems = ['cancel', document.id]
+        return self._make_doc_request(url_elems=url_elems)
+
     def trash_document(self, document):
+        if document.status is _document.DocumentStatus.pending:
+            self._cancel_document(document)
         self._make_request(url_elems=['delete', document.id],
                            method=requests.delete)
 
