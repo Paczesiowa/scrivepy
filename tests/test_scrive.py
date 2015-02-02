@@ -276,3 +276,26 @@ class ScriveTest(utils.IntegrationTestCase):
         self.assertEqual(d.timezone, u'Europe/Stockholm')
         self.assertTrue(d.viewed_by_author)
         self.assertIsNotNone(d.access_token)
+
+    @utils.integration
+    def test_trash_document(self):
+        d = self.api.create_document_from_file(self.test_doc_path)
+        self.assertEqual(d.deletion_status, DelS.not_deleted)
+        doc_id = d.id
+
+        self.api.trash_document(d)
+        d = self.api.get_document(doc_id)
+        self.assertEqual(d.deletion_status, DelS.in_trash)
+
+    @utils.integration
+    def test_delete_document(self):
+        d = self.api.create_document_from_file(self.test_doc_path)
+        self.assertEqual(d.deletion_status, DelS.not_deleted)
+        doc_id = d.id
+
+        d = self.api.get_document(doc_id)
+
+        self.api.trash_document(d)
+        self.api.delete_document(d)
+        d = self.api.get_document(doc_id)
+        self.assertEqual(d.deletion_status, DelS.deleted)

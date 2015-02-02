@@ -65,3 +65,18 @@ class Scrive(object):
 
     def ready(self, document):
         return self._make_doc_request(['ready', document.id])
+
+    def _sign(self, document, signatory):
+        '''
+        WARNING! DO NOT USE! for testing purposes only!
+        '''
+        url_elems = ['sign', document.id, signatory.id]
+        return self._make_doc_request(url_elems=url_elems, data='fields=[]')
+
+    def trash_document(self, document):
+        self._make_request(url_elems=['delete', document.id],
+                           method=requests.delete)
+
+    def delete_document(self, document):
+        self._make_request(url_elems=['reallydelete', document.id],
+                           method=requests.delete)
