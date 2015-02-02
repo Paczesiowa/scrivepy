@@ -20,46 +20,41 @@ class FileTest(utils.IntegrationTestCase):
 
     @utils.integration
     def test_stream(self):
-        d = self.api.create_document_from_file(self.test_doc_path)
+        with self.new_document_from_file() as d:
+            with contextlib.closing(d.original_file.stream()) as f:
+                md5 = hashlib.md5(f.read()).hexdigest()
 
-        with contextlib.closing(d.original_file.stream()) as f:
-            md5 = hashlib.md5(f.read()).hexdigest()
-
-        self.assertEqual(self.orig_md5, md5)
+            self.assertEqual(self.orig_md5, md5)
 
     @utils.integration
     def test_save_as(self):
-        d = self.api.create_document_from_file(self.test_doc_path)
+        with self.new_document_from_file() as d:
+            with utils.temporary_file_path() as file_path:
+                d.original_file.save_as(file_path)
+                md5 = md5_file(file_path)
 
-        with utils.temporary_file_path() as file_path:
-            d.original_file.save_as(file_path)
-            md5 = md5_file(file_path)
-
-        self.assertEqual(self.orig_md5, md5)
+            self.assertEqual(self.orig_md5, md5)
 
     @utils.integration
     def test_save_to(self):
-        d = self.api.create_document_from_file(self.test_doc_path)
+        with self.new_document_from_file() as d:
+            with utils.temporary_dir() as dir_path:
+                file_ = d.original_file
+                file_.save_to(dir_path)
+                md5 = md5_file(os.path.join(dir_path, file_.name))
 
-        with utils.temporary_dir() as dir_path:
-            file_ = d.original_file
-            file_.save_to(dir_path)
-            md5 = md5_file(os.path.join(dir_path, file_.name))
-
-        self.assertEqual(self.orig_md5, md5)
+            self.assertEqual(self.orig_md5, md5)
 
     @utils.integration
     def test_get_bytes(self):
-        d = self.api.create_document_from_file(self.test_doc_path)
-
-        with utils.temporary_file_path() as file_path:
-            result = d.original_file.get_bytes()
-            self.assertTrue(isinstance(result, bytes))
-            with open(file_path, 'wb') as f:
-                f.write(result)
-            md5 = md5_file(file_path)
-
-        self.assertEqual(self.orig_md5, md5)
+        with self.new_document_from_file() as d:
+            with utils.temporary_file_path() as file_path:
+                result = d.original_file.get_bytes()
+                self.assertTrue(isinstance(result, bytes))
+                with open(file_path, 'wb') as f:
+                    f.write(result)
+                md5 = md5_file(file_path)
+            self.assertEqual(self.orig_md5, md5)
 
     def test_id(self):
         d = _document.Document()

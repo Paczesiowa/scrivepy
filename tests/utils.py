@@ -168,6 +168,26 @@ class IntegrationTestCase(TestCase):
             class_.test_doc_path = \
                 path.join(path.dirname(path.abspath(__file__)), 'document.pdf')
 
+    @contextlib.contextmanager
+    def new_document_from_file(self):
+        try:
+            doc = self.api.create_document_from_file(self.test_doc_path)
+            yield doc
+        finally:
+            # refresh doc
+            doc = self.api.get_document(doc.id)
+            self.api.delete_document(doc)
+
+    @contextlib.contextmanager
+    def new_document_from_template(self, template_id):
+        try:
+            doc = self.api.create_document_from_template(template_id)
+            yield doc
+        finally:
+            # refresh doc
+            doc = self.api.get_document(doc.id)
+            self.api.delete_document(doc)
+
 
 @contextlib.contextmanager
 def temporary_file_path():
