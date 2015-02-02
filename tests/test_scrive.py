@@ -236,6 +236,12 @@ class ScriveTest(utils.IntegrationTestCase):
         d = self.api.create_document_from_file(self.test_doc_path)
         self.assertEqual(d.status, DS.preparation)
         time.sleep(1)  # make sure that modification time is greater than ctime
+
+        # make sure there's no email from running this test
+        author = list(d.signatories)[0]
+        author.viewer = True
+        d = self.api.update_document(d)
+
         d = self.api.ready(d)
 
         self.assertTrue(d._read_only)
@@ -271,8 +277,8 @@ class ScriveTest(utils.IntegrationTestCase):
         self.assertEqual(d.tags, {})
         self.assertTrue(d.saved_as_draft)
         self.assertEqual(d.deletion_status, DelS.not_deleted)
-        self.assertTrue(d.signing_possible)
-        self.assertEqual(d.object_version, 2)
+        self.assertFalse(d.signing_possible)
+        self.assertEqual(d.object_version, 3)
         self.assertEqual(d.timezone, u'Europe/Stockholm')
         self.assertTrue(d.viewed_by_author)
         self.assertIsNotNone(d.access_token)
