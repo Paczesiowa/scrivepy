@@ -295,7 +295,6 @@ class ScriveTest(utils.IntegrationTestCase):
 
         d = self.api.get_document(doc_id)
 
-        self.api.trash_document(d)
         self.api.delete_document(d)
         d = self.api.get_document(doc_id)
         self.assertEqual(d.deletion_status, DelS.deleted)

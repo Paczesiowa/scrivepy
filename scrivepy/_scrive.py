@@ -78,5 +78,7 @@ class Scrive(object):
                            method=requests.delete)
 
     def delete_document(self, document):
+        if document.deletion_status is not _document.DeletionStatus.in_trash:
+            self.trash_document(document)
         self._make_request(url_elems=['reallydelete', document.id],
                            method=requests.delete)
