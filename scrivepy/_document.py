@@ -100,6 +100,7 @@ class Document(_object.ScriveObject):
         self._signatories = _set.ScriveSet()
         self._signatories._elem_validator = tvu.instance(_signatory.Signatory)
         self._original_file = None
+        self._sealed_document = None
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -156,6 +157,12 @@ class Document(_object.ScriveObject):
                                          name=file_json[u'name'],
                                          document=document)
                 document._original_file = file_
+            sealed_file_json = json.get(u'sealedfile')
+            if sealed_file_json is not None:
+                sealed_file = _file.ScriveFile(id_=sealed_file_json[u'id'],
+                                               name=sealed_file_json[u'name'],
+                                               document=document)
+                document._sealed_document = sealed_file
 
             if document.status is not DocumentStatus.preparation:
                 document._set_read_only()
@@ -422,20 +429,22 @@ class Document(_object.ScriveObject):
     def original_file(self):
         return self._original_file
 
+    @scrive_property
+    def sealed_document(self):
+        return self._sealed_document
+
     def _set_api(self, api):
         super(Document, self)._set_api(api)
         if self._original_file is not None:
             self._original_file._set_api(api)
+        if self._sealed_document is not None:
+            self._sealed_document._set_api(api)
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
-#     file <- documentfileM doc
-#     sealedfile <- documentsealedfileM doc
 #     authorattachmentfiles <- mapM (dbQuery . GetFileByFileID . authorattachmentfile) (documentauthorattachments doc)
 #     evidenceattachments <- if includeEvidenceAttachments then EvidenceAttachments.fetch doc else return []
 #     runJSONGenT $ do
-#       J.value "file" $ fmap fileJSON file
-#       J.value "sealedfile" $ fmap fileJSON sealedfile
 #       J.value "authorattachments" $ map fileJSON authorattachmentfiles
 #       J.objects "evidenceattachments" $ for evidenceattachments $ \a -> do
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a

@@ -1,3 +1,9 @@
+import contextlib
+import cStringIO
+import time
+
+import pyPdf
+
 from scrivepy import _signatory, _document, _exceptions, _set
 from tests import utils
 
@@ -10,7 +16,7 @@ Lang = _document.Language
 ScriveSet = _set.ScriveSet
 
 
-class DocumentTest(utils.TestCase):
+class DocumentTest(utils.IntegrationTestCase):
 
     def setUp(self):
         self.O = D
@@ -488,3 +494,26 @@ class DocumentTest(utils.TestCase):
         json['status'] = DS['preparation'].value
         d = self.O._from_json_obj(json)
         self.assertFalse(d._read_only)
+
+    @utils.integration
+    def test_sealed_document(self):
+        with self.new_document_from_file() as d:
+            file_contents = d.original_file.get_bytes()
+            with contextlib.closing(cStringIO.StringIO(file_contents)) as s:
+                self.assertEqual(1, pyPdf.PdfFileReader(s).getNumPages())
+            self.assertIsNone(d.sealed_document)
+            d = self.api.ready(d)
+            self.assertIsNone(d.sealed_document)
+            author = list(d.signatories)[0]
+            d = self.api._sign(d, author)
+            self.assertIsNone(d.sealed_document)
+
+            # wait for sealing to be completed, and refresh
+            time.sleep(10)
+            d = self.api.get_document(d.id)
+
+            self.assertIsNotNone(d.sealed_document)
+
+            file_contents = d.sealed_document.get_bytes()
+            with contextlib.closing(cStringIO.StringIO(file_contents)) as s:
+                self.assertEqual(2, pyPdf.PdfFileReader(s).getNumPages())
