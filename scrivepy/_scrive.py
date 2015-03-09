@@ -80,6 +80,21 @@ class Scrive(object):
         url_elems = ['cancel', document.id]
         return self._make_doc_request(url_elems=url_elems)
 
+    def _prolong(self, document, days):
+        '''
+        WARNING! DO NOT USE! for testing purposes only!
+        '''
+        return self._make_doc_request(url_elems=['prolong', document.id],
+                                      data={'days': days,
+                                            'timezone': document.timezone})
+
+    def _send_reminders(self, document):
+        '''
+        WARNING! DO NOT USE! for testing purposes only!
+        '''
+        return self._make_doc_request(url_elems=['remind', document.id],
+                                      data='')
+
     def trash_document(self, document):
         if document.status is _document.DocumentStatus.pending:
             self._cancel_document(document)
