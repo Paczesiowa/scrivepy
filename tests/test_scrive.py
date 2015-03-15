@@ -42,8 +42,8 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertTrue(d.show_pdf_download)
             self.assertTrue(d.show_reject_option)
             self.assertTrue(d.show_footer)
-            self.assertIsNone(d.invitation_message)
-            self.assertIsNone(d.confirmation_message)
+            self.assertEqual(d.invitation_message, u'<p></p>')
+            self.assertEqual(d.confirmation_message, u'<p></p>')
             self.assertIsNone(d.api_callback_url)
 
             # this depends on account settings
@@ -70,8 +70,8 @@ class ScriveTest(utils.IntegrationTestCase):
             d.show_pdf_download = False
             d.show_reject_option = False
             d.show_footer = False
-            d.invitation_message = u'hello'
-            d.confirmation_message = u'bye'
+            d.invitation_message = u'<p>hello</p>'
+            d.confirmation_message = u'<p>bye</p>'
             d.api_callback_url = u'http://example.net/'
             d.language = Lang.finnish
             d.tags = {u'foo': u'bar'}
@@ -103,8 +103,8 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertFalse(d.show_pdf_download)
             self.assertFalse(d.show_reject_option)
             self.assertFalse(d.show_footer)
-            self.assertEqual(d.invitation_message, u'hello')
-            self.assertEqual(d.confirmation_message, u'bye')
+            self.assertEqual(d.invitation_message, u'<p>hello</p>')
+            self.assertEqual(d.confirmation_message, u'<p>bye</p>')
             self.assertEqual(d.api_callback_url, u'http://example.net/')
             self.assertEqual(d.language, Lang.finnish)
             self.assertEqual(d.tags, {u'foo': u'bar'})
@@ -185,8 +185,8 @@ class ScriveTest(utils.IntegrationTestCase):
             t.show_pdf_download = False
             t.show_reject_option = False
             t.show_footer = False
-            t.invitation_message = u'hello'
-            t.confirmation_message = u'bye'
+            t.invitation_message = u'<p>hello</p>'
+            t.confirmation_message = u'<p>bye</p>'
             t.api_callback_url = u'http://example.net/'
             t.language = Lang.finnish
             t.tags = {u'foo': u'bar'}
@@ -223,8 +223,8 @@ class ScriveTest(utils.IntegrationTestCase):
                 self.assertFalse(d.show_pdf_download)
                 self.assertFalse(d.show_reject_option)
                 self.assertFalse(d.show_footer)
-                self.assertEqual(d.invitation_message, u'hello')
-                self.assertEqual(d.confirmation_message, u'bye')
+                self.assertEqual(d.invitation_message, u'<p>hello</p>')
+                self.assertEqual(d.confirmation_message, u'<p>bye</p>')
                 self.assertEqual(d.api_callback_url, u'http://example.net/')
                 self.assertEqual(d.language, Lang.finnish)
                 self.assertEqual(d.tags, {u'foo': u'bar'})
@@ -275,8 +275,8 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertTrue(d.show_pdf_download)
             self.assertTrue(d.show_reject_option)
             self.assertTrue(d.show_footer)
-            self.assertIsNone(d.invitation_message)
-            self.assertIsNone(d.confirmation_message)
+            self.assertEqual(d.invitation_message, u'<p></p>')
+            self.assertEqual(d.confirmation_message, u'<p></p>')
             self.assertIsNone(d.api_callback_url)
 
             # this depends on account settings
