@@ -153,13 +153,13 @@ class Document(_object.ScriveObject):
             document._access_token = json[u'accesstoken']
             file_json = json.get(u'file')
             if file_json is not None:
-                file_ = _file.ScriveFile(id_=file_json[u'id'],
+                file_ = _file.RemoteFile(id_=file_json[u'id'],
                                          name=file_json[u'name'],
                                          document=document)
                 document._original_file = file_
             sealed_file_json = json.get(u'sealedfile')
             if sealed_file_json is not None:
-                sealed_file = _file.ScriveFile(id_=sealed_file_json[u'id'],
+                sealed_file = _file.RemoteFile(id_=sealed_file_json[u'id'],
                                                name=sealed_file_json[u'name'],
                                                document=document)
                 document._sealed_document = sealed_file

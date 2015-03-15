@@ -1,3 +1,4 @@
+import cStringIO
 import contextlib
 import os
 import shutil
@@ -11,7 +12,34 @@ from scrivepy import _object
 scrive_property = _object.scrive_property
 
 
-class ScriveFile(_object.ScriveObject):
+class File(_object.ScriveObject):
+
+    def __init__(self, name):
+        super(File, self).__init__()
+        self._name = name
+
+    @scrive_property
+    def name(self):
+        return self._name
+
+    @property
+    def document(self):
+        raise AttributeError("can't set attribute")
+
+    def save_as(self, file_path):
+        with contextlib.closing(self.stream()) as s:
+            with open(file_path, 'wb') as f:
+                shutil.copyfileobj(s, f)
+
+    def save_to(self, dir_path):
+        self.save_as(os.path.join(dir_path, self.name))
+
+    def get_bytes(self):
+        with contextlib.closing(self.stream()) as s:
+            return s.read()
+
+
+class RemoteFile(File):
 
     @tvu.validate_and_unify(id_=_object.ID,
                             name=tvu.NonEmptyUnicode)
@@ -21,22 +49,13 @@ class ScriveFile(_object.ScriveObject):
         doc_validator = tvu.instance(_document.Document)
         document = doc_validator('document').unify_validate(document)
 
-        super(ScriveFile, self).__init__()
+        super(RemoteFile, self).__init__(name)
         self._id = id_
-        self._name = name
         self._document = document
 
     @scrive_property
     def id(self):
         return self._id
-
-    @scrive_property
-    def name(self):
-        return self._name
-
-    @property
-    def document(self):
-        raise AttributeError("can't set attribute")
 
     def stream(self):
         def stream_get(*args, **kwargs):
@@ -50,14 +69,25 @@ class ScriveFile(_object.ScriveObject):
         response.raw.decode_content = True
         return response.raw
 
-    def save_as(self, file_path):
-        with contextlib.closing(self.stream()) as s:
-            with open(file_path, 'wb') as f:
-                shutil.copyfileobj(s, f)
 
-    def save_to(self, dir_path):
-        self.save_as(os.path.join(dir_path, self.name))
+class LocalFile(File):
 
-    def get_bytes(self):
-        with contextlib.closing(self.stream()) as s:
-            return s.read()
+    @tvu.validate_and_unify(name=tvu.NonEmptyUnicode,
+                            content=tvu.instance(bytes))
+    def __init__(self, name, content):
+        super(LocalFile, self).__init__(name)
+        self._content = content
+
+    def stream(self):
+        return cStringIO.StringIO(self._content)
+
+    @classmethod
+    def from_file_obj(cls, name, file_obj):
+        with contextlib.closing(file_obj) as f:
+            return LocalFile(name, f.read())
+
+    @classmethod
+    def from_file_path(cls, file_path):
+        with open(file_path, 'rb') as f:
+            return LocalFile.from_file_obj(
+                unicode(os.path.basename(file_path)), f)
