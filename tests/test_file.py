@@ -56,6 +56,12 @@ class RemoteFileTest(utils.IntegrationTestCase):
                 md5 = md5_file(file_path)
             self.assertEqual(self.orig_md5, md5)
 
+    def test_to_json_obj(self):
+        d = _document.Document()
+        f = _file.RemoteFile(id_=u'1', name=u'document.pdf', document=d)
+        json = {u'id': u'1', u'name': u'document.pdf'}
+        self.assertEqual(json, f._to_json_obj())
+
     def test_id(self):
         d = _document.Document()
 

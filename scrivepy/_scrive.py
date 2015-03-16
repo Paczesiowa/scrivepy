@@ -2,7 +2,7 @@ from os import path
 
 import requests
 
-from scrivepy import _document
+from scrivepy import _document, _file
 
 
 class Scrive(object):
@@ -106,3 +106,24 @@ class Scrive(object):
             self.trash_document(document)
         self._make_request(url_elems=['reallydelete', document.id],
                            method=requests.delete)
+
+    def _set_author_attachments(self, document):
+        local_files = filter(lambda f: isinstance(f, _file.LocalFile),
+                             document.author_attachments)
+        if not local_files:
+            # no additions; deletions can be handled by update call
+            return document
+
+        remote_files = filter(lambda f: isinstance(f, _file.RemoteFile),
+                              document.author_attachments)
+
+        data = {u'attachment_' + unicode(i): rf.id
+                for i, rf in enumerate(remote_files)}
+
+        start_index = len(remote_files)
+        files = {u'attachment_' + unicode(i + start_index):
+                 (lf.name, lf.stream(), 'application/pdf')
+                 for i, lf in enumerate(local_files)}
+
+        return self._make_doc_request(['setattachments', document.id],
+                                      data=data, files=files)

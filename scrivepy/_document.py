@@ -101,6 +101,8 @@ class Document(_object.ScriveObject):
         self._signatories._elem_validator = tvu.instance(_signatory.Signatory)
         self._original_file = None
         self._sealed_document = None
+        self._author_attachments = _set.ScriveSet()
+        self._author_attachments._elem_validator = tvu.instance(_file.LocalFile)
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -163,6 +165,13 @@ class Document(_object.ScriveObject):
                                                name=sealed_file_json[u'name'],
                                                document=document)
                 document._sealed_document = sealed_file
+            author_attachments = \
+                _set.ScriveSet([_file.RemoteFile(id_=att_json[u'id'],
+                                                 name=att_json[u'name'],
+                                                 document=document)
+                                for att_json in json[u'authorattachments']])
+            author_attachments._elem_validator = tvu.instance(_file.LocalFile)
+            document._author_attachments = author_attachments
 
             if document.status is not DocumentStatus.preparation:
                 document._set_read_only()
@@ -197,6 +206,7 @@ class Document(_object.ScriveObject):
                           for key, val in self.tags.items()],
                 u'saved': self.saved_as_draft,
                 u'timezone': self.timezone,
+                u'authorattachments': list(self.author_attachments),
                 u'signatories': list(self.signatories)}
 
     @scrive_property
@@ -433,27 +443,24 @@ class Document(_object.ScriveObject):
     def sealed_document(self):
         return self._sealed_document
 
+    @scrive_property
+    def author_attachments(self):
+        return self._author_attachments
+
     def _set_api(self, api):
         super(Document, self)._set_api(api)
         if self._original_file is not None:
             self._original_file._set_api(api)
         if self._sealed_document is not None:
             self._sealed_document._set_api(api)
+        for file_ in self.author_attachments:
+            file_._set_api(api)
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
-#     authorattachmentfiles <- mapM (dbQuery . GetFileByFileID . authorattachmentfile) (documentauthorattachments doc)
 #     evidenceattachments <- if includeEvidenceAttachments then EvidenceAttachments.fetch doc else return []
 #     runJSONGenT $ do
-#       J.value "authorattachments" $ map fileJSON authorattachmentfiles
 #       J.objects "evidenceattachments" $ for evidenceattachments $ \a -> do
 #         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
 #         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
 #         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)
-
-# instance FromJSValueWithUpdate Document where
-#     fromJSValueWithUpdate mdoc = do
-#         authorattachments <- fromJSValueFieldCustom "authorattachments" $ fromJSValueCustomMany $ fmap (join . (fmap maybeRead)) $ (fromJSValueField "id")
-#         return $ Just defaultValue {
-#             documentauthorattachments = updateWithDefaultAndField [] documentauthorattachments (fmap AuthorAttachment <$> authorattachments),
-#           }

@@ -4,7 +4,7 @@ import time
 
 import pyPdf
 
-from scrivepy import _signatory, _document, _exceptions, _set
+from scrivepy import _signatory, _document, _exceptions, _set, _file
 from tests import utils
 
 
@@ -78,6 +78,7 @@ class DocumentTest(utils.IntegrationTestCase):
                      u'timezone': u'Europe/Berlin',
                      u'isviewedbyauthor': True,
                      u'accesstoken': u'1234567890abcdef',
+                     u'authorattachments': [],
                      u'signatories': [s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
@@ -155,6 +156,7 @@ class DocumentTest(utils.IntegrationTestCase):
                           {u'name': u'key3', u'value': u'val4'}],
                 u'saved': False,
                 u'timezone': u'Europe/Warsaw',
+                u'authorattachments': [],
                 u'signatories': [self.s1]}
 
         d_json = d._to_json_obj()
@@ -517,3 +519,27 @@ class DocumentTest(utils.IntegrationTestCase):
             file_contents = d.sealed_document.get_bytes()
             with contextlib.closing(cStringIO.StringIO(file_contents)) as s:
                 self.assertEqual(2, pyPdf.PdfFileReader(s).getNumPages())
+
+    def test_author_attachments(self):
+        json = self.json.copy()
+        d = self.O._from_json_obj(json)
+        self.assertEqual(d.author_attachments, ScriveSet())
+        json[u'authorattachments'] = [{u'id': u'1', u'name': u'document1.pdf'},
+                                      {u'id': u'2', u'name': u'document2.pdf'}]
+        d2 = self.O._from_json_obj(json)
+        self.assertEqual(2, len(d2.author_attachments))
+        for file_ in d2.author_attachments:
+            if file_.id == u'1':
+                self.assertEqual(file_.name, u'document1.pdf')
+            else:
+                self.assertEqual(file_.name, u'document2.pdf')
+
+        file2 = filter(lambda f: f.id == u'2', d2.author_attachments)[0]
+        d2.author_attachments.remove(file2)
+        file1 = list(d2.author_attachments)[0]
+        self.assertEqual([file1], d2._to_json_obj()[u'authorattachments'])
+
+        type_err_msg = (u'elem must be LocalFile, not '
+                        u'<scrivepy._file.RemoteFile object at .*')
+        with self.assertRaisesRegexp(TypeError, type_err_msg):
+            d2.author_attachments.add(file1)

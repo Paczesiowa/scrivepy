@@ -3,7 +3,7 @@ from datetime import datetime
 
 from dateutil import tz
 
-from scrivepy import _document, _signatory
+from scrivepy import _document, _signatory, _file
 from tests import utils
 
 
@@ -312,3 +312,45 @@ class ScriveTest(utils.IntegrationTestCase):
         self.api.delete_document(d)
         d = self.api.get_document(doc_id)
         self.assertEqual(d.deletion_status, DelS.deleted)
+
+    @utils.integration
+    def test_set_author_attachments(self):
+        with open(self.test_doc_path, 'rb') as f:
+            contents = f.read()
+        file_ = lambda n: _file.LocalFile(u'document' + unicode(n) + u'.pdf',
+                                          contents)
+
+        with self.new_document_from_file() as d:
+            d.author_attachments.add(file_(1))
+            d = self.api._set_author_attachments(d)
+            self.assertEqual(1, len(d.author_attachments))
+            self.assertEqual(u'document1.pdf',
+                             list(d.author_attachments)[0].name)
+
+            d.author_attachments.add(file_(2))
+            d = self.api._set_author_attachments(d)
+            self.assertEqual(2, len(d.author_attachments))
+            for f in d.author_attachments:
+                self.assertTrue(f.name in [u'document1.pdf', u'document2.pdf'])
+                self.assertTrue(isinstance(f.id, unicode))
+                self.assertTrue(f.id is not u'')
+                self.assertEqual(contents, f.get_bytes())
+                if f.name == u'document1.pdf':
+                    id1 = f.id
+                else:
+                    id2 = f.id
+
+            remote_file2 = filter(lambda f: f.id == id2,
+                                  d.author_attachments)[0]
+            d.author_attachments.remove(remote_file2)
+            d.author_attachments.add(file_(3))
+
+            d = self.api._set_author_attachments(d)
+            self.assertEqual(2, len(d.author_attachments))
+            for f in d.author_attachments:
+                self.assertTrue(f.name in [u'document1.pdf', u'document3.pdf'])
+                self.assertTrue(isinstance(f.id, unicode))
+                self.assertTrue(f.id is not u'')
+                self.assertEqual(contents, f.get_bytes())
+                if f.name == u'document1.pdf':
+                    self.assertEqual(f.id, id1)

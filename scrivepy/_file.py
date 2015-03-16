@@ -53,6 +53,9 @@ class RemoteFile(File):
         self._id = id_
         self._document = document
 
+    def _to_json_obj(self):
+        return {u'id': self.id, u'name': self.name}
+
     @scrive_property
     def id(self):
         return self._id
