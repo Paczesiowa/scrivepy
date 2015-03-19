@@ -42,7 +42,7 @@ class Scrive(object):
         response = self._make_request(url_elems, method=method,
                                       data=data, files=files)
         document = _document.Document._from_json_obj(response.json())
-        document._set_api(self)
+        document._set_api(self, document)
         return document
 
     def create_document_from_file(self, file_path):

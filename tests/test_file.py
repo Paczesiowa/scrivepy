@@ -57,24 +57,20 @@ class RemoteFileTest(utils.IntegrationTestCase):
             self.assertEqual(self.orig_md5, md5)
 
     def test_to_json_obj(self):
-        d = _document.Document()
-        f = _file.RemoteFile(id_=u'1', name=u'document.pdf', document=d)
+        f = _file.RemoteFile(id_=u'1', name=u'document.pdf')
         json = {u'id': u'1', u'name': u'document.pdf'}
         self.assertEqual(json, f._to_json_obj())
 
     def test_id(self):
-        d = _document.Document()
-
         err_msg = u'id_ must be unicode, not None'
         with self.assertRaises(TypeError, err_msg):
-            _file.RemoteFile(id_=None, name=u'document.pdf', document=d)
+            _file.RemoteFile(id_=None, name=u'document.pdf')
 
         err_msg = u'id_ must be non-empty string, not: '
         with self.assertRaises(ValueError, err_msg):
-            _file.RemoteFile(id_=u'', name=u'document.pdf', document=d)
+            _file.RemoteFile(id_=u'', name=u'document.pdf')
 
-        f = _file.RemoteFile(id_=u'1', name=u'document.pdf',
-                             document=d)
+        f = _file.RemoteFile(id_=u'1', name=u'document.pdf')
         self.assertEqual(f.id, u'1')
 
         with self.assertRaises(AttributeError):
@@ -88,18 +84,15 @@ class RemoteFileTest(utils.IntegrationTestCase):
             f.id
 
     def test_name(self):
-        d = _document.Document()
-
         err_msg = u'name must be unicode, not None'
         with self.assertRaises(TypeError, err_msg):
-            _file.RemoteFile(id_=u'1', name=None, document=d)
+            _file.RemoteFile(id_=u'1', name=None)
 
         err_msg = u'name must be non-empty string, not: '
         with self.assertRaises(ValueError, err_msg):
-            _file.RemoteFile(id_=u'1', name=u'', document=d)
+            _file.RemoteFile(id_=u'1', name=u'')
 
-        f = _file.RemoteFile(id_=u'1', name=u'document.pdf',
-                             document=d)
+        f = _file.RemoteFile(id_=u'1', name=u'document.pdf')
         self.assertEqual(f.name, u'document.pdf')
 
         with self.assertRaises(AttributeError):
@@ -114,13 +107,7 @@ class RemoteFileTest(utils.IntegrationTestCase):
 
     def test_document(self):
         d = _document.Document()
-
-        err_msg = u'document must be Document, not None'
-        with self.assertRaises(TypeError, err_msg):
-            _file.RemoteFile(id_=u'1', name=u'document.pdf', document=None)
-
-        f = _file.RemoteFile(id_=u'1', name=u'document.pdf',
-                             document=d)
+        f = _file.RemoteFile(id_=u'1', name=u'document.pdf')
 
         with self.assertRaises(AttributeError):
             f.document

@@ -156,19 +156,16 @@ class Document(_object.ScriveObject):
             file_json = json.get(u'file')
             if file_json is not None:
                 file_ = _file.RemoteFile(id_=file_json[u'id'],
-                                         name=file_json[u'name'],
-                                         document=document)
+                                         name=file_json[u'name'])
                 document._original_file = file_
             sealed_file_json = json.get(u'sealedfile')
             if sealed_file_json is not None:
                 sealed_file = _file.RemoteFile(id_=sealed_file_json[u'id'],
-                                               name=sealed_file_json[u'name'],
-                                               document=document)
+                                               name=sealed_file_json[u'name'])
                 document._sealed_document = sealed_file
             author_attachments = \
                 _set.ScriveSet([_file.RemoteFile(id_=att_json[u'id'],
-                                                 name=att_json[u'name'],
-                                                 document=document)
+                                                 name=att_json[u'name'])
                                 for att_json in json[u'authorattachments']])
             author_attachments._elem_validator = tvu.instance(_file.LocalFile)
             document._author_attachments = author_attachments
@@ -447,14 +444,14 @@ class Document(_object.ScriveObject):
     def author_attachments(self):
         return self._author_attachments
 
-    def _set_api(self, api):
-        super(Document, self)._set_api(api)
+    def _set_api(self, api, _document):
+        super(Document, self)._set_api(api, self)
         if self._original_file is not None:
-            self._original_file._set_api(api)
+            self._original_file._set_api(api, self)
         if self._sealed_document is not None:
-            self._sealed_document._set_api(api)
+            self._sealed_document._set_api(api, self)
         for file_ in self.author_attachments:
-            file_._set_api(api)
+            file_._set_api(api, self)
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do

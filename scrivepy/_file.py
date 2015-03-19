@@ -43,18 +43,17 @@ class RemoteFile(File):
 
     @tvu.validate_and_unify(id_=_object.ID,
                             name=tvu.NonEmptyUnicode)
-    def __init__(self, id_, name, document):
-        # done from funcall, to avoid circular import
-        from scrivepy import _document
-        doc_validator = tvu.instance(_document.Document)
-        document = doc_validator('document').unify_validate(document)
-
+    def __init__(self, id_, name):
         super(RemoteFile, self).__init__(name)
         self._id = id_
-        self._document = document
+        self._document = None
 
     def _to_json_obj(self):
         return {u'id': self.id, u'name': self.name}
+
+    def _set_api(self, api, document):
+        super(RemoteFile, self)._set_api(api, document)
+        self._document = document
 
     @scrive_property
     def id(self):

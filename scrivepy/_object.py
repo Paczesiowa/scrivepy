@@ -40,7 +40,7 @@ class ScriveObject(object):
         if self._read_only:
             raise _exceptions.ReadOnlyScriveObject()
 
-    def _set_api(self, api):
+    def _set_api(self, api, document):
         self._api = api
 
 
