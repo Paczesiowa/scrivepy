@@ -452,6 +452,8 @@ class Document(_object.ScriveObject):
             self._sealed_document._set_api(api, self)
         for file_ in self.author_attachments:
             file_._set_api(api, self)
+        for signatory in self.signatories:
+            signatory._set_api(api, self)
 
 # documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
 # documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do

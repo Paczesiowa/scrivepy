@@ -2,7 +2,7 @@ import enum
 from dateutil import parser as dateparser
 
 import type_value_unifier as tvu
-from scrivepy import _object, _field, _exceptions, _set
+from scrivepy import _object, _field, _exceptions, _set, _file
 
 
 scrive_property = _object.scrive_property
@@ -27,6 +27,63 @@ class AuthenticationMethod(unicode, enum.Enum):
     standard = u'standard'
     eleg = u'eleg'
     sms_pin = u'sms_pin'
+
+
+class SignatoryAttachment(_object.ScriveObject):
+
+    @tvu.validate_and_unify(requested_name=tvu.NonEmptyUnicode,
+                            description=tvu.NonEmptyUnicode)
+    def __init__(self, requested_name, description):
+        super(SignatoryAttachment, self).__init__()
+        self._requested_name = requested_name
+        self._description = description
+        self._file = None
+
+    @classmethod
+    def _from_json_obj(cls, json):
+        try:
+            signatory_attachment = \
+                SignatoryAttachment(requested_name=json[u'name'],
+                                    description=json[u'description'])
+            file_json = json.get(u'file')
+            if file_json is not None:
+                file_ = _file.RemoteFile(id_=file_json[u'id'],
+                                         name=file_json[u'name'])
+                signatory_attachment._file = file_
+            return signatory_attachment
+        except (KeyError, TypeError, ValueError) as e:
+            raise _exceptions.InvalidResponse(e)
+
+    def _to_json_obj(self):
+        return {u'name': self.requested_name,
+                u'description': self.description}
+
+    def _set_api(self, api, document):
+        super(SignatoryAttachment, self)._set_api(api, document)
+        if self._file is not None:
+            self._file._set_api(api, document)
+
+    @scrive_property
+    def requested_name(self):
+        return self._requested_name
+
+    @requested_name.setter
+    @tvu.validate_and_unify(requested_name=tvu.NonEmptyUnicode)
+    def requested_name(self, requested_name):
+        self._requested_name = requested_name
+
+    @scrive_property
+    def description(self):
+        return self._description
+
+    @description.setter
+    @tvu.validate_and_unify(description=tvu.NonEmptyUnicode)
+    def description(self, description):
+        self._description = description
+
+    @scrive_property
+    def file(self):
+        return self._file
 
 
 IDM = InvitationDeliveryMethod
@@ -80,12 +137,16 @@ class Signatory(_object.ScriveObject):
         self._sign_url = None
         self._fields = _set.ScriveSet()
         self._fields._elem_validator = tvu.instance(_field.Field)
+        self._attachments = _set.ScriveSet()
+        self._attachments._elem_validator = tvu.instance(SignatoryAttachment)
 
     @classmethod
     def _from_json_obj(cls, json):
         try:
             fields = [_field.Field._from_json_obj(field_json)
                       for field_json in json[u'fields']]
+            attachments = [SignatoryAttachment._from_json_obj(att_json)
+                           for att_json in json[u'attachments']]
             signatory = \
                 Signatory(sign_order=json[u'signorder'],
                           invitation_delivery_method=IDM(json[u'delivery']),
@@ -98,6 +159,7 @@ class Signatory(_object.ScriveObject):
                           json[u'signsuccessredirect'],
                           rejection_redirect_url=json[u'rejectredirect'])
             signatory.fields.update(fields)
+            signatory.attachments.update(attachments)
             signatory._id = json[u'id']
             signatory._current = json[u'current']
             signatory._undelivered_invitation = json[u'undeliveredInvitation']
@@ -130,14 +192,22 @@ class Signatory(_object.ScriveObject):
     def _set_invalid(self):
         # invalidate fields first, before getter stops working
         self.fields._set_invalid()
+        self.attachments._set_invalid()
         super(Signatory, self)._set_invalid()
 
     def _set_read_only(self):
         super(Signatory, self)._set_read_only()
         self.fields._set_read_only()
+        self.attachments._set_read_only()
+
+    def _set_api(self, api, document):
+        super(Signatory, self)._set_api(api, document)
+        for attachment in self.attachments:
+            attachment._set_api(api, document)
 
     def _to_json_obj(self):
         result = {u'fields': list(self.fields),
+                  u'attachments': list(self.attachments),
                   u'signorder': self.sign_order,
                   u'delivery': self.invitation_delivery_method.value,
                   u'confirmationdelivery':
@@ -170,6 +240,10 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def fields(self):
         return self._fields
+
+    @scrive_property
+    def attachments(self):
+        return self._attachments
 
     @scrive_property
     def id(self):

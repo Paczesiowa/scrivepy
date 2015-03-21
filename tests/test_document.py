@@ -42,6 +42,7 @@ class DocumentTest(utils.IntegrationTestCase):
                    u'signsuccessredirect': None,
                    u'rejectredirect': None,
                    u'signlink': None,
+                   u'attachments': [],
                    u'fields': []}
         self.s1 = S._from_json_obj(s1_json)
         s2_json = s1_json.copy()

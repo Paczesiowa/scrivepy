@@ -1,4 +1,5 @@
 from os import path
+import cStringIO
 
 import requests
 
@@ -106,6 +107,18 @@ class Scrive(object):
             self.trash_document(document)
         self._make_request(url_elems=['reallydelete', document.id],
                            method=requests.delete)
+
+    def _set_signatory_attachment(self, document, signatory, attachment_name,
+                                  file_name, file_contents, content_type):
+        '''
+        WARNING! DO NOT USE! for testing purposes only!
+        '''
+        url_elems = ['setsignatoryattachment', document.id,
+                     signatory.id, attachment_name]
+        files = {'file': (file_name,
+                          cStringIO.StringIO(file_contents),
+                          content_type)}
+        return self._make_doc_request(url_elems, data='', files=files)
 
     def _set_author_attachments(self, document):
         local_files = filter(lambda f: isinstance(f, _file.LocalFile),

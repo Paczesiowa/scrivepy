@@ -6,16 +6,21 @@ S = _signatory.Signatory
 IDM = _signatory.InvitationDeliveryMethod
 CDM = _signatory.ConfirmationDeliveryMethod
 AM = _signatory.AuthenticationMethod
+A = _signatory.SignatoryAttachment
 F = _field
 ScriveSet = _set.ScriveSet
 
 
-class SignatoryTest(utils.TestCase):
+class SignatoryTest(utils.IntegrationTestCase):
 
     def setUp(self):
+        with open(self.test_doc_path, 'rb') as f:
+            self.test_doc_contents = f.read()
         self.O = S
         self.f1 = F.StandardField(name='first_name', value=u'John')
         self.f2 = F.CustomField(name=u'field', value=u'value')
+        self.a1 = A(u'id1', u'Scan or picture of personal id1')
+        self.a2 = A(u'id2', u'Scan or picture of personal id2')
         self.json = {u'id': u'123abc',
                      u'current': True,
                      u'signorder': 3,
@@ -38,6 +43,8 @@ class SignatoryTest(utils.TestCase):
                      u'signsuccessredirect': u'http://example.com/',
                      u'rejectredirect': u'http://example.net/',
                      u'signlink': u'/s/1/2/3',
+                     u'attachments': [self.a1._to_json_obj(),
+                                      self.a2._to_json_obj()],
                      u'fields': [self.f1._to_json_obj(),
                                  self.f2._to_json_obj()]}
 
@@ -90,9 +97,11 @@ class SignatoryTest(utils.TestCase):
                    rejection_redirect_url=u'http://example.net/',
                    authentication_method='sms_pin')
         s.fields.add(self.f1)
+        s.attachments.add(self.a1)
         s._id = u'1'
 
         json = {u'fields': [self.f1],
+                u'attachments': [self.a1],
                 u'signorder': 2,
                 u'delivery': u'api',
                 u'confirmationdelivery': u'none',
@@ -299,3 +308,73 @@ class SignatoryTest(utils.TestCase):
         del json[u'signlink']
         s = S._from_json_obj(json)
         self.assertIsNone(s.sign_url)
+
+    def test_attachments(self):
+        # check default ctor value
+        s = self.o()
+        self.assertEqual(ScriveSet(), s.attachments)
+
+        s.attachments.add(self.a1)
+        self.assertEqual(ScriveSet([self.a1]), s.attachments)
+
+        err_msg = u'elem must be SignatoryAttachment, not 1'
+        with self.assertRaises(TypeError, err_msg):
+            s.attachments.add(1)
+
+        s.attachments.clear()
+        s.attachments.add(self.a2)
+        self.assertEqual(ScriveSet([self.a2]), s.attachments)
+
+        self.assertEqual([self.a2], s._to_json_obj()[u'attachments'])
+
+        s._set_read_only()
+        # set() is because the 2nd one is read only and not really equal
+        self.assertEqual(set(ScriveSet([self.a2])), set(s.attachments))
+        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+            s.attachments.clear()
+            s.attachments.add(self.a1)
+
+        atts = s.attachments
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.attachments
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            atts.add(self.a1)
+
+    @utils.integration
+    def test_attachments_file(self):
+        with self.new_document_from_file() as d:
+            author = list(d.signatories)[0]
+            sig = self.o()
+            sig.invitation_delivery_method = 'pad'
+            sig.confirmation_delivery_method = 'none'
+            att1 = A(u'id1', u'Scan or picture of personal id1')
+            att2 = A(u'id2', u'Scan or picture of personal id2')
+            sig.attachments.update([att1, att2])
+            d.signatories.add(sig)
+            d = self.api.update_document(d)
+            d = self.api.ready(d)
+            author = filter(lambda s: s.author, d.signatories)[0]
+            d = self.api._sign(d, author)
+            sig = filter(lambda s: not s.author, d.signatories)[0]
+            d = self.api._set_signatory_attachment(d, sig, 'id1', 'pic1.pdf',
+                                                   self.test_doc_contents,
+                                                   'application/pdf')
+            sig = filter(lambda s: not s.author, d.signatories)[0]
+            d = self.api._set_signatory_attachment(d, sig, 'id2', 'pic2.pdf',
+                                                   self.test_doc_contents,
+                                                   'application/pdf')
+            sig = filter(lambda s: not s.author, d.signatories)[0]
+            d = self.api._sign(d, sig)
+            sig = filter(lambda s: not s.author, d.signatories)[0]
+
+            for att in sig.attachments:
+                if att.requested_name == u'id1':
+                    self.assertEqual(att.description,
+                                     u'Scan or picture of personal id1')
+                    self.assertEqual(u'pic1.pdf', att.file.name)
+                else:
+                    self.assertEqual(att.description,
+                                     u'Scan or picture of personal id2')
+                    self.assertEqual(u'pic2.pdf', att.file.name)
+                self.assertEqual(self.test_doc_contents, att.file.get_bytes())
