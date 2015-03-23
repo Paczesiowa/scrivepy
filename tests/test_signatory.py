@@ -14,8 +14,6 @@ ScriveSet = _set.ScriveSet
 class SignatoryTest(utils.IntegrationTestCase):
 
     def setUp(self):
-        with open(self.test_doc_path, 'rb') as f:
-            self.test_doc_contents = f.read()
         self.O = S
         self.f1 = F.StandardField(name='first_name', value=u'John')
         self.f2 = F.CustomField(name=u'field', value=u'value')

@@ -167,6 +167,8 @@ class IntegrationTestCase(TestCase):
             class_.api = _scrive.Scrive(**cfg)
             class_.test_doc_path = \
                 path.join(path.dirname(path.abspath(__file__)), 'document.pdf')
+            with open(class_.test_doc_path, 'rb') as f:
+                class_.test_doc_contents = f.read()
 
     @contextlib.contextmanager
     def new_document_from_file(self):

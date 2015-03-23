@@ -315,8 +315,7 @@ class ScriveTest(utils.IntegrationTestCase):
 
     @utils.integration
     def test_set_author_attachments(self):
-        with open(self.test_doc_path, 'rb') as f:
-            contents = f.read()
+        contents = self.test_doc_contents
         file_ = lambda n: _file.LocalFile(u'document' + unicode(n) + u'.pdf',
                                           contents)
 

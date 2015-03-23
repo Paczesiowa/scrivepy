@@ -122,8 +122,6 @@ class LocalFileTest(utils.IntegrationTestCase):
     def setUpClass(class_):
         super(LocalFileTest, class_).setUpClass()
         class_.orig_md5 = md5_file(class_.test_doc_path)
-        with open(class_.test_doc_path, 'rb') as f:
-            class_.test_doc_contents = f.read()
         class_.file_ = _file.LocalFile(u'document.pdf',
                                        class_.test_doc_contents)
 
