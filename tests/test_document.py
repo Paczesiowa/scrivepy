@@ -524,6 +524,7 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def test_author_attachments(self):
         json = self.json.copy()
+        json[u'status'] = u'Preparation'  # so it's not read only
         d = self.O._from_json_obj(json)
         self.assertEqual(d.author_attachments, ScriveSet())
         json[u'authorattachments'] = [{u'id': u'1', u'name': u'document1.pdf'},
@@ -545,3 +546,17 @@ class DocumentTest(utils.IntegrationTestCase):
                         u'<scrivepy._file.RemoteFile object at .*')
         with self.assertRaisesRegexp(TypeError, type_err_msg):
             d2.author_attachments.add(file1)
+
+        d2._set_read_only()
+        # set() is because the 2nd one is read only and not really equal
+        self.assertEqual(set(ScriveSet([file1])), set(d2.author_attachments))
+        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+            d2.author_attachments.clear()
+            d2.author_attachments.add(_file.LocalFile(u'x', b''))
+
+        atts = d2.author_attachments
+        d2._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            d2.author_attachments
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            atts.add(_file.LocalFile(u'x', b''))

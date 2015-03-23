@@ -178,13 +178,15 @@ class Document(_object.ScriveObject):
             raise _exceptions.InvalidResponse(e)
 
     def _set_invalid(self):
-        # invalidate signatories first, before getter stops working
+        # invalidate subobjects first, before getter stops working
         self.signatories._set_invalid()
+        self.author_attachments._set_invalid()
         super(Document, self)._set_invalid()
 
     def _set_read_only(self):
         super(Document, self)._set_read_only()
         self.signatories._set_read_only()
+        self.author_attachments._set_read_only()
 
     def _to_json_obj(self):
         return {u'title': self.title,
