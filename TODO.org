@@ -1,4 +1,3 @@
-* get rid of all the md5 stuff from tests
 * move test api calls to Scrive based class in tests
 * seperate author signatory from the rest of the signatories
 * polish all tvus used

@@ -1,39 +1,25 @@
 import contextlib
-import hashlib
 import os
 
 from scrivepy import _document, _file, _exceptions
 from tests import utils
 
 
-def md5_file(fpath):
-    with open(fpath, 'rb') as f:
-        return hashlib.md5(f.read()).hexdigest()
-
-
 class RemoteFileTest(utils.IntegrationTestCase):
-
-    @classmethod
-    def setUpClass(class_):
-        super(RemoteFileTest, class_).setUpClass()
-        class_.orig_md5 = md5_file(class_.test_doc_path)
 
     @utils.integration
     def test_stream(self):
         with self.new_document_from_file() as d:
             with contextlib.closing(d.original_file.stream()) as f:
-                md5 = hashlib.md5(f.read()).hexdigest()
-
-            self.assertEqual(self.orig_md5, md5)
+                self.assertEqual(self.test_doc_contents, f.read())
 
     @utils.integration
     def test_save_as(self):
         with self.new_document_from_file() as d:
             with utils.temporary_file_path() as file_path:
                 d.original_file.save_as(file_path)
-                md5 = md5_file(file_path)
-
-            self.assertEqual(self.orig_md5, md5)
+                with open(file_path, 'rb') as f:
+                    self.assertEqual(self.test_doc_contents, f.read())
 
     @utils.integration
     def test_save_to(self):
@@ -41,20 +27,15 @@ class RemoteFileTest(utils.IntegrationTestCase):
             with utils.temporary_dir() as dir_path:
                 file_ = d.original_file
                 file_.save_to(dir_path)
-                md5 = md5_file(os.path.join(dir_path, file_.name))
-
-            self.assertEqual(self.orig_md5, md5)
+                with open(os.path.join(dir_path, file_.name), 'rb') as f:
+                    self.assertEqual(self.test_doc_contents, f.read())
 
     @utils.integration
     def test_get_bytes(self):
         with self.new_document_from_file() as d:
-            with utils.temporary_file_path() as file_path:
-                result = d.original_file.get_bytes()
-                self.assertTrue(isinstance(result, bytes))
-                with open(file_path, 'wb') as f:
-                    f.write(result)
-                md5 = md5_file(file_path)
-            self.assertEqual(self.orig_md5, md5)
+            result = d.original_file.get_bytes()
+            self.assertTrue(isinstance(result, bytes))
+            self.assertEqual(result, self.test_doc_contents)
 
     def test_to_json_obj(self):
         f = _file.RemoteFile(id_=u'1', name=u'document.pdf')
@@ -121,14 +102,12 @@ class LocalFileTest(utils.IntegrationTestCase):
     @classmethod
     def setUpClass(class_):
         super(LocalFileTest, class_).setUpClass()
-        class_.orig_md5 = md5_file(class_.test_doc_path)
         class_.file_ = _file.LocalFile(u'document.pdf',
                                        class_.test_doc_contents)
 
     def test_stream(self):
         with contextlib.closing(self.file_.stream()) as f:
-            md5 = hashlib.md5(f.read()).hexdigest()
-            self.assertEqual(self.orig_md5, md5)
+            self.assertEqual(self.test_doc_contents, f.read())
 
     def test_get_bytes(self):
         self.assertEqual(self.file_.get_bytes(), self.test_doc_contents)
@@ -145,16 +124,14 @@ class LocalFileTest(utils.IntegrationTestCase):
     def test_save_as(self):
         with utils.temporary_file_path() as file_path:
             self.file_.save_as(file_path)
-            md5 = md5_file(file_path)
-
-        self.assertEqual(self.orig_md5, md5)
+            with open(file_path, 'rb') as f:
+                self.assertEqual(self.test_doc_contents, f.read())
 
     def test_save_to(self):
         with utils.temporary_dir() as dir_path:
             self.file_.save_to(dir_path)
-            md5 = md5_file(os.path.join(dir_path, self.file_.name))
-
-        self.assertEqual(self.orig_md5, md5)
+            with open(os.path.join(dir_path, self.file_.name), 'rb') as f:
+                self.assertEqual(self.test_doc_contents, f.read())
 
     def test_name(self):
         err_msg = u'name must be unicode, not None'
