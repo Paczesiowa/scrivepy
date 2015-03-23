@@ -226,11 +226,12 @@ class DocumentTest(utils.IntegrationTestCase):
             d.signatories.clear()
             d.signatories.add(self.s1)
 
+        sigs = d.signatories
         d._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             d.signatories
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            d.signatories.add(self.s1)
+            sigs.add(self.s1)
 
     def test_id(self):
         self._test_server_field('id')

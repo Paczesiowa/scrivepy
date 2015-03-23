@@ -169,11 +169,12 @@ class SignatoryTest(utils.IntegrationTestCase):
             s.fields.clear()
             s.fields.add(self.f1)
 
+        flds = s.fields
         s._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             s.fields
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            s.fields.add(self.f1)
+            flds.add(self.f1)
 
     def test_id(self):
         self._test_server_field('id')

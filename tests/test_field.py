@@ -134,11 +134,12 @@ class FieldTest(object):
             f.placements.clear()
             f.placements.add(self.fp)
 
+        plcmts = f.placements
         f._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             f.placements
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            f.placements.add(self.fp)
+            plcmts.add(self.fp)
 
     def test_default_placement_tip(self):
         f = self.f()
