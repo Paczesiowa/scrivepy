@@ -181,12 +181,20 @@ class Document(_object.ScriveObject):
         # invalidate subobjects first, before getter stops working
         self.signatories._set_invalid()
         self.author_attachments._set_invalid()
+        if self._original_file is not None:
+            self._original_file._set_invalid()
+        if self._sealed_document is not None:
+            self._sealed_document._set_invalid()
         super(Document, self)._set_invalid()
 
     def _set_read_only(self):
         super(Document, self)._set_read_only()
         self.signatories._set_read_only()
         self.author_attachments._set_read_only()
+        if self._original_file is not None:
+            self._original_file._set_read_only()
+        if self._sealed_document is not None:
+            self._sealed_document._set_read_only()
 
     def _to_json_obj(self):
         return {u'title': self.title,

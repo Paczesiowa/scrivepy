@@ -1,4 +1,3 @@
-* all subobjects of documents (from _set_api()) should also be readonlied and invalidated
 * move test_doc_contents to IntegrationTestCase
 * move test api calls to Scrive based class in tests
 * seperate author signatory from the rest of the signatories

@@ -379,3 +379,13 @@ class SignatoryTest(utils.IntegrationTestCase):
                                      u'Scan or picture of personal id2')
                     self.assertEqual(u'pic2.pdf', att.file.name)
                 self.assertEqual(self.test_doc_contents, att.file.get_bytes())
+
+            sig._set_read_only()
+            for att in sig.attachments:
+                self.assertTrue(att.file._read_only)
+
+            files = [att.file for att in sig.attachments]
+            sig._set_invalid()
+            for file_ in files:
+                with self.assertRaises(_exceptions.InvalidScriveObject, None):
+                    file_.get_bytes()

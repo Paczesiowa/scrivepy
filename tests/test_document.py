@@ -499,6 +499,18 @@ class DocumentTest(utils.IntegrationTestCase):
         d = self.O._from_json_obj(json)
         self.assertFalse(d._read_only)
 
+    def test_original_file(self):
+        json = self.json.copy()
+        json[u'file'] = {u'id': u'1', u'name': u'document.pdf'}
+        d = self.O._from_json_obj(json)
+
+        d._set_read_only()
+        self.assertTrue(d.original_file._read_only)
+
+        d._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            d.original_file.get_bytes()
+
     @utils.integration
     def test_sealed_document(self):
         with self.new_document_from_file() as d:
@@ -521,6 +533,13 @@ class DocumentTest(utils.IntegrationTestCase):
             file_contents = d.sealed_document.get_bytes()
             with contextlib.closing(cStringIO.StringIO(file_contents)) as s:
                 self.assertEqual(2, pyPdf.PdfFileReader(s).getNumPages())
+
+            d._set_read_only()
+            self.assertTrue(d.sealed_document._read_only)
+
+            d._set_invalid()
+            with self.assertRaises(_exceptions.InvalidScriveObject, None):
+                d.sealed_document.get_bytes()
 
     def test_author_attachments(self):
         json = self.json.copy()

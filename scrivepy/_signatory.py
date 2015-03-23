@@ -63,6 +63,16 @@ class SignatoryAttachment(_object.ScriveObject):
         if self._file is not None:
             self._file._set_api(api, document)
 
+    def _set_invalid(self):
+        if self.file is not None:
+            self.file._set_invalid()
+        super(SignatoryAttachment, self)._set_invalid()
+
+    def _set_read_only(self):
+        super(SignatoryAttachment, self)._set_read_only()
+        if self.file is not None:
+            self.file._set_read_only()
+
     @scrive_property
     def requested_name(self):
         return self._requested_name
