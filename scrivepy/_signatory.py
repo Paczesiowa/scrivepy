@@ -60,8 +60,8 @@ class SignatoryAttachment(_object.ScriveObject):
 
     def _set_api(self, api, document):
         super(SignatoryAttachment, self)._set_api(api, document)
-        if self._file is not None:
-            self._file._set_api(api, document)
+        if self.file is not None:
+            self.file._set_api(api, document)
 
     def _set_invalid(self):
         if self.file is not None:

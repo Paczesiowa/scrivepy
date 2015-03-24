@@ -50,13 +50,13 @@ class FieldPlacement(_object.ScriveObject):
         self._tip = tip
 
     def _to_json_obj(self):
-        return {u'xrel': self._left,
-                u'yrel': self._top,
-                u'wrel': self._width,
-                u'hrel': self._height,
-                u'fsrel': self._font_size,
-                u'page': self._page,
-                u'tip': self._tip.value if self._tip else None}
+        return {u'xrel': self.left,
+                u'yrel': self.top,
+                u'wrel': self.width,
+                u'hrel': self.height,
+                u'fsrel': self.font_size,
+                u'page': self.page,
+                u'tip': self.tip.value if self.tip else None}
 
     def __str__(self):
         return u'Placement(page ' + str(self.page) + u',' + \
