@@ -464,12 +464,3 @@ class Document(_object.ScriveObject):
             file_._set_api(api, self)
         for signatory in self.signatories:
             signatory._set_api(api, self)
-
-# documentJSONV1 :: (MonadDB m, MonadThrow m, Log.MonadLog m, MonadIO m, AWS.AmazonMonad m) => (Maybe User) -> Bool -> Bool -> Bool ->  Maybe SignatoryLink -> Document -> m JSValue
-# documentJSONV1 muser includeEvidenceAttachments forapi forauthor msl doc = do
-#     evidenceattachments <- if includeEvidenceAttachments then EvidenceAttachments.fetch doc else return []
-#     runJSONGenT $ do
-#       J.objects "evidenceattachments" $ for evidenceattachments $ \a -> do
-#         J.value "name"     $ BSC.unpack $ EvidenceAttachments.name a
-#         J.value "mimetype" $ BSC.unpack <$> EvidenceAttachments.mimetype a
-#         J.value "downloadLink" $ show $ LinkEvidenceAttachment (documentid doc) (EvidenceAttachments.name a)

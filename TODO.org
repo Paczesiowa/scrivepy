@@ -2,6 +2,7 @@
 * invalidate previous version of a document after api call
 * implement Document.save() method with syncing of possible old versions of objects
 * seperate author signatory from the rest of the signatories
+* ScriveSet should be indexable like a list (overt sorted list by id)
 * polish all tvus used
 * ScriveFile object
 ** should not be consturctable by users
