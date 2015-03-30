@@ -223,3 +223,16 @@ class NonEmptyUnicode(TypeValueUnifier):
     def validate(self, value):
         if value is u'':
             self.error(u'non-empty string')
+
+
+class Text(TypeValueUnifier):
+
+    TYPES = (unicode, str)
+
+    def unify(self, value):
+        if isinstance(value, str):
+            try:
+                return value.decode('ascii')
+            except UnicodeDecodeError:
+                self.error(u'unicode text, or ascii-only bytestring')
+        return value
