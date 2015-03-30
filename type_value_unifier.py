@@ -74,6 +74,11 @@ def validate_and_unify(**arg_validators):
                     new_args += args_values.pop(spec_varargs)
             except KeyError:
                 raise TypeError()
+            if spec_keywords is not None:
+                kwargs = args_values.pop(spec_keywords)
+                for key, val in kwargs.items():
+                    args_values[key] = val
+
             return fun(*new_args, **args_values)
         return inner_wrapper
     return wrapper
