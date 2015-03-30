@@ -72,23 +72,65 @@ class UnicodeDict(dict, _object.ScriveObject):
                 for i, key in enumerate(keys)]
         return UnicodeDict([(key, value) for key in keys])
 
+    def get(self, key, default=None):
+        self._check_getter()
+        return dict.get(self, key, default)
 
-# get
-# has_key
-# items
-# iteritems
-# iterkeys
-# itervalues
-# keys
-# pop
-# popitem
-# setdefault
+    def __contains__(self, key):
+        self._check_getter()
+        return dict.__contains__(self, key)
+
+    def items(self):
+        self._check_getter()
+        return dict.items(self)
+
+    def iteritems(self):
+        self._check_getter()
+        return dict.iteritems(self)
+
+    def iterkeys(self):
+        self._check_getter()
+        return dict.iterkeys(self)
+
+    def itervalues(self):
+        self._check_getter()
+        return dict.itervalues(self)
+
+    def keys(self):
+        self._check_getter()
+        return dict.keys(self)
+
+    def values(self):
+        self._check_getter()
+        return dict.values(self)
+
+    def viewkeys(self):
+        self._check_getter()
+        return dict.viewkeys(self)
+
+    def viewvalues(self):
+        self._check_getter()
+        return dict.viewvalues(self)
+
+    def viewitems(self):
+        self._check_getter()
+        return dict.viewitems(self)
+
+    def pop(self, key, *default):
+        self._check_setter()
+        return dict.pop(self, key, *default)
+
+    def popitem(self):
+        self._check_setter()
+        return dict.popitem(self)
+
+    @tvu.validate_and_unify(default=tvu.Text)
+    def setdefault(self, key, default=u''):
+        self._check_setter()
+        return dict.setdefault(self, key, default)
+
+
 # update
-# values
-# viewitems
-# viewkeys
-# viewvalues
-# __contains__
 # __delitem__
 # __eq__
 # __ge__

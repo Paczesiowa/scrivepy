@@ -1,3 +1,7 @@
+* tags could use a UnicodeDict type
+** finish implementing dict methods in UnicodeDict
+** rewrite Document.tags to use UnicodeDict
+* in tests prefer assertTrue/assertFalse/assertNone to assertEqual
 * Signatory.author should not be writable
 * invalidate previous version of a document after api call
 * implement Document.save() method with syncing of possible old versions of objects
