@@ -129,21 +129,67 @@ class UnicodeDict(dict, _object.ScriveObject):
         self._check_setter()
         return dict.setdefault(self, key, default)
 
+    @tvu.validate_and_unify(iterable=TextMappingOrIterable,
+                            kwargs=TextMappingOrIterable)
+    def update(self, iterable=(), **kwargs):
+        self._check_setter()
+        return dict.update(self, iterable, **kwargs)
 
-# update
-# __delitem__
-# __eq__
-# __ge__
-# __getitem__
-# __hash__
-# __iter__
-# __len__
-# __ne__
-# __repr__
-# __setitem__
-# __str__
-# __cmp__
-# __format__
-# __gt__
-# __le__
-# __lt__
+    def __delitem__(self, key):
+        self._check_setter()
+        return dict.__delitem__(self, key)
+
+    @tvu.validate_and_unify(other=tvu.instance(dict))
+    def __eq__(self, other):
+        self._check_getter()
+
+        if not isinstance(other, UnicodeDict):
+            return False
+
+        return self._read_only == other._read_only and dict.__eq__(self, other)
+
+    @tvu.validate_and_unify(other=tvu.instance(dict))
+    def __ne__(self, other):
+        self._check_getter()
+
+        if not isinstance(other, UnicodeDict):
+            return True
+
+        return self._read_only != other._read_only or dict.__ne__(self, other)
+
+    @tvu.validate_and_unify(other=tvu.instance(dict))
+    def __ge__(self, other):
+        self._check_getter()
+        return dict.__ge__(self, other)
+
+    @tvu.validate_and_unify(other=tvu.instance(dict))
+    def __le__(self, other):
+        self._check_getter()
+        return dict.__le__(self, other)
+
+    @tvu.validate_and_unify(other=tvu.instance(dict))
+    def __gt__(self, other):
+        self._check_getter()
+        return dict.__gt__(self, other)
+
+    @tvu.validate_and_unify(other=tvu.instance(dict))
+    def __lt__(self, other):
+        self._check_getter()
+        return dict.__lt__(self, other)
+
+    def __getitem__(self, key):
+        self._check_getter()
+        return dict.__getitem__(self, key)
+
+    @tvu.validate_and_unify(key=tvu.Text, value=tvu.Text)
+    def __setitem__(self, key, value):
+        self._check_setter()
+        return dict.__setitem__(self, key, value)
+
+    def __len__(self):
+        self._check_getter()
+        return dict.__len__(self)
+
+    def __iter__(self):
+        self._check_getter()
+        return dict.__iter__(self)

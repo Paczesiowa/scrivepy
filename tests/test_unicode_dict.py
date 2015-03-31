@@ -360,3 +360,249 @@ class UnicodeDictTest(utils.TestCase):
         d._set_invalid()
         with self.assertRaises(INV):
             d.setdefault(u'foo')
+
+    def test_update(self):
+        d = D(foo=u'bar')
+
+        d.update()
+        self.assertEqual(1, len(d))
+
+        d.update({u'baz': u'quux'}, corge=u'grault')
+        self.assertEqual(3, len(d))
+        self.assertEqual(d[u'foo'], u'bar')
+        self.assertEqual(d[u'baz'], u'quux')
+        self.assertEqual(d[u'corge'], u'grault')
+
+        d = D(foo=u'bar')
+        d.update([(u'baz', u'quux')], corge=u'grault')
+        self.assertEqual(3, len(d))
+        self.assertEqual(d[u'foo'], u'bar')
+        self.assertEqual(d[u'baz'], u'quux')
+        self.assertEqual(d[u'corge'], u'grault')
+
+        d._set_read_only()
+        with self.assertRaises(RO):
+            d.update()
+        d._set_invalid()
+        with self.assertRaises(INV):
+            d.update()
+
+        err_msg = u'iterable must be a mapping or iterable, not None'
+        with self.assertRaises(TypeError, err_msg):
+            D().update(None)
+        err_msg = u'iterable value must be unicode or str, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            D().update({u'foo': u'bar', u'baz': 2})
+        err_msg = u'iterable key must be unicode or str, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            D().update({u'foo': u'bar', 2: u'baz'})
+        err_msg = u'iterable value must be unicode or str, not 3'
+        with self.assertRaises(TypeError, err_msg):
+            D().update([(u'foo', u'bar'), (u'baz', 3)])
+        err_msg = u'iterable key must be unicode or str, not 3'
+        with self.assertRaises(TypeError, err_msg):
+            D().update([(u'foo', u'bar'), (3, u'baz')])
+        err_msg = u'kwargs value must be unicode or str, not 4'
+        with self.assertRaises(TypeError, err_msg):
+            D().update(foo=4)
+
+    def test___delitem__(self):
+        d = D(foo=u'bar')
+
+        del d[u'foo']
+        self.assertEqual(0, len(d))
+
+        with self.assertRaises(KeyError):
+            del d[u'bar']
+
+        d._set_read_only()
+        with self.assertRaises(RO):
+            del d[u'bar']
+        d._set_invalid()
+        with self.assertRaises(INV):
+            del d[u'bar']
+
+    def test___eq__(self):
+        self.assertFalse(D() == {})
+
+        self.assertTrue(D(foo=u'bar') == D(foo=u'bar'))
+        self.assertFalse(D(foo=u'bar') == D())
+        self.assertFalse(D() == D(foo=u'bar'))
+
+        d1 = D(foo=u'bar')
+        d1._set_read_only()
+        d2 = D(foo=u'bar')
+        self.assertFalse(d1 == d2)
+        d2._set_read_only()
+        self.assertTrue(d1 == d2)
+
+        d = D()
+        d._set_invalid()
+        with self.assertRaises(INV):
+            d == D()
+
+        d = D()
+        with self.assertRaises(TypeError, u'other must be dict, not 1.5'):
+            d == 1.5
+
+    def test___ne__(self):
+        self.assertTrue(D() != {})
+
+        self.assertFalse(D(foo=u'bar') != D(foo=u'bar'))
+        self.assertTrue(D(foo=u'bar') != D())
+        self.assertTrue(D() != D(foo=u'bar'))
+
+        d1 = D(foo=u'bar')
+        d1._set_read_only()
+        d2 = D(foo=u'bar')
+        self.assertTrue(d1 != d2)
+        d2._set_read_only()
+        self.assertFalse(d1 != d2)
+
+        d = D()
+        d._set_invalid()
+        with self.assertRaises(INV):
+            d != D()
+
+        d = D()
+        with self.assertRaises(TypeError,
+                               u'other must be dict, not 1.5'):
+            d != 1.5
+
+    def test___ge__(self):
+        d = D(foo=u'bar')
+        self.assertTrue(d >= D())
+        self.assertTrue(d >= D(baz=u'quux'))
+        self.assertTrue(d >= D(foo=u'bar'))
+        self.assertFalse(D(baz=u'quux') >= d)
+
+        d = D()
+        d._set_read_only()
+        d >= D()
+        d._set_invalid()
+        with self.assertRaises(INV):
+            d >= D()
+
+        d = D()
+        with self.assertRaises(TypeError, u'other must be dict, not 2'):
+            d >= 2
+
+    def test___le__(self):
+        d = D(foo=u'bar')
+        self.assertFalse(d <= D())
+        self.assertFalse(d <= D(baz=u'quux'))
+        self.assertTrue(d <= D(foo=u'bar'))
+        self.assertTrue(D(baz=u'quux') <= d)
+
+        d = D()
+        d._set_read_only()
+        d <= D()
+        d._set_invalid()
+        with self.assertRaises(INV):
+            d <= D()
+
+        d = D()
+        with self.assertRaises(TypeError, u'other must be dict, not 2'):
+            d <= 2
+
+    def test___gt__(self):
+        d = D(foo=u'bar')
+        self.assertTrue(d > D())
+        self.assertTrue(d > D(baz=u'quux'))
+        self.assertFalse(d > D(foo=u'bar'))
+        self.assertFalse(D(baz=u'quux') > d)
+
+        d = D()
+        d._set_read_only()
+        d > D()
+        d._set_invalid()
+        with self.assertRaises(INV):
+            d > D()
+
+        d = D()
+        with self.assertRaises(TypeError, u'other must be dict, not 2'):
+            d > 2
+
+    def test___lt__(self):
+        d = D(foo=u'bar')
+        self.assertFalse(d < D())
+        self.assertFalse(d < D(baz=u'quux'))
+        self.assertFalse(d < D(foo=u'bar'))
+        self.assertTrue(D(baz=u'quux') < d)
+
+        d = D()
+        d._set_read_only()
+        d < D()
+        d._set_invalid()
+        with self.assertRaises(INV):
+            d < D()
+
+        d = D()
+        with self.assertRaises(TypeError, u'other must be dict, not 2'):
+            d < 2
+
+    def test___getitem__(self):
+        d = D(foo=u'bar')
+        self.assertEqual(d[u'foo'], u'bar')
+
+        with self.assertRaises(KeyError):
+            d[u'baz']
+
+        d._set_read_only()
+        d[u'foo']
+        d._set_invalid()
+        with self.assertRaises(INV):
+            d[u'baz']
+
+    def test___hash__(self):
+        with self.assertRaises(TypeError):
+            hash(D())
+
+    def test___setitem__(self):
+        d = D()
+        d[u'foo'] = u'bar'
+        self.assertEqual(d[u'foo'], u'bar')
+
+        err_msg = u'value must be unicode or str, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            d[u'baz'] = 2
+        err_msg = u'key must be unicode or str, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            d[2] = u'baz'
+
+        d._set_read_only()
+        with self.assertRaises(RO):
+            d[u'foo'] = u'bar'
+        d._set_invalid()
+        with self.assertRaises(INV):
+            d[u'foo'] = u'bar'
+
+    def test___len__(self):
+        self.assertEqual(3, len(D(foo=u'1', bar=u'2', baz=u'3')))
+        self.assertEqual(2, len(D(foo=u'1', bar=u'2')))
+        self.assertEqual(1, len(D(foo=u'1')))
+        self.assertEqual(0, len(D()))
+
+        s = D(foo=u'1', bar=u'2')
+        s._set_read_only()
+        self.assertEqual(2, len(s))
+        s._set_invalid()
+        with self.assertRaises(INV):
+            len(s)
+
+    def test___iter__(self):
+        self.assertEqual(set(iter(D(foo=u'1', bar=u'2', baz=u'3'))),
+                         set([u'foo', u'bar', u'baz']))
+        iterator = iter(D(foo=u'1', bar=u'2', baz=u'3'))
+        self.assertTrue(iterator.next() in [u'foo', u'bar', u'baz'])
+        self.assertTrue(iterator.next() in [u'foo', u'bar', u'baz'])
+        self.assertTrue(iterator.next() in [u'foo', u'bar', u'baz'])
+        with self.assertRaises(StopIteration):
+            iterator.next()
+
+        d = D(foo=u'1', bar=u'2')
+        d._set_read_only()
+        self.assertEqual(set(iter(d)), set([u'foo', u'bar']))
+        d._set_invalid()
+        with self.assertRaises(INV):
+            iter(d)
