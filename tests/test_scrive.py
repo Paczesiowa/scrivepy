@@ -49,7 +49,7 @@ class ScriveTest(utils.IntegrationTestCase):
             # this depends on account settings
             # self.assertEqual(d.language, Lang.swedish)
 
-            self.assertEqual(d.tags, {})
+            self.assertEqual(dict(d.tags), {})
             self.assertTrue(d.saved_as_draft)
             self.assertEqual(d.deletion_status, DelS.not_deleted)
             self.assertFalse(d.signing_possible)
@@ -74,7 +74,7 @@ class ScriveTest(utils.IntegrationTestCase):
             d.confirmation_message = u'<p>bye</p>'
             d.api_callback_url = u'http://example.net/'
             d.language = Lang.finnish
-            d.tags = {u'foo': u'bar'}
+            d.tags[u'foo'] = u'bar'
             d.timezone = u'Europe/Warsaw'
 
             # make sure that modification time is greater than ctime
@@ -107,7 +107,7 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertEqual(d.confirmation_message, u'<p>bye</p>')
             self.assertEqual(d.api_callback_url, u'http://example.net/')
             self.assertEqual(d.language, Lang.finnish)
-            self.assertEqual(d.tags, {u'foo': u'bar'})
+            self.assertEqual(dict(d.tags), {u'foo': u'bar'})
             self.assertTrue(d.saved_as_draft)
             self.assertEqual(d.deletion_status, DelS.not_deleted)
             self.assertFalse(d.signing_possible)
@@ -132,7 +132,7 @@ class ScriveTest(utils.IntegrationTestCase):
             d.confirmation_message = u'bye'
             d.api_callback_url = u'http://example.net/'
             d.language = Lang.finnish
-            d.tags = {u'foo': u'bar'}
+            d.tags[u'foo'] = u'bar'
             d.timezone = u'Europe/Warsaw'
 
             d = self.api.update_document(d)
@@ -189,7 +189,7 @@ class ScriveTest(utils.IntegrationTestCase):
             t.confirmation_message = u'<p>bye</p>'
             t.api_callback_url = u'http://example.net/'
             t.language = Lang.finnish
-            t.tags = {u'foo': u'bar'}
+            t.tags[u'foo'] = u'bar'
             t.timezone = u'Europe/Warsaw'
 
             t.is_template = True
@@ -227,7 +227,7 @@ class ScriveTest(utils.IntegrationTestCase):
                 self.assertEqual(d.confirmation_message, u'<p>bye</p>')
                 self.assertEqual(d.api_callback_url, u'http://example.net/')
                 self.assertEqual(d.language, Lang.finnish)
-                self.assertEqual(d.tags, {u'foo': u'bar'})
+                self.assertEqual(dict(d.tags), {u'foo': u'bar'})
                 self.assertTrue(d.saved_as_draft)
                 self.assertEqual(d.deletion_status, DelS.not_deleted)
                 self.assertFalse(d.signing_possible)
@@ -282,7 +282,7 @@ class ScriveTest(utils.IntegrationTestCase):
             # this depends on account settings
             # self.assertEqual(d.language, Lang.swedish)
 
-            self.assertEqual(d.tags, {})
+            self.assertEqual(dict(d.tags), {})
             self.assertTrue(d.saved_as_draft)
             self.assertEqual(d.deletion_status, DelS.not_deleted)
             self.assertFalse(d.signing_possible)

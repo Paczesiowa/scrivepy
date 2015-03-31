@@ -4,7 +4,8 @@ import time
 
 import pyPdf
 
-from scrivepy import _signatory, _document, _exceptions, _set, _file
+from scrivepy import _signatory, _document, _exceptions, \
+    _set, _file, _unicode_dict
 from tests import utils
 
 
@@ -14,6 +15,7 @@ DS = _document.DocumentStatus
 DelS = _document.DeletionStatus
 Lang = _document.Language
 ScriveSet = _set.ScriveSet
+UnicodeDict = _unicode_dict.UnicodeDict
 
 
 class DocumentTest(utils.IntegrationTestCase):
@@ -136,10 +138,10 @@ class DocumentTest(utils.IntegrationTestCase):
                    confirmation_message=u'some confirmation text',
                    api_callback_url=u'http://example.com/',
                    language='spanish',
-                   tags={u'key1': u'val2', u'key3': u'val4'},
                    saved_as_draft=False,
                    timezone=u'Europe/Warsaw')
         d.signatories.add(self.s1)
+        d.tags.update({u'key1': u'val2', u'key3': u'val4'})
 
         json = {u'title': u'the document',
                 u'daystosign': 30,
@@ -188,7 +190,6 @@ class DocumentTest(utils.IntegrationTestCase):
         self.assertEqual(d.confirmation_message, None)
         self.assertEqual(d.api_callback_url, u'http://example.net/')
         self.assertEqual(d.language, Lang.portuguese)
-        self.assertEqual(d.tags, {u'key1': u'val1', u'key2': u'val2'})
         self.assertEqual(d.saved_as_draft, True)
         self.assertEqual(d.deletion_status, DelS.not_deleted)
         self.assertEqual(d.signing_possible, True)
@@ -428,27 +429,37 @@ class DocumentTest(utils.IntegrationTestCase):
         self.assertEqual(d.language, Lang.english)
 
     def test_tags(self):
-        self._test_field('tags',
-                         bad_value=[], correct_type='dict',
-                         default_good_value={},
-                         other_good_values=[{u'k': u'v'},
-                                            {u'k1': u'v1', u'k2': u'v2'}],
-                         serialized_default_good_value=[])
+        # check default ctor value
+        d = self.o()
+        self.assertEqual(UnicodeDict(), d.tags)
 
-        type_err_msg = \
-            u"tags must be dict with unicode keys and values, not: {1: u''}"
-        with self.assertRaises(ValueError, type_err_msg):
-            self.o(tags={1: u''})
+        d.tags[u'foo'] = u'bar'
+        self.assertEqual(UnicodeDict(foo=u'bar'), d.tags)
 
-        type_err_msg = \
-            u"tags must be dict with unicode keys and values, not: {u'': 1}"
-        with self.assertRaises(ValueError, type_err_msg):
-            self.o(tags={u'': 1})
+        err_msg = u'value must be unicode or str, not 1'
+        with self.assertRaises(TypeError, err_msg):
+            d.tags[u'baz'] = 1
 
-        d1 = self.o()
-        d1._tags[u'foo'] = u'bar'
-        d2 = self.o()
-        self.assertEqual({}, d2.tags)
+        d.tags.clear()
+        d.tags[u'foo'] = u'baz'
+        self.assertEqual(UnicodeDict(foo=u'baz'), d.tags)
+
+        self.assertEqual([{u'name': u'foo', u'value': u'baz'}],
+                         d._to_json_obj()[u'tags'])
+
+        d._set_read_only()
+        # set() is because the 2nd one is read only and not really equal
+        self.assertEqual(dict(UnicodeDict(foo=u'baz')), dict(d.tags))
+        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+            d.tags.clear()
+            d.tags[u'foo'] = u'bar'
+
+        tags = d.tags
+        d._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            d.tags
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            tags[u'foo'] = u'bar'
 
     def test_saved_as_draft(self):
         self._test_field('saved_as_draft',

@@ -169,16 +169,6 @@ def bounded_int(minimum=None, maximum=None):
 PositiveInt = bounded_int(1)
 
 
-class UnicodeDict(TypeValueUnifier):
-
-    TYPES = (dict,)
-
-    def validate(self, value):
-        for key, val in value.items():
-            if not isinstance(key, unicode) or not isinstance(val, unicode):
-                self.error(u'dict with unicode keys and values')
-
-
 class Iterable(TypeValueUnifier):
 
     def type_check(self):

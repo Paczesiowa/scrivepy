@@ -2,7 +2,8 @@ import enum
 from dateutil import parser as dateparser
 
 import type_value_unifier as tvu
-from scrivepy import _object, _signatory, _exceptions, _set, _file
+from scrivepy import _object, _signatory, _exceptions, \
+    _set, _file, _unicode_dict
 
 
 scrive_property = _object.scrive_property
@@ -57,7 +58,6 @@ class Document(_object.ScriveObject):
                             confirmation_message=MaybeUnicode,
                             api_callback_url=MaybeUnicode,
                             language=tvu.instance(Language, enum=True),
-                            tags=tvu.UnicodeDict,
                             saved_as_draft=tvu.instance(bool),
                             timezone=tvu.instance(unicode))
     def __init__(self, title=u'', number_of_days_to_sign=14,
@@ -66,7 +66,7 @@ class Document(_object.ScriveObject):
                  show_reject_option=True, show_footer=True,
                  invitation_message=None, confirmation_message=None,
                  api_callback_url=None, language=Language.swedish,
-                 tags={}, is_template=False, saved_as_draft=False,
+                 is_template=False, saved_as_draft=False,
                  timezone=u'Europe/Stockholm'):
         super(Document, self).__init__()
         self._id = None
@@ -89,7 +89,7 @@ class Document(_object.ScriveObject):
             confirmation_message  # setter has better logic
         self._api_callback_url = api_callback_url
         self._language = language
-        self._tags = tags.copy()
+        self._tags = _unicode_dict.UnicodeDict()
         self._saved_as_draft = saved_as_draft
         self._deletion_status = DeletionStatus.not_deleted
         self._signing_possible = None
@@ -125,11 +125,11 @@ class Document(_object.ScriveObject):
                                 json[u'confirmationmessage'],
                                 api_callback_url=json[u'apicallbackurl'],
                                 language=Language(lang_code),
-                                tags={elem[u'name']: elem[u'value']
-                                      for elem in json[u'tags']},
                                 saved_as_draft=json[u'saved'],
                                 timezone=json[u'timezone'])
             document.signatories.update(signatories)
+            document.tags.update({elem[u'name']: elem[u'value']
+                                  for elem in json[u'tags']})
             document._id = json[u'id']
             if json[u'time'] is not None:
                 document._modification_time = dateparser.parse(json[u'time'])
@@ -180,6 +180,7 @@ class Document(_object.ScriveObject):
     def _set_invalid(self):
         # invalidate subobjects first, before getter stops working
         self.signatories._set_invalid()
+        self.tags._set_invalid()
         self.author_attachments._set_invalid()
         if self.original_file is not None:
             self.original_file._set_invalid()
@@ -190,6 +191,7 @@ class Document(_object.ScriveObject):
     def _set_read_only(self):
         super(Document, self)._set_read_only()
         self.signatories._set_read_only()
+        self.tags._set_read_only()
         self.author_attachments._set_read_only()
         if self.original_file is not None:
             self.original_file._set_read_only()
@@ -398,11 +400,6 @@ class Document(_object.ScriveObject):
     @scrive_property
     def tags(self):
         return self._tags
-
-    @tags.setter
-    @tvu.validate_and_unify(tags=tvu.UnicodeDict)
-    def tags(self, tags):
-        self._tags = tags
 
     @scrive_property
     def saved_as_draft(self):

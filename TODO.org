@@ -1,5 +1,4 @@
-* tags could use a UnicodeDict type
-** rewrite Document.tags to use UnicodeDict
+* add tests that there are no setters for fields of ScriveSet/Dict type
 * in tests prefer assertTrue/assertFalse/assertNone to assertEqual
 * Signatory.author should not be writable
 * invalidate previous version of a document after api call
