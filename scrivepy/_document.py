@@ -222,6 +222,39 @@ class Document(_object.ScriveObject):
     def signatories(self):
         return self._signatories
 
+    def other_parties(self):
+        '''
+        Return all signatories except the author.
+        '''
+        self._check_getter()
+        for s in self._signatories:
+            if not s.author:
+                yield s
+
+    def other_signatories(self):
+        '''
+        Return all signing signatories except the author.
+        '''
+        self._check_getter()
+        for s in self._signatories:
+            if not s.author and not s.viewer:
+                yield s
+
+    def other_signatory(self):
+        '''
+        Return non-author signing signatory (if there's just one).
+
+        Raises errors, if there's less/more than one.
+        '''
+        self._check_getter()
+        others = list(self.other_signatories())
+        if not others:
+            raise _exceptions.Error(u'No other signatories')
+        elif len(others) > 1:
+            raise _exceptions.Error(u'Multiple signatories')
+        else:
+            return others[0]
+
     @scrive_property
     def id(self):
         return self._id

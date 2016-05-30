@@ -50,7 +50,7 @@ class DocumentTest(utils.IntegrationTestCase):
         s2_json = self.s1_json.copy()
         s2_json[u'id'] = u'2'
         s2_json[u'author'] = False
-        s2_json[u'viewer'] = True
+        s2_json[u'signs'] = True
         self.s2 = S._from_json_obj(s2_json)
         self.json = {u'id': u'1234',
                      u'title': u'a document',
@@ -668,3 +668,85 @@ class DocumentTest(utils.IntegrationTestCase):
         d._set_invalid()
         with self.assertRaises(AttributeError, None):
             d.author = 2
+
+    def test_other_parties(self):
+        json = self.json.copy()
+
+        s1_json = self.s1_json.copy()
+        s1_json[u'id'] = u'1'
+        s1_json[u'author'] = True
+        s2_json = self.s1_json.copy()
+        s2_json[u'id'] = u'2'
+        s2_json[u'author'] = False
+        s2_json[u'signs'] = True
+        s3_json = self.s1_json.copy()
+        s3_json[u'id'] = u'3'
+        s3_json[u'author'] = False
+        s3_json[u'signs'] = False
+        json[u'signatories'] = [s1_json, s2_json, s3_json]
+        d = self.O._from_json_obj(json)
+        others = list(d.other_parties())
+        self.assertEqual(2, len(others))
+        self.assertEqual(set([u'2', u'3']), set(map(lambda s: s.id, others)))
+
+        d._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            list(d.other_parties())
+
+    def test_other_signatories(self):
+        json = self.json.copy()
+
+        s1_json = self.s1_json.copy()
+        s1_json[u'id'] = u'1'
+        s1_json[u'author'] = True
+        s2_json = self.s1_json.copy()
+        s2_json[u'id'] = u'2'
+        s2_json[u'author'] = False
+        s2_json[u'signs'] = True
+        s3_json = self.s1_json.copy()
+        s3_json[u'id'] = u'3'
+        s3_json[u'author'] = False
+        s3_json[u'signs'] = False
+        json[u'signatories'] = [s1_json, s2_json, s3_json]
+        d = self.O._from_json_obj(json)
+        self.assertEqual([u'2'], map(lambda s: s.id, d.other_signatories()))
+
+        d._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            list(d.other_signatories())
+
+    def test_other_signatory(self):
+        json = self.json.copy()
+
+        s1_json = self.s1_json.copy()
+        s1_json[u'id'] = u'1'
+        s1_json[u'author'] = True
+        s2_json = self.s1_json.copy()
+        s2_json[u'id'] = u'2'
+        s2_json[u'author'] = False
+        s2_json[u'signs'] = True
+        s3_json = self.s1_json.copy()
+        s3_json[u'id'] = u'3'
+        s3_json[u'author'] = False
+        s3_json[u'signs'] = False
+
+        json[u'signatories'] = [s1_json, s2_json, s3_json]
+        d = self.O._from_json_obj(json)
+        self.assertEqual(u'2', d.other_signatory().id)
+
+        s3_json[u'signs'] = True
+        d = self.O._from_json_obj(json)
+        err_msg = u'Multiple signatories'
+        with self.assertRaises(_exceptions.Error, err_msg):
+            d.other_signatory()
+
+        s2_json[u'signs'] = False
+        s3_json[u'signs'] = False
+        d = self.O._from_json_obj(json)
+        err_msg = u'No other signatories'
+        with self.assertRaises(_exceptions.Error, err_msg):
+            d.other_signatory()
+
+        d._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            list(d.other_signatories())
