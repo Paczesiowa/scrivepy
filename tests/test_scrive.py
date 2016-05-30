@@ -42,8 +42,8 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertTrue(d.show_pdf_download)
             self.assertTrue(d.show_reject_option)
             self.assertTrue(d.show_footer)
-            self.assertEqual(d.invitation_message, u'<p></p>')
-            self.assertEqual(d.confirmation_message, u'<p></p>')
+            self.assertIsNone(d.invitation_message)
+            self.assertIsNone(d.confirmation_message)
             self.assertIsNone(d.api_callback_url)
 
             # this depends on account settings
@@ -275,8 +275,8 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertTrue(d.show_pdf_download)
             self.assertTrue(d.show_reject_option)
             self.assertTrue(d.show_footer)
-            self.assertEqual(d.invitation_message, u'<p></p>')
-            self.assertEqual(d.confirmation_message, u'<p></p>')
+            self.assertIsNone(d.invitation_message)
+            self.assertIsNone(d.confirmation_message)
             self.assertIsNone(d.api_callback_url)
 
             # this depends on account settings
