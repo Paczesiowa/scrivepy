@@ -8,6 +8,7 @@ CDM = _signatory.ConfirmationDeliveryMethod
 AM = _signatory.AuthenticationMethod
 A = _signatory.SignatoryAttachment
 F = _field
+SFT = _field.StandardFieldType
 ScriveSet = _set.ScriveSet
 
 
@@ -454,3 +455,60 @@ class SignatoryTest(utils.IntegrationTestCase):
             for file_ in files:
                 with self.assertRaises(_exceptions.InvalidScriveObject, None):
                     file_.get_bytes()
+
+    def test_full_name(self):
+        json = self.json.copy()
+        json[u'fields'] = []
+        s = S._from_json_obj(json)
+        self.assertEqual(u'', s.full_name)
+        s._set_read_only()
+        self.assertEqual(u'', s.full_name)
+        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+            s.full_name = u'James'
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.full_name = u'James'
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.full_name
+
+        s = S._from_json_obj(json)
+        s.fields.add(F.StandardField(name='first_name', value=u'John'))
+        self.assertEqual(u'John', s.full_name)
+
+        s.fields.add(F.CustomField(name=u'field', value=u'value'))
+        self.assertEqual(u'John', s.full_name)
+
+        s.fields.clear()
+        s.fields.add(F.StandardField(name='last_name', value=u'Smith'))
+        self.assertEqual(u'Smith', s.full_name)
+
+        s.fields.add(F.CustomField(name=u'field', value=u'value'))
+        self.assertEqual(u'Smith', s.full_name)
+
+        s.fields.add(F.StandardField(name='first_name', value=u'John'))
+        self.assertEqual(u'John Smith', s.full_name)
+
+        s = S._from_json_obj(json)
+        s.full_name = u'John'
+
+        self.assertEqual(u'John', s.full_name)
+        self.assertEqual(2, len(s.fields))
+        f1, f2 = list(s.fields)
+        if f1.name != SFT.first_name:
+            f1, f2 = f2, f1
+        self.assertEqual(f1.name, SFT.first_name)
+        self.assertEqual(f2.name, SFT.last_name)
+        self.assertEqual(f1.value, u'John')
+        self.assertEqual(f2.value, u'')
+
+        s.full_name = u'John Smith'
+
+        self.assertEqual(u'John Smith', s.full_name)
+        self.assertEqual(2, len(s.fields))
+        f1, f2 = list(s.fields)
+        if f1.name != SFT.first_name:
+            f1, f2 = f2, f1
+        self.assertEqual(f1.name, SFT.first_name)
+        self.assertEqual(f2.name, SFT.last_name)
+        self.assertEqual(f1.value, u'John')
+        self.assertEqual(f2.value, u'Smith')

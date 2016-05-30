@@ -6,6 +6,8 @@ from scrivepy import _object, _field, _exceptions, _set, _file
 
 
 scrive_property = _object.scrive_property
+SFT = _field.StandardFieldType
+SF = _field.StandardField
 
 
 class InvitationDeliveryMethod(unicode, enum.Enum):
@@ -388,3 +390,64 @@ class Signatory(_object.ScriveObject):
             raise _exceptions.Error(u'API not set')
         proto = b'https' if self._api.https else b'http'
         return proto + b'://' + self._api.api_hostname + self._sign_url
+
+    @scrive_property
+    def full_name(self):
+        fst_name_fields = filter(lambda f: f.name == SFT.first_name,
+                                 self.fields)
+        last_name_fields = filter(lambda f: f.name == SFT.last_name,
+                                  self.fields)
+
+        first_name_part = u''
+        try:
+            first_name_part = fst_name_fields[0].value
+        except IndexError:
+            pass
+
+        last_name_part = u''
+        try:
+            last_name_part = last_name_fields[0].value
+        except IndexError:
+            pass
+
+        if first_name_part != u'' and last_name_part != u'':
+            return first_name_part + u' ' + last_name_part
+        elif first_name_part != u'':
+            return first_name_part
+        elif last_name_part != u'':
+            return last_name_part
+        else:
+            return u''
+
+    @full_name.setter
+    @tvu.validate_and_unify(full_name=tvu.instance(unicode))
+    def full_name(self, full_name):
+        fst_name_fields = filter(lambda f: f.name == SFT.first_name,
+                                 self.fields)
+        try:
+            fst_name_field = fst_name_fields[0]
+        except IndexError:
+            fst_name_field = SF(name=SFT.first_name, value=u'')
+            self.fields.add(fst_name_field)
+
+        last_name_fields = filter(lambda f: f.name == SFT.last_name,
+                                  self.fields)
+        try:
+            last_name_field = last_name_fields[0]
+        except IndexError:
+            last_name_field = SF(name=SFT.last_name, value=u'')
+            self.fields.add(last_name_field)
+
+        if u' ' in full_name:
+            name_parts = full_name.split(u' ')
+            fst_name = name_parts[0]
+            last_name = u' '.join(name_parts[1:])
+        elif full_name != u' ':
+            fst_name = full_name
+            last_name = u''
+        else:
+            fst_name = u''
+            last_name = u''
+
+        fst_name_field.value = fst_name
+        last_name_field.value = last_name
