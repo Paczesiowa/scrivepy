@@ -26,7 +26,7 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertTrue(abs((d.creation_time - now).total_seconds()) < 120)
             self.assertEqual(len(list(d.signatories)), 1)
             self.assertIsNotNone(d.id)
-            self.assertEqual(d.number_of_days_to_sign, 14)
+            self.assertEqual(d.number_of_days_to_sign, 90)
             self.assertEqual(d.status, DS.preparation)
             self.assertTrue(
                 abs((d.modification_time - now).total_seconds()) < 120)
@@ -259,12 +259,12 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertTrue(abs((d.creation_time - now).total_seconds()) < 120)
             self.assertEqual(len(list(d.signatories)), 1)
             self.assertIsNotNone(d.id)
-            self.assertEqual(d.number_of_days_to_sign, 14)
+            self.assertEqual(d.number_of_days_to_sign, 90)
             self.assertEqual(d.status, DS.pending)
             self.assertTrue(
                 abs((d.modification_time - now).total_seconds()) < 120)
             self.assertTrue(d.creation_time < d.modification_time)
-            self.assertTrue(13 <= (d.signing_deadline - now).days <= 14)
+            self.assertTrue(89 <= (d.signing_deadline - now).days <= 90)
             self.assertIsNone(d.autoremind_time)
             self.assertEqual(d.current_sign_order, 1)
             self.assertEqual(d.authentication_method, AM.standard)
