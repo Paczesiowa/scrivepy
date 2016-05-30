@@ -90,7 +90,7 @@ class SignatoryTest(utils.IntegrationTestCase):
     def test_to_json_obj(self):
         s = self.o(sign_order=2, invitation_delivery_method='api',
                    confirmation_delivery_method='none',
-                   viewer=True, author=True,
+                   viewer=True,
                    sign_success_redirect_url=u'http://example.com/',
                    rejection_redirect_url=u'http://example.net/',
                    authentication_method='sms_pin')
@@ -104,7 +104,7 @@ class SignatoryTest(utils.IntegrationTestCase):
                 u'delivery': u'api',
                 u'confirmationdelivery': u'none',
                 u'signs': False,
-                u'author': True,
+                u'author': False,
                 u'signsuccessredirect': u'http://example.com/',
                 u'rejectredirect': u'http://example.net/',
                 u'authentication': u'sms_pin',
@@ -252,10 +252,28 @@ class SignatoryTest(utils.IntegrationTestCase):
                          serialized_default_good_value=True)
 
     def test_author(self):
-        self._test_field('author',
-                         bad_value=[], correct_type=bool,
-                         default_good_value=False,
-                         other_good_values=[True])
+        s = self.o()
+        self.assertFalse(s.author)
+
+        s._set_read_only()
+        self.assertFalse(s.author)
+
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.author
+
+        json = self.json.copy()
+        json[u'author'] = True
+        s = S._from_json_obj(json)
+
+        self.assertTrue(s.author)
+
+        s._set_read_only()
+        self.assertTrue(s.author)
+
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.author
 
     def test_has_account(self):
         self._test_server_field('has_account')

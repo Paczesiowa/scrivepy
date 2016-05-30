@@ -451,6 +451,16 @@ class Document(_object.ScriveObject):
     def author_attachments(self):
         return self._author_attachments
 
+    @scrive_property
+    def author(self):
+        authors = filter(lambda s: s.author, self.signatories)
+        if not authors:
+            raise _exceptions.Error(u'No author')
+        if len(authors) > 1:
+            raise _exceptions.Error(u'Multiple authors')
+        else:
+            return authors[0]
+
     def _set_api(self, api, _document):
         super(Document, self)._set_api(api, self)
         if self.original_file is not None:

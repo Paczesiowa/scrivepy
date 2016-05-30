@@ -22,7 +22,7 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def setUp(self):
         self.O = D
-        s1_json = {u'id': u'1',
+        self.s1_json = {u'id': u'1',
                    u'current': True,
                    u'signorder': 1,
                    u'undeliveredInvitation': True,
@@ -46,8 +46,8 @@ class DocumentTest(utils.IntegrationTestCase):
                    u'signlink': None,
                    u'attachments': [],
                    u'fields': []}
-        self.s1 = S._from_json_obj(s1_json)
-        s2_json = s1_json.copy()
+        self.s1 = S._from_json_obj(self.s1_json)
+        s2_json = self.s1_json.copy()
         s2_json[u'id'] = u'2'
         s2_json[u'author'] = False
         s2_json[u'viewer'] = True
@@ -82,13 +82,14 @@ class DocumentTest(utils.IntegrationTestCase):
                      u'isviewedbyauthor': True,
                      u'accesstoken': u'1234567890abcdef',
                      u'authorattachments': [],
-                     u'signatories': [s1_json, s2_json]}
+                     u'signatories': [self.s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
         return D(*args, **kwargs)
 
     def test_flags(self):
-        s1 = S(author=True)
+        s1 = S()
+        s1._author = True
         s2 = S(viewer=True)
         d = self.o()
         d.signatories.update([s1, s2])
@@ -590,3 +591,80 @@ class DocumentTest(utils.IntegrationTestCase):
             d2.author_attachments
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             atts.add(_file.LocalFile(u'x', b''))
+
+    def test_author(self):
+        json = self.json.copy()
+        json[u'status'] = u'Preparation'  # so it's not read only
+        json[u'signatories'] = []
+        d = self.O._from_json_obj(json)
+
+        with self.assertRaises(_exceptions.Error, u'No author'):
+            d.author
+        d._set_read_only()
+        with self.assertRaises(_exceptions.Error, u'No author'):
+            d.author
+        d._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            d.author
+
+        json = self.json.copy()
+        json[u'status'] = u'Preparation'  # so it's not read only
+        s1_json = self.s1_json.copy()
+        s1_json[u'author'] = False
+        s2_json = self.s1_json.copy()
+        s2_json[u'author'] = False
+        json[u'signatories'] = [s1_json, s2_json]
+        d = self.O._from_json_obj(json)
+
+        with self.assertRaises(_exceptions.Error, u'No author'):
+            d.author
+        d._set_read_only()
+        with self.assertRaises(_exceptions.Error, u'No author'):
+            d.author
+        d._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            d.author
+
+        json = self.json.copy()
+        json[u'status'] = u'Preparation'  # so it's not read only
+        s1_json = self.s1_json.copy()
+        s1_json[u'author'] = True
+        s2_json = self.s1_json.copy()
+        s2_json[u'author'] = True
+        json[u'signatories'] = [s1_json, s2_json]
+        d = self.O._from_json_obj(json)
+
+        with self.assertRaises(_exceptions.Error, u'Multiple authors'):
+            d.author
+        d._set_read_only()
+        with self.assertRaises(_exceptions.Error, u'Multiple authors'):
+            d.author
+        d._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            d.author
+
+        json = self.json.copy()
+        json[u'status'] = u'Preparation'  # so it's not read only
+        s1_json = self.s1_json.copy()
+        s1_json[u'author'] = False
+        s2_json = self.s1_json.copy()
+        s2_json[u'author'] = True
+        json[u'signatories'] = [s1_json, s2_json]
+        d = self.O._from_json_obj(json)
+
+        self.assertEqual(d.author.id, s1_json[u'id'])
+        d._set_read_only()
+        self.assertEqual(d.author.id, s1_json[u'id'])
+        d._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            d.author
+
+        d = self.o()
+        with self.assertRaises(AttributeError, None):
+            d.author = 2
+        d._set_read_only()
+        with self.assertRaises(AttributeError, None):
+            d.author = 2
+        d._set_invalid()
+        with self.assertRaises(AttributeError, None):
+            d.author = 2

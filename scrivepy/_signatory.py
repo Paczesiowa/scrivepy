@@ -113,10 +113,9 @@ class Signatory(_object.ScriveObject):
                             authentication_method=
                             tvu.instance(AM, enum=True),
                             viewer=tvu.instance(bool),
-                            author=tvu.instance(bool),
                             sign_success_redirect_url=MaybeUnicode,
                             rejection_redirect_url=MaybeUnicode)
-    def __init__(self, sign_order=1, viewer=False, author=False,
+    def __init__(self, sign_order=1, viewer=False,
                  invitation_delivery_method=IDM.email,
                  confirmation_delivery_method=CDM.email,
                  authentication_method=AM.standard,
@@ -134,7 +133,7 @@ class Signatory(_object.ScriveObject):
         self._invitation_delivery_method = invitation_delivery_method
         self._confirmation_delivery_method = confirmation_delivery_method
         self._viewer = viewer
-        self._author = author
+        self._author = False
         self._eleg_mismatch_message = None
         self._sign_time = None
         self._view_time = None
@@ -164,13 +163,13 @@ class Signatory(_object.ScriveObject):
                               json[u'confirmationdelivery']),
                           authentication_method=AM(json[u'authentication']),
                           viewer=not json[u'signs'],
-                          author=json[u'author'],
                           sign_success_redirect_url=
                           json[u'signsuccessredirect'],
                           rejection_redirect_url=json[u'rejectredirect'])
             signatory.fields.update(fields)
             signatory.attachments.update(attachments)
             signatory._id = json[u'id']
+            signatory._author = json[u'author']
             signatory._current = json[u'current']
             signatory._undelivered_invitation = json[u'undeliveredInvitation']
             signatory._undelivered_email_invitation = \
@@ -320,11 +319,6 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def author(self):
         return self._author
-
-    @author.setter
-    @tvu.validate_and_unify(author=tvu.instance(bool))
-    def author(self, author):
-        self._author = author
 
     @scrive_property
     def has_account(self):
