@@ -376,7 +376,8 @@ class SignatoryTest(utils.IntegrationTestCase):
                     self.assertEqual(att.description,
                                      u'Scan or picture of personal id2')
                     self.assertEqual(u'pic2.pdf', att.file.name)
-                self.assertEqual(self.test_doc_contents, att.file.get_bytes())
+                self.assertPDFsEqual(self.test_doc_contents,
+                                     att.file.get_bytes())
 
             sig._set_read_only()
             for att in sig.attachments:

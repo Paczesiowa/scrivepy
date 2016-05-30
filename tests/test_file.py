@@ -11,7 +11,7 @@ class RemoteFileTest(utils.IntegrationTestCase):
     def test_stream(self):
         with self.new_document_from_file() as d:
             with contextlib.closing(d.original_file.stream()) as f:
-                self.assertEqual(self.test_doc_contents, f.read())
+                self.assertPDFsEqual(f.read(), self.test_doc_contents)
 
     @utils.integration
     def test_save_as(self):
@@ -19,7 +19,7 @@ class RemoteFileTest(utils.IntegrationTestCase):
             with utils.temporary_file_path() as file_path:
                 d.original_file.save_as(file_path)
                 with open(file_path, 'rb') as f:
-                    self.assertEqual(self.test_doc_contents, f.read())
+                    self.assertPDFsEqual(f.read(), self.test_doc_contents)
 
     @utils.integration
     def test_save_to(self):
@@ -28,14 +28,14 @@ class RemoteFileTest(utils.IntegrationTestCase):
                 file_ = d.original_file
                 file_.save_to(dir_path)
                 with open(os.path.join(dir_path, file_.name), 'rb') as f:
-                    self.assertEqual(self.test_doc_contents, f.read())
+                    self.assertPDFsEqual(f.read(), self.test_doc_contents)
 
     @utils.integration
     def test_get_bytes(self):
         with self.new_document_from_file() as d:
             result = d.original_file.get_bytes()
             self.assertTrue(isinstance(result, bytes))
-            self.assertEqual(result, self.test_doc_contents)
+            self.assertPDFsEqual(result, self.test_doc_contents)
 
     def test_to_json_obj(self):
         f = _file.RemoteFile(id_=u'1', name=u'document.pdf')

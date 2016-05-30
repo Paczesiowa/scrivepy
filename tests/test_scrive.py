@@ -333,7 +333,7 @@ class ScriveTest(utils.IntegrationTestCase):
                 self.assertTrue(f.name in [u'document1.pdf', u'document2.pdf'])
                 self.assertTrue(isinstance(f.id, unicode))
                 self.assertTrue(f.id is not u'')
-                self.assertEqual(contents, f.get_bytes())
+                self.assertPDFsEqual(contents, f.get_bytes())
                 if f.name == u'document1.pdf':
                     id1 = f.id
                 else:
@@ -350,6 +350,6 @@ class ScriveTest(utils.IntegrationTestCase):
                 self.assertTrue(f.name in [u'document1.pdf', u'document3.pdf'])
                 self.assertTrue(isinstance(f.id, unicode))
                 self.assertTrue(f.id is not u'')
-                self.assertEqual(contents, f.get_bytes())
+                self.assertPDFsEqual(contents, f.get_bytes())
                 if f.name == u'document1.pdf':
                     self.assertEqual(f.id, id1)

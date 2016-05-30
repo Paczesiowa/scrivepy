@@ -1,4 +1,5 @@
 import contextlib
+from subprocess import check_output
 import os
 import re
 import shutil
@@ -79,6 +80,17 @@ class TestCase(unittest.TestCase):
         o._set_invalid()
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             getattr(o, field_name)
+
+    def assertPDFsEqual(self, pdf_contents1, pdf_contents2):
+        with temporary_file_path() as file_path:
+            mutool_args = ['mutool', 'draw', '-o', '-', file_path]
+            with open(file_path, 'wb') as f:
+                f.write(pdf_contents1)
+            png_contents1 = check_output(mutool_args)
+            with open(file_path, 'wb') as f:
+                f.write(pdf_contents2)
+            png_contents2 = check_output(mutool_args)
+        self.assertEqual(png_contents1, png_contents2)
 
     def _test_field(self, field_name, bad_value, correct_type,
                     default_good_value, other_good_values,
