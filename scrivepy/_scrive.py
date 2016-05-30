@@ -13,6 +13,8 @@ class Scrive(object):
                  token_credentials_identifier,
                  token_credentials_secret,
                  api_hostname=b'scrive.com', https=True):
+        self._api_hostname = api_hostname
+        self._https = https
         proto = b'https' if https else b'http'
         self._api_url = proto + b'://' + api_hostname + b'/api/v1/'
 
@@ -26,6 +28,14 @@ class Scrive(object):
                                   for key, val in oauth_elems.items()])
 
         self._headers = {b'authorization': oauth_string}
+
+    @property
+    def api_hostname(self):
+        return self._api_hostname
+
+    @property
+    def https(self):
+        return self._https
 
     def _make_request(self, url_elems, method=requests.post,
                       data=None, files=None):

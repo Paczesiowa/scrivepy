@@ -385,3 +385,12 @@ class Signatory(_object.ScriveObject):
     @scrive_property
     def sign_url(self):
         return self._sign_url
+
+    def absolute_sign_url(self):
+        self._check_getter()
+        if self._sign_url is None:
+            return None
+        if self._api is None:
+            raise _exceptions.Error(u'API not set')
+        proto = b'https' if self._api.https else b'http'
+        return proto + b'://' + self._api.api_hostname + self._sign_url

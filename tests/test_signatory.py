@@ -1,4 +1,4 @@
-from scrivepy import _signatory, _field, _exceptions, _set
+from scrivepy import _signatory, _field, _exceptions, _set, _scrive
 from tests import utils
 
 
@@ -307,6 +307,54 @@ class SignatoryTest(utils.IntegrationTestCase):
         del json[u'signlink']
         s = S._from_json_obj(json)
         self.assertIsNone(s.sign_url)
+
+    def test_absolute_sign_url(self):
+        json = self.json.copy()
+        s = S._from_json_obj(json)
+        with self.assertRaises(_exceptions.Error, u'API not set'):
+            s.absolute_sign_url()
+        s._set_read_only()
+        with self.assertRaises(_exceptions.Error, u'API not set'):
+            s.absolute_sign_url()
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.absolute_sign_url()
+
+        s = S._from_json_obj(json)
+        api = _scrive.Scrive(client_credentials_identifier='',
+                             client_credentials_secret='',
+                             token_credentials_identifier='',
+                             token_credentials_secret='',
+                             api_hostname='127.0.0.1:8000',
+                             https=True)
+        s._set_api(api, None)
+        self.assertEqual('https://127.0.0.1:8000/s/1/2/3',
+                         s.absolute_sign_url())
+        s._set_read_only()
+        self.assertEqual('https://127.0.0.1:8000/s/1/2/3',
+                         s.absolute_sign_url())
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.absolute_sign_url()
+
+        json = self.json.copy()
+        del json[u'signlink']
+        s = S._from_json_obj(json)
+        self.assertIsNone(s.absolute_sign_url())
+        s._set_read_only()
+        self.assertIsNone(s.absolute_sign_url())
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.absolute_sign_url()
+
+        s = S._from_json_obj(json)
+        s._set_api(api, None)
+        self.assertIsNone(s.absolute_sign_url())
+        s._set_read_only()
+        self.assertIsNone(s.absolute_sign_url())
+        s._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            s.absolute_sign_url()
 
     def test_attachments(self):
         # check default ctor value
