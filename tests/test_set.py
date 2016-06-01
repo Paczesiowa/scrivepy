@@ -1002,3 +1002,30 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(TypeError,
                                u'other must be set, not 1.5'):
             1.5 - s
+
+    def test_get_by_attrs(self):
+        class O(object):
+            pass
+        o1 = O()
+        o1.key1 = 'val1'
+        o1.key2 = 'val2'
+        o2 = O()
+        o2.key1 = 'val3'
+        o2.key2 = 'val4'
+        s = S([o1, o2])
+        self.assertEqual(o1, s.get_by_attrs(key1='val1'))
+        self.assertEqual(o1, s.get_by_attrs(key2='val2'))
+        self.assertEqual(o1, s.get_by_attrs(key1='val1', key2='val2'))
+        self.assertEqual(o2, s.get_by_attrs(key2='val4'))
+
+        self.assertIsNone(s.get_by_attrs(key='val'))
+        self.assertIsNone(s.get_by_attrs(key1='val2'))
+
+        s._set_read_only()
+        self.assertEqual(o1, s.get_by_attrs(key1='val1'))
+        self.assertIsNone(s.get_by_attrs(key1='val2'))
+
+        s._set_invalid()
+        with self.assertRaises(INV):
+            s.get_by_attrs(key1='val1')
+            s.get_by_attrs(key1='val2')

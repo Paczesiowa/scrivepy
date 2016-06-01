@@ -310,3 +310,22 @@ class ScriveSet(set, _object.ScriveObject):
         result -= self
         self._derived_objs.append(result)
         return result
+
+    def get_by_attrs(self, **kwargs):
+        '''
+        Return first object matching all key=val attributes. or None.
+        '''
+        self._check_getter()
+        for x in self:
+            matches = True
+            for key, val in kwargs.items():
+                try:
+                    if getattr(x, key) != val:
+                        matches = False
+                        break
+                except AttributeError:
+                    matches = False
+                    break
+            if matches:
+                return x
+        return None
