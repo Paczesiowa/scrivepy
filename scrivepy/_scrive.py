@@ -71,8 +71,38 @@ class Scrive(object):
                                       method=requests.get)
 
     def update_document(self, document):
-        return self._make_doc_request(['update', document.id],
-                                      data={'json': document._to_json()})
+        local_files = filter(lambda f: isinstance(f, _file.LocalFile),
+                             document.author_attachments)
+        if local_files:
+            # remove them temporarily for update call
+            remote_files = filter(lambda f: isinstance(f, _file.RemoteFile),
+                                  document.author_attachments)
+            document.author_attachments.clear()
+            old_validator = document.author_attachments._elem_validator
+            document.author_attachments._elem_validator = None
+            document.author_attachments.update(remote_files)
+            document.author_attachments._elem_validator = old_validator
+
+        new_doc = self._make_doc_request(['update', document.id],
+                                         data={'json': document._to_json()})
+
+        if not local_files:
+            # no additions; deletions alraedy handled by update call
+            return new_doc
+
+        remote_files = filter(lambda f: isinstance(f, _file.RemoteFile),
+                              new_doc.author_attachments)
+
+        data = {u'attachment_' + unicode(i): rf.id
+                for i, rf in enumerate(remote_files)}
+
+        start_index = len(remote_files)
+        files = {u'attachment_' + unicode(i + start_index):
+                 (lf.name, lf.stream(), 'application/pdf')
+                 for i, lf in enumerate(local_files)}
+
+        return self._make_doc_request(['setattachments', document.id],
+                                      data=data, files=files)
 
     def ready(self, document):
         return self._make_doc_request(['ready', document.id])
@@ -129,24 +159,3 @@ class Scrive(object):
                           cStringIO.StringIO(file_contents),
                           content_type)}
         return self._make_doc_request(url_elems, data='', files=files)
-
-    def _set_author_attachments(self, document):
-        local_files = filter(lambda f: isinstance(f, _file.LocalFile),
-                             document.author_attachments)
-        if not local_files:
-            # no additions; deletions can be handled by update call
-            return document
-
-        remote_files = filter(lambda f: isinstance(f, _file.RemoteFile),
-                              document.author_attachments)
-
-        data = {u'attachment_' + unicode(i): rf.id
-                for i, rf in enumerate(remote_files)}
-
-        start_index = len(remote_files)
-        files = {u'attachment_' + unicode(i + start_index):
-                 (lf.name, lf.stream(), 'application/pdf')
-                 for i, lf in enumerate(local_files)}
-
-        return self._make_doc_request(['setattachments', document.id],
-                                      data=data, files=files)

@@ -321,13 +321,13 @@ class ScriveTest(utils.IntegrationTestCase):
 
         with self.new_document_from_file() as d:
             d.author_attachments.add(file_(1))
-            d = self.api._set_author_attachments(d)
+            d = self.api.update_document(d)
             self.assertEqual(1, len(d.author_attachments))
             self.assertEqual(u'document1.pdf',
                              list(d.author_attachments)[0].name)
 
             d.author_attachments.add(file_(2))
-            d = self.api._set_author_attachments(d)
+            d = self.api.update_document(d)
             self.assertEqual(2, len(d.author_attachments))
             for f in d.author_attachments:
                 self.assertTrue(f.name in [u'document1.pdf', u'document2.pdf'])
@@ -339,12 +339,11 @@ class ScriveTest(utils.IntegrationTestCase):
                 else:
                     id2 = f.id
 
-            remote_file2 = filter(lambda f: f.id == id2,
-                                  d.author_attachments)[0]
+            remote_file2 = d.author_attachments.get_by_attrs(id=id2)
             d.author_attachments.remove(remote_file2)
             d.author_attachments.add(file_(3))
 
-            d = self.api._set_author_attachments(d)
+            d = self.api.update_document(d)
             self.assertEqual(2, len(d.author_attachments))
             for f in d.author_attachments:
                 self.assertTrue(f.name in [u'document1.pdf', u'document3.pdf'])
