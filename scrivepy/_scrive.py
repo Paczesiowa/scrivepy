@@ -66,6 +66,17 @@ class Scrive(object):
 
         return self._make_doc_request(['createfromfile'], data='', files=files)
 
+    def change_document_file(self, document, file_path):
+        if file_path is None:
+            files = None
+        else:
+            files = {'file': (path.basename(file_path),
+                              open(file_path, 'rb'),
+                              'application/pdf')}
+
+        return self._make_doc_request(['changemainfile', document.id],
+                                      data='', files=files)
+
     def create_document_from_template(self, template_id):
         return self._make_doc_request(['createfromtemplate', template_id])
 
