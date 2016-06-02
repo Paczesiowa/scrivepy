@@ -115,8 +115,8 @@ if __name__ == '__main__':
     parser.add_argument('--target-no-https', help=msg,
                         action='store_true', default=False)
 
-    msg = 'Id of the document to copy from source account to target account'
-    parser.add_argument('DOCUMENT_ID', type=str, help=msg)
+    msg = 'Ids of the document to copy from source account to target account'
+    parser.add_argument('DOCUMENT_ID', type=str, help=msg, nargs='+')
 
     args = parser.parse_args()
 
@@ -141,7 +141,8 @@ if __name__ == '__main__':
                                 api_hostname=args.target_hostname,
                                 https=not args.target_no_https)
 
-    source_doc = source_api.get_document(args.DOCUMENT_ID)
-    target_doc = target_api.create_document_from_file(file_path=None)
-    copy_doc(source_doc, target_doc)
-    print source_doc.id, '->', target_doc.id
+    for did in args.DOCUMENT_ID:
+        source_doc = source_api.get_document(did)
+        target_doc = target_api.create_document_from_file(file_path=None)
+        copy_doc(source_doc, target_doc)
+        print source_doc.id, '->', target_doc.id
