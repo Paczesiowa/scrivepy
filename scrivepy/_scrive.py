@@ -57,9 +57,12 @@ class Scrive(object):
         return document
 
     def create_document_from_file(self, file_path):
-        files = {'file': (path.basename(file_path),
-                          open(file_path, 'rb'),
-                          'application/pdf')}
+        if file_path is None:
+            files = None
+        else:
+            files = {'file': (path.basename(file_path),
+                              open(file_path, 'rb'),
+                              'application/pdf')}
 
         return self._make_doc_request(['createfromfile'], data='', files=files)
 
