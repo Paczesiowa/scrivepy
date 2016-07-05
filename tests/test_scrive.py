@@ -3,7 +3,7 @@ from datetime import datetime
 
 from dateutil import tz
 
-from scrivepy import _document, _signatory, _file
+from scrivepy import _document, _signatory
 from tests import utils
 
 
@@ -316,8 +316,8 @@ class ScriveTest(utils.IntegrationTestCase):
     @utils.integration
     def test_set_author_attachments(self):
         contents = self.test_doc_contents
-        file_ = lambda n: _file.LocalFile(u'document' + unicode(n) + u'.pdf',
-                                          contents)
+        file_ = lambda n: _document.AuthorAttachment(
+            u'document' + unicode(n) + u'.pdf', contents)
 
         with self.new_document_from_file() as d:
             d.author_attachments.add(file_(1))
@@ -325,6 +325,10 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertEqual(1, len(d.author_attachments))
             self.assertEqual(u'document1.pdf',
                              list(d.author_attachments)[0].name)
+
+            att = list(d.author_attachments)[0]
+            att.mandatory = True
+            att.merge = False
 
             d.author_attachments.add(file_(2))
             d = self.api.update_document(d)
@@ -336,8 +340,12 @@ class ScriveTest(utils.IntegrationTestCase):
                 self.assertPDFsEqual(contents, f.get_bytes())
                 if f.name == u'document1.pdf':
                     id1 = f.id
+                    self.assertTrue(f.mandatory)
+                    self.assertFalse(f.merge)
                 else:
                     id2 = f.id
+                    self.assertFalse(f.mandatory)
+                    self.assertTrue(f.merge)
 
             remote_file2 = d.author_attachments.get_by_attrs(id=id2)
             d.author_attachments.remove(remote_file2)

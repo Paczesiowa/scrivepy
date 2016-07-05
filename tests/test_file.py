@@ -1,7 +1,7 @@
 import contextlib
 import os
 
-from scrivepy import _document, _file, _exceptions
+from scrivepy import _file, _exceptions
 from tests import utils
 
 
@@ -42,6 +42,12 @@ class RemoteFileTest(utils.IntegrationTestCase):
         json = {u'id': u'1', u'name': u'document.pdf'}
         self.assertEqual(json, f._to_json_obj())
 
+    def test_from_json_obj(self):
+        f = _file.RemoteFile._from_json_obj(
+            {u'id': u'1', u'name': u'document.pdf'})
+        self.assertEqual(f.id, u'1')
+        self.assertEqual(f.name, u'document.pdf')
+
     def test_id(self):
         err_msg = u'id_ must be unicode, not None'
         with self.assertRaises(TypeError, err_msg):
@@ -74,75 +80,6 @@ class RemoteFileTest(utils.IntegrationTestCase):
             _file.RemoteFile(id_=u'1', name=u'')
 
         f = _file.RemoteFile(id_=u'1', name=u'document.pdf')
-        self.assertEqual(f.name, u'document.pdf')
-
-        with self.assertRaises(AttributeError):
-            f.name = u'2'
-
-        f._set_read_only()
-        self.assertEqual(f.name, u'document.pdf')
-
-        f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
-            f.name
-
-    def test_document(self):
-        d = _document.Document()
-        f = _file.RemoteFile(id_=u'1', name=u'document.pdf')
-
-        with self.assertRaises(AttributeError):
-            f.document
-
-        with self.assertRaises(AttributeError):
-            f.document = d
-
-
-class LocalFileTest(utils.IntegrationTestCase):
-
-    @classmethod
-    def setUpClass(class_):
-        super(LocalFileTest, class_).setUpClass()
-        class_.file_ = _file.LocalFile(u'document.pdf',
-                                       class_.test_doc_contents)
-
-    def test_stream(self):
-        with contextlib.closing(self.file_.stream()) as f:
-            self.assertEqual(self.test_doc_contents, f.read())
-
-    def test_get_bytes(self):
-        self.assertEqual(self.file_.get_bytes(), self.test_doc_contents)
-
-    def test_from_file_obj(self):
-        with open(self.test_doc_path, 'rb') as f:
-            file_ = _file.LocalFile.from_file_obj(u'document.pdf', f)
-            self.assertEqual(file_.get_bytes(), self.test_doc_contents)
-
-    def test_from_file_path(self):
-        file_ = _file.LocalFile.from_file_path(self.test_doc_path)
-        self.assertEqual(file_.get_bytes(), self.test_doc_contents)
-
-    def test_save_as(self):
-        with utils.temporary_file_path() as file_path:
-            self.file_.save_as(file_path)
-            with open(file_path, 'rb') as f:
-                self.assertEqual(self.test_doc_contents, f.read())
-
-    def test_save_to(self):
-        with utils.temporary_dir() as dir_path:
-            self.file_.save_to(dir_path)
-            with open(os.path.join(dir_path, self.file_.name), 'rb') as f:
-                self.assertEqual(self.test_doc_contents, f.read())
-
-    def test_name(self):
-        err_msg = u'name must be unicode, not None'
-        with self.assertRaises(TypeError, err_msg):
-            _file.LocalFile(name=None, content=b'')
-
-        err_msg = u'name must be non-empty string, not: '
-        with self.assertRaises(ValueError, err_msg):
-            _file.LocalFile(name=u'', content=b'')
-
-        f = _file.LocalFile(name=u'document.pdf', content=b'')
         self.assertEqual(f.name, u'document.pdf')
 
         with self.assertRaises(AttributeError):

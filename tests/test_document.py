@@ -1,5 +1,6 @@
-import contextlib
 import cStringIO
+import contextlib
+import os
 import time
 
 import pyPdf
@@ -9,6 +10,8 @@ from scrivepy import _signatory, _document, _exceptions, \
 from tests import utils
 
 
+AA = _document.AuthorAttachment
+RAA = _document.RemoteAuthorAttachment
 S = _signatory.Signatory
 D = _document.Document
 DS = _document.DocumentStatus
@@ -16,6 +19,253 @@ DelS = _document.DeletionStatus
 Lang = _document.Language
 ScriveSet = _set.ScriveSet
 UnicodeDict = _unicode_dict.UnicodeDict
+
+
+class AuthorAttachmentTest(utils.IntegrationTestCase):
+
+    @classmethod
+    def setUpClass(class_):
+        super(AuthorAttachmentTest, class_).setUpClass()
+        class_.file_ = AA(u'document.pdf', class_.test_doc_contents)
+
+    def test_stream(self):
+        with contextlib.closing(self.file_.stream()) as f:
+            self.assertEqual(self.test_doc_contents, f.read())
+
+    def test_get_bytes(self):
+        self.assertEqual(self.file_.get_bytes(), self.test_doc_contents)
+
+    def test_from_file_obj(self):
+        with open(self.test_doc_path, 'rb') as f:
+            file_ = AA.from_file_obj(u'document.pdf', f)
+            self.assertEqual(file_.get_bytes(), self.test_doc_contents)
+
+    def test_from_file_path(self):
+        file_ = AA.from_file_path(self.test_doc_path)
+        self.assertEqual(file_.get_bytes(), self.test_doc_contents)
+
+    def test_save_as(self):
+        with utils.temporary_file_path() as file_path:
+            self.file_.save_as(file_path)
+            with open(file_path, 'rb') as f:
+                self.assertEqual(self.test_doc_contents, f.read())
+
+    def test_save_to(self):
+        with utils.temporary_dir() as dir_path:
+            self.file_.save_to(dir_path)
+            with open(os.path.join(dir_path, self.file_.name), 'rb') as f:
+                self.assertEqual(self.test_doc_contents, f.read())
+
+    def test_name(self):
+        err_msg = u'name must be unicode, not None'
+        with self.assertRaises(TypeError, err_msg):
+            AA(name=None, content=b'')
+
+        err_msg = u'name must be non-empty string, not: '
+        with self.assertRaises(ValueError, err_msg):
+            AA(name=u'', content=b'')
+
+        f = AA(name=u'document.pdf', content=b'')
+        self.assertEqual(f.name, u'document.pdf')
+
+        with self.assertRaises(AttributeError):
+            f.name = u'2'
+
+        f._set_read_only()
+        self.assertEqual(f.name, u'document.pdf')
+
+        f._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject):
+            f.name
+
+    def test_mandatory(self):
+        err_msg = u'mandatory must be bool, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            AA(name=u'x', content=b'', mandatory=2)
+
+        aa = AA(name=u'document.pdf', content=b'')
+        self.assertFalse(aa.mandatory)
+
+        aa.mandatory = True
+        self.assertTrue(aa.mandatory)
+
+        err_msg = u'mandatory must be bool, not []'
+        with self.assertRaises(TypeError, err_msg):
+            aa.mandatory = []
+
+        aa._set_read_only()
+        self.assertTrue(aa.mandatory)
+
+        aa._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject):
+            aa.mandatory
+
+    def test_merge(self):
+        err_msg = u'merge must be bool, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            AA(name=u'x', content=b'', merge=2)
+
+        aa = AA(name=u'document.pdf', content=b'')
+        self.assertTrue(aa.merge)
+
+        aa.merge = False
+        self.assertFalse(aa.merge)
+
+        err_msg = u'merge must be bool, not []'
+        with self.assertRaises(TypeError, err_msg):
+            aa.merge = []
+
+        aa._set_read_only()
+        self.assertFalse(aa.merge)
+
+        aa._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject):
+            aa.merge
+
+
+class RemoteAuthorAttachmentTest(utils.IntegrationTestCase):
+
+    @utils.integration
+    def test_stream(self):
+        with self.new_document_from_file() as d:
+            d.author_attachments.add(AA(u'document.pdf',
+                                        self.test_doc_contents))
+            d = self.api.update_document(d)
+            raa = list(d.author_attachments)[0]
+            with contextlib.closing(raa.stream()) as f:
+                self.assertPDFsEqual(f.read(), self.test_doc_contents)
+
+    @utils.integration
+    def test_save_as(self):
+        with self.new_document_from_file() as d:
+            d.author_attachments.add(AA(u'document.pdf',
+                                        self.test_doc_contents))
+            d = self.api.update_document(d)
+            raa = list(d.author_attachments)[0]
+            with utils.temporary_file_path() as file_path:
+                raa.save_as(file_path)
+                with open(file_path, 'rb') as f:
+                    self.assertPDFsEqual(f.read(), self.test_doc_contents)
+
+    @utils.integration
+    def test_save_to(self):
+        with self.new_document_from_file() as d:
+            d.author_attachments.add(AA(u'document.pdf',
+                                        self.test_doc_contents))
+            d = self.api.update_document(d)
+            raa = list(d.author_attachments)[0]
+            with utils.temporary_dir() as dir_path:
+                raa.save_to(dir_path)
+                with open(os.path.join(dir_path, raa.name), 'rb') as f:
+                    self.assertPDFsEqual(f.read(), self.test_doc_contents)
+
+    @utils.integration
+    def test_get_bytes(self):
+        with self.new_document_from_file() as d:
+            d.author_attachments.add(AA(u'document.pdf',
+                                        self.test_doc_contents))
+            d = self.api.update_document(d)
+            raa = list(d.author_attachments)[0]
+            result = raa.get_bytes()
+            self.assertTrue(isinstance(result, bytes))
+            self.assertPDFsEqual(result, self.test_doc_contents)
+
+    def test_from_json_obj(self):
+        json = {u'id': u'1234', u'name': u'document.pdf',
+                u'required': True, u'add_to_sealed_file': False}
+        raa = RAA._from_json_obj(json)
+        self.assertEqual(raa.id, u'1234')
+        self.assertEqual(raa.name, u'document.pdf')
+        self.assertTrue(raa.mandatory)
+        self.assertFalse(raa.merge)
+
+    def test_id(self):
+        err_msg = u'id_ must be unicode, not None'
+        with self.assertRaises(TypeError, err_msg):
+            RAA(id_=None, name=u'document.pdf')
+
+        err_msg = u'id_ must be non-empty string, not: '
+        with self.assertRaises(ValueError, err_msg):
+            RAA(id_=u'', name=u'document.pdf')
+
+        raa = RAA(id_=u'1', name=u'document.pdf')
+        self.assertEqual(raa.id, u'1')
+
+        with self.assertRaises(AttributeError):
+            raa.id = u'2'
+
+        raa._set_read_only()
+        self.assertEqual(raa.id, u'1')
+
+        raa._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject):
+            raa.id
+
+    def test_name(self):
+        err_msg = u'name must be unicode, not None'
+        with self.assertRaises(TypeError, err_msg):
+            RAA(id_=u'1', name=None)
+
+        err_msg = u'name must be non-empty string, not: '
+        with self.assertRaises(ValueError, err_msg):
+            RAA(id_=u'1', name=u'')
+
+        raa = RAA(id_=u'1', name=u'document.pdf')
+        self.assertEqual(raa.name, u'document.pdf')
+
+        with self.assertRaises(AttributeError):
+            raa.name = u'2'
+
+        raa._set_read_only()
+        self.assertEqual(raa.name, u'document.pdf')
+
+        raa._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject):
+            raa.name
+
+    def test_mandatory(self):
+        err_msg = u'mandatory must be bool, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            RAA(id_=u'1', name=u'x', mandatory=2)
+
+        raa = RAA(id_=u'1', name=u'document.pdf')
+        self.assertFalse(raa.mandatory)
+
+        err_msg = u'mandatory must be bool, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            raa.mandatory = 2
+
+        raa.mandatory = True
+        self.assertTrue(raa.mandatory)
+
+        raa._set_read_only()
+        self.assertTrue(raa.mandatory)
+
+        raa._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject):
+            raa.mandatory
+
+    def test_merge(self):
+        err_msg = u'merge must be bool, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            RAA(id_=u'1', name=u'x', merge=2)
+
+        raa = RAA(id_=u'1', name=u'document.pdf')
+        self.assertTrue(raa.merge)
+
+        err_msg = u'merge must be bool, not 2'
+        with self.assertRaises(TypeError, err_msg):
+            raa.merge = 2
+
+        raa.merge = False
+        self.assertFalse(raa.merge)
+
+        raa._set_read_only()
+        self.assertFalse(raa.merge)
+
+        raa._set_invalid()
+        with self.assertRaises(_exceptions.InvalidScriveObject):
+            raa.merge
 
 
 class DocumentTest(utils.IntegrationTestCase):
@@ -558,8 +808,12 @@ class DocumentTest(utils.IntegrationTestCase):
         json[u'status'] = u'Preparation'  # so it's not read only
         d = self.O._from_json_obj(json)
         self.assertEqual(d.author_attachments, ScriveSet())
-        json[u'authorattachments'] = [{u'id': u'1', u'name': u'document1.pdf'},
-                                      {u'id': u'2', u'name': u'document2.pdf'}]
+        json[u'authorattachments'] = [{u'id': u'1', u'name': u'document1.pdf',
+                                       u'required': True,
+                                       u'add_to_sealed_file': False},
+                                      {u'id': u'2', u'name': u'document2.pdf',
+                                       u'required': False,
+                                       u'add_to_sealed_file': True}]
         d2 = self.O._from_json_obj(json)
         self.assertEqual(2, len(d2.author_attachments))
         for file_ in d2.author_attachments:
@@ -573,8 +827,9 @@ class DocumentTest(utils.IntegrationTestCase):
         file1 = list(d2.author_attachments)[0]
         self.assertEqual([file1], d2._to_json_obj()[u'authorattachments'])
 
-        type_err_msg = (u'elem must be LocalFile, not '
-                        u'<scrivepy._file.RemoteFile object at .*')
+        type_err_msg = (u'elem must be AuthorAttachment, not '
+                        u'<scrivepy._document.RemoteAuthorAttachment '
+                        u'object at .*')
         with self.assertRaisesRegexp(TypeError, type_err_msg):
             d2.author_attachments.add(file1)
 
@@ -590,7 +845,7 @@ class DocumentTest(utils.IntegrationTestCase):
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
             d2.author_attachments
         with self.assertRaises(_exceptions.InvalidScriveObject, None):
-            atts.add(_file.LocalFile(u'x', b''))
+            atts.add(AA(u'x', b''))
 
     def test_author(self):
         json = self.json.copy()
