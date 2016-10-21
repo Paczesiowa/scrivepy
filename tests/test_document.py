@@ -316,6 +316,7 @@ class DocumentTest(utils.IntegrationTestCase):
                      u'showheader': False,
                      u'showpdfdownload': False,
                      u'showrejectoption': False,
+                     u'allowrejectreason': False,
                      u'showfooter': False,
                      u'invitationmessage': u'',
                      u'confirmationmessage': u'',
@@ -384,6 +385,7 @@ class DocumentTest(utils.IntegrationTestCase):
                    show_header=False,
                    show_pdf_download=False,
                    show_reject_option=False,
+                   show_reject_reason=False,
                    show_footer=False,
                    invitation_message=u'some text',
                    confirmation_message=u'some confirmation text',
@@ -401,6 +403,7 @@ class DocumentTest(utils.IntegrationTestCase):
                 u'showheader': False,
                 u'showpdfdownload': False,
                 u'showrejectoption': False,
+                u'allowrejectreason': False,
                 u'showfooter': False,
                 u'invitationmessage': u'some text',
                 u'confirmationmessage': u'some confirmation text',
@@ -436,6 +439,7 @@ class DocumentTest(utils.IntegrationTestCase):
         self.assertEqual(d.show_header, False)
         self.assertEqual(d.show_pdf_download, False)
         self.assertEqual(d.show_reject_option, False)
+        self.assertEqual(d.show_reject_reason, False)
         self.assertEqual(d.show_footer, False)
         self.assertEqual(d.invitation_message, None)
         self.assertEqual(d.confirmation_message, None)
@@ -603,6 +607,13 @@ class DocumentTest(utils.IntegrationTestCase):
                          default_good_value=True,
                          other_good_values=[False],
                          serialized_name=u'showrejectoption')
+
+    def test_show_reject_reason(self):
+        self._test_field('show_reject_reason',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=True,
+                         other_good_values=[False],
+                         serialized_name=u'allowrejectreason')
 
     def test_show_footer(self):
         self._test_field('show_footer',

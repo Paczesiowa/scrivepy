@@ -1,3 +1,4 @@
+* rework show_header+show_pdf_download and reject options (they are hierarchical)
 * update call could skip setting attachments if they didn't change
 * add tests that there are no setters for fields of ScriveSet/Dict type
 * in tests prefer assertTrue/assertFalse/assertNone to assertEqual
