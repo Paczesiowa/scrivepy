@@ -34,6 +34,7 @@ class SignatoryTest(utils.IntegrationTestCase):
                      u'author': True,
                      u'saved': True,
                      u'datamismatch': u'first name doesnt match',
+                     u'allowshighlighting': True,
                      u'signdate': None,
                      u'seendate': None,
                      u'readdate': None,
@@ -94,6 +95,7 @@ class SignatoryTest(utils.IntegrationTestCase):
                    viewer=True,
                    sign_success_redirect_url=u'http://example.com/',
                    rejection_redirect_url=u'http://example.net/',
+                   allows_highlighting=True,
                    authentication_method='sms_pin')
         s.fields.add(self.f1)
         s.attachments.add(self.a1)
@@ -108,6 +110,7 @@ class SignatoryTest(utils.IntegrationTestCase):
                 u'author': False,
                 u'signsuccessredirect': u'http://example.com/',
                 u'rejectredirect': u'http://example.net/',
+                u'allowshighlighting': True,
                 u'authentication': u'sms_pin',
                 u'id': u'1'}
 
@@ -119,6 +122,7 @@ class SignatoryTest(utils.IntegrationTestCase):
         self.assertEqual(s.current, True)
         self.assertEqual(s.sign_order, 3)
         self.assertEqual(s.viewer, False)
+        self.assertEqual(s.allows_highlighting, True)
         self.assertEqual(s.author, True)
         self.assertEqual(s.undelivered_invitation, True)
         self.assertEqual(s.undelivered_email_invitation, False)
@@ -251,6 +255,14 @@ class SignatoryTest(utils.IntegrationTestCase):
                          other_good_values=[True],
                          serialized_name=u'signs',
                          serialized_default_good_value=True)
+
+    def test_allows_highlighting(self):
+        self._test_field('allows_highlighting',
+                         bad_value=[], correct_type=bool,
+                         default_good_value=False,
+                         other_good_values=[True],
+                         serialized_name=u'allowshighlighting',
+                         serialized_default_good_value=False)
 
     def test_author(self):
         s = self.o()

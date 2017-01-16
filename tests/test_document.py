@@ -284,6 +284,7 @@ class DocumentTest(utils.IntegrationTestCase):
                    u'authentication': u'standard',
                    u'signs': True,
                    u'author': True,
+                   u'allowshighlighting': True,
                    u'saved': True,
                    u'datamismatch': None,
                    u'signdate': None,
