@@ -1,11 +1,19 @@
-from scrivepy import _field_placement, _field, _set, _exceptions
+from scrivepy import (
+    FieldPlacement as FP,
+    TipSide as TS,
+    Field as F,
+    StandardFieldType as SFT,
+    StandardField as SF,
+    CustomField as CF,
+    SignatureField as SigF,
+    CheckboxField as ChF,
+    InvalidScriveObject,
+    ReadOnlyScriveObject,
+    _set
+)
 from tests import utils
 
 
-FP = _field_placement.FieldPlacement
-TS = _field_placement.TipSide
-F = _field.Field
-SFT = _field.StandardFieldType
 ScriveSet = _set.ScriveSet
 
 
@@ -39,13 +47,13 @@ class FieldTest(object):
 
         f._set_read_only()
         self.assertEqual(u'bar', f.value)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             f.value = u'baz'
 
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.value
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.value = u'baz'
 
     def test_obligatory_default(self):
@@ -69,13 +77,13 @@ class FieldTest(object):
 
         f._set_read_only()
         self.assertFalse(f.obligatory)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             f.obligatory = True
 
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.obligatory
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.obligatory = True
 
     def test_should_be_filled_by_sender(self):
@@ -100,13 +108,13 @@ class FieldTest(object):
 
         f._set_read_only()
         self.assertTrue(f.should_be_filled_by_sender)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             f.should_be_filled_by_sender = False
 
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.should_be_filled_by_sender
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.should_be_filled_by_sender = False
 
     def test_placements(self):
@@ -130,15 +138,15 @@ class FieldTest(object):
         f._set_read_only()
         # set() is because the 2nd one is read only and not really equal
         self.assertEqual(set(ScriveSet([self.fp2])), set(f.placements))
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             f.placements.clear()
             f.placements.add(self.fp)
 
         plcmts = f.placements
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.placements
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             plcmts.add(self.fp)
 
     def test_default_placement_tip(self):
@@ -153,7 +161,7 @@ class FieldTest(object):
         self.assertIsNone(f.closed)
 
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.closed
 
     def test_flags(self):
@@ -173,32 +181,32 @@ class FieldTest(object):
         self.assertIsNone(f._check_getter())
         self.assertIsNone(fp1._check_getter())
         self.assertIsNone(fp2._check_getter())
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           f._check_setter)
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           fp1._check_setter)
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           fp2._check_setter)
 
         f._set_invalid()
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           f._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           fp1._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           fp2._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           f._check_setter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           fp1._check_setter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           fp2._check_setter)
 
 
 class StandardFieldTest(FieldTest):
 
     def f(self, *args, **kwargs):
-        return _field.StandardField(name=self.FIELD_NAME, *args, **kwargs)
+        return SF(name=self.FIELD_NAME, *args, **kwargs)
 
     def test_to_json_obj(self):
         fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
@@ -253,13 +261,13 @@ class StandardFieldTest(FieldTest):
         with self.assertRaises(AttributeError, u"can't set attribute"):
             f.name = u'quux'
 
-        f = _field.StandardField(name=self.FIELD_NAME.name)
+        f = SF(name=self.FIELD_NAME.name)
         self.assertTrue(isinstance(f.name, SFT))
         self.assertEqual(f.name, self.FIELD_NAME)
 
         err_msg = u"name could be StandardFieldType's variant name, not: wrong"
         with self.assertRaises(ValueError, err_msg):
-            _field.StandardField(name='wrong')
+            SF(name='wrong')
 
 
 class FirstNameFieldTest(StandardFieldTest, utils.TestCase):
@@ -302,7 +310,7 @@ class CustomFieldTest(FieldTest, utils.TestCase):
     def f(self, *args, **kwargs):
         if u'name' not in kwargs:
             kwargs[u'name'] = u'fieldname'
-        return _field.CustomField(*args, **kwargs)
+        return CF(*args, **kwargs)
 
     def test_to_json_obj(self):
         fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
@@ -332,7 +340,7 @@ class CustomFieldTest(FieldTest, utils.TestCase):
                 u'placements': [self.fp._to_json_obj(),
                                 self.fp2._to_json_obj()]}
         f = F._from_json_obj(json)
-        self.assertTrue(isinstance(f, _field.CustomField))
+        self.assertTrue(isinstance(f, CF))
         self.assertEqual(f.value, u'fieldvalue')
         self.assertEqual(f.closed, False)
         self.assertEqual(f.obligatory, True)
@@ -361,7 +369,7 @@ class SignatureFieldTest(FieldTest, utils.TestCase):
     def f(self, *args, **kwargs):
         if u'name' not in kwargs:
             kwargs[u'name'] = u'signature-1'
-        return _field.SignatureField(*args, **kwargs)
+        return SigF(*args, **kwargs)
 
     def test_value(self):
         with self.assertRaises(TypeError):  # unexpected argument
@@ -377,7 +385,7 @@ class SignatureFieldTest(FieldTest, utils.TestCase):
         self.assertEqual(u'', f.value)
 
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.value
 
     def test_to_json_obj(self):
@@ -408,7 +416,7 @@ class SignatureFieldTest(FieldTest, utils.TestCase):
                 u'placements': [self.fp._to_json_obj(),
                                 self.fp2._to_json_obj()]}
         f = F._from_json_obj(json)
-        self.assertTrue(isinstance(f, _field.SignatureField))
+        self.assertTrue(isinstance(f, SigF))
         self.assertEqual(f.value, u'somejpegdata')
         self.assertEqual(f.closed, True)
         self.assertEqual(f.obligatory, True)
@@ -437,7 +445,7 @@ class CheckboxFieldTest(FieldTest, utils.TestCase):
     def f(self, *args, **kwargs):
         if u'name' not in kwargs:
             kwargs[u'name'] = u'checkbox-1'
-        return _field.CheckboxField(*args, **kwargs)
+        return ChF(*args, **kwargs)
 
     def test_value(self):
         with self.assertRaises(TypeError, u'value must be bool, not 1'):
@@ -460,13 +468,13 @@ class CheckboxFieldTest(FieldTest, utils.TestCase):
 
         f._set_read_only()
         self.assertFalse(f.value)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             f.value = True
 
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.value
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             f.value = True
 
     def test_obligatory_default(self):
@@ -505,7 +513,7 @@ class CheckboxFieldTest(FieldTest, utils.TestCase):
                 u'placements': [self.fp._to_json_obj(),
                                 self.fp2._to_json_obj()]}
         f = F._from_json_obj(json)
-        self.assertTrue(isinstance(f, _field.CheckboxField))
+        self.assertTrue(isinstance(f, ChF))
         self.assertFalse(f.value)
         self.assertEqual(f.closed, True)
         self.assertEqual(f.obligatory, True)

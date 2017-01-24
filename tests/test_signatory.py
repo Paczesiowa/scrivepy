@@ -1,14 +1,21 @@
-from scrivepy import _signatory, _field, _exceptions, _set, _scrive
+from scrivepy import (
+    AuthenticationMethod as AM,
+    ConfirmationDeliveryMethod as CDM,
+    CustomField as CF,
+    InvitationDeliveryMethod as IDM,
+    Signatory as S,
+    SignatoryAttachment as A,
+    Scrive,
+    StandardField as SF,
+    StandardFieldType as SFT,
+    InvalidScriveObject,
+    ReadOnlyScriveObject,
+    Error,
+    _set
+)
 from tests import utils
 
 
-S = _signatory.Signatory
-IDM = _signatory.InvitationDeliveryMethod
-CDM = _signatory.ConfirmationDeliveryMethod
-AM = _signatory.AuthenticationMethod
-A = _signatory.SignatoryAttachment
-F = _field
-SFT = _field.StandardFieldType
 ScriveSet = _set.ScriveSet
 
 
@@ -16,8 +23,8 @@ class SignatoryTest(utils.IntegrationTestCase):
 
     def setUp(self):
         self.O = S
-        self.f1 = F.StandardField(name='first_name', value=u'John')
-        self.f2 = F.CustomField(name=u'field', value=u'value')
+        self.f1 = SF(name='first_name', value=u'John')
+        self.f2 = CF(name=u'field', value=u'value')
         self.a1 = A(u'id1', u'Scan or picture of personal id1')
         self.a2 = A(u'id2', u'Scan or picture of personal id2')
         self.json = {u'id': u'123abc',
@@ -52,8 +59,8 @@ class SignatoryTest(utils.IntegrationTestCase):
         return S(*args, **kwargs)
 
     def test_flags(self):
-        f1 = F.StandardField(name='first_name', value=u'John')
-        f2 = F.CustomField(name=u'field', value=u'value')
+        f1 = SF(name='first_name', value=u'John')
+        f2 = CF(name=u'field', value=u'value')
         s = self.o()
         s.fields.update([f1, f2])
 
@@ -68,25 +75,25 @@ class SignatoryTest(utils.IntegrationTestCase):
         self.assertIsNone(s._check_getter())
         self.assertIsNone(f1._check_getter())
         self.assertIsNone(f2._check_getter())
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           s._check_setter)
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           f1._check_setter)
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           f2._check_setter)
 
         s._set_invalid()
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           s._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           f1._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           f2._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           s._check_setter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           f1._check_setter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           f2._check_setter)
 
     def test_to_json_obj(self):
@@ -168,15 +175,15 @@ class SignatoryTest(utils.IntegrationTestCase):
         s._set_read_only()
         # set() is because the 2nd one is read only and not really equal
         self.assertEqual(set(ScriveSet([self.f2])), set(s.fields))
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             s.fields.clear()
             s.fields.add(self.f1)
 
         flds = s.fields
         s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.fields
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             flds.add(self.f1)
 
     def test_id(self):
@@ -272,7 +279,7 @@ class SignatoryTest(utils.IntegrationTestCase):
         self.assertFalse(s.author)
 
         s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.author
 
         json = self.json.copy()
@@ -285,7 +292,7 @@ class SignatoryTest(utils.IntegrationTestCase):
         self.assertTrue(s.author)
 
         s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.author
 
     def test_has_account(self):
@@ -342,22 +349,22 @@ class SignatoryTest(utils.IntegrationTestCase):
     def test_absolute_sign_url(self):
         json = self.json.copy()
         s = S._from_json_obj(json)
-        with self.assertRaises(_exceptions.Error, u'API not set'):
+        with self.assertRaises(Error, u'API not set'):
             s.absolute_sign_url()
         s._set_read_only()
-        with self.assertRaises(_exceptions.Error, u'API not set'):
+        with self.assertRaises(Error, u'API not set'):
             s.absolute_sign_url()
         s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.absolute_sign_url()
 
         s = S._from_json_obj(json)
-        api = _scrive.Scrive(client_credentials_identifier='',
-                             client_credentials_secret='',
-                             token_credentials_identifier='',
-                             token_credentials_secret='',
-                             api_hostname='127.0.0.1:8000',
-                             https=True)
+        api = Scrive(client_credentials_identifier='',
+                     client_credentials_secret='',
+                     token_credentials_identifier='',
+                     token_credentials_secret='',
+                     api_hostname='127.0.0.1:8000',
+                     https=True)
         s._set_api(api, None)
         self.assertEqual('https://127.0.0.1:8000/s/1/2/3',
                          s.absolute_sign_url())
@@ -365,7 +372,7 @@ class SignatoryTest(utils.IntegrationTestCase):
         self.assertEqual('https://127.0.0.1:8000/s/1/2/3',
                          s.absolute_sign_url())
         s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.absolute_sign_url()
 
         json = self.json.copy()
@@ -375,7 +382,7 @@ class SignatoryTest(utils.IntegrationTestCase):
         s._set_read_only()
         self.assertIsNone(s.absolute_sign_url())
         s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.absolute_sign_url()
 
         s = S._from_json_obj(json)
@@ -384,7 +391,7 @@ class SignatoryTest(utils.IntegrationTestCase):
         s._set_read_only()
         self.assertIsNone(s.absolute_sign_url())
         s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.absolute_sign_url()
 
     def test_attachments(self):
@@ -408,15 +415,15 @@ class SignatoryTest(utils.IntegrationTestCase):
         s._set_read_only()
         # set() is because the 2nd one is read only and not really equal
         self.assertEqual(set(ScriveSet([self.a2])), set(s.attachments))
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             s.attachments.clear()
             s.attachments.add(self.a1)
 
         atts = s.attachments
         s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.attachments
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             atts.add(self.a1)
 
     @utils.integration
@@ -465,7 +472,7 @@ class SignatoryTest(utils.IntegrationTestCase):
             files = [att.file for att in sig.attachments]
             sig._set_invalid()
             for file_ in files:
-                with self.assertRaises(_exceptions.InvalidScriveObject, None):
+                with self.assertRaises(InvalidScriveObject, None):
                     file_.get_bytes()
 
     def test_full_name(self):
@@ -475,29 +482,29 @@ class SignatoryTest(utils.IntegrationTestCase):
         self.assertEqual(u'', s.full_name)
         s._set_read_only()
         self.assertEqual(u'', s.full_name)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             s.full_name = u'James'
         s._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.full_name = u'James'
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             s.full_name
 
         s = S._from_json_obj(json)
-        s.fields.add(F.StandardField(name='first_name', value=u'John'))
+        s.fields.add(SF(name='first_name', value=u'John'))
         self.assertEqual(u'John', s.full_name)
 
-        s.fields.add(F.CustomField(name=u'field', value=u'value'))
+        s.fields.add(CF(name=u'field', value=u'value'))
         self.assertEqual(u'John', s.full_name)
 
         s.fields.clear()
-        s.fields.add(F.StandardField(name='last_name', value=u'Smith'))
+        s.fields.add(SF(name='last_name', value=u'Smith'))
         self.assertEqual(u'Smith', s.full_name)
 
-        s.fields.add(F.CustomField(name=u'field', value=u'value'))
+        s.fields.add(CF(name=u'field', value=u'value'))
         self.assertEqual(u'Smith', s.full_name)
 
-        s.fields.add(F.StandardField(name='first_name', value=u'John'))
+        s.fields.add(SF(name='first_name', value=u'John'))
         self.assertEqual(u'John Smith', s.full_name)
 
         s = S._from_json_obj(json)

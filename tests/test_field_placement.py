@@ -1,9 +1,10 @@
-from scrivepy import _field_placement, _exceptions
+from scrivepy import (
+    FieldPlacement as FP,
+    TipSide as TS,
+    InvalidScriveObject,
+    ReadOnlyScriveObject
+)
 from tests import utils
-
-
-FP = _field_placement.FieldPlacement
-TS = _field_placement.TipSide
 
 
 class FieldPlacementTest(utils.TestCase):
@@ -55,13 +56,13 @@ class FieldPlacementTest(utils.TestCase):
 
         fp._set_read_only()
         self.assertEqual(.8, fp.left)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             fp.left = .9
 
         fp._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.left
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.left = .9
 
     def test_top(self):
@@ -105,13 +106,13 @@ class FieldPlacementTest(utils.TestCase):
 
         fp._set_read_only()
         self.assertEqual(.8, fp.top)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             fp.top = .9
 
         fp._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.top
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.top = .9
 
     def test_width(self):
@@ -155,13 +156,13 @@ class FieldPlacementTest(utils.TestCase):
 
         fp._set_read_only()
         self.assertEqual(.8, fp.width)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             fp.width = .9
 
         fp._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.width
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.width = .9
 
     def test_height(self):
@@ -205,13 +206,13 @@ class FieldPlacementTest(utils.TestCase):
 
         fp._set_read_only()
         self.assertEqual(.8, fp.height)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             fp.height = .9
 
         fp._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.height
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.height = .9
 
     def test_font_size(self):
@@ -275,13 +276,13 @@ class FieldPlacementTest(utils.TestCase):
 
         fp._set_read_only()
         self.assertEqual(.8, fp.font_size)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             fp.font_size = .9
 
         fp._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.font_size
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.font_size = .9
 
     def test_page(self):
@@ -329,13 +330,13 @@ class FieldPlacementTest(utils.TestCase):
 
         fp._set_read_only()
         self.assertEqual(3, fp.page)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             fp.page = 4
 
         fp._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.page
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.page = 4
 
     def test_tip(self):
@@ -374,13 +375,13 @@ class FieldPlacementTest(utils.TestCase):
 
         fp._set_read_only()
         self.assertEqual(TS.right_tip, fp.tip)
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             fp.tip = TS.left_tip
 
         fp._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.tip
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp.tip = TS.left_tip
 
     def test_resolve_default_tip(self):
@@ -395,12 +396,12 @@ class FieldPlacementTest(utils.TestCase):
 
         fp = self._make_fp()
         fp._set_read_only()
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             fp._resolve_default_tip(TS.left_tip)
 
         fp = self._make_fp()
         fp._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             fp._resolve_default_tip(TS.left_tip)
 
     def test_from_json_obj(self):

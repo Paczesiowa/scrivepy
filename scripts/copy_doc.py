@@ -1,27 +1,22 @@
 #!/usr/bin/env python
-from scrivepy import _scrive, _signatory, _field, _field_placement
+from scrive import FieldPlacement, Signatory, SignatureField, Scrive
 import argparse
 
 
 def clone_placement(fp):
-    result = _field_placement.FieldPlacement(left=fp.left,
-                                             top=fp.top,
-                                             width=fp.width,
-                                             height=fp.height,
-                                             font_size=fp.font_size,
-                                             page=fp.page,
-                                             tip=fp.tip)
+    result = FieldPlacement(left=fp.left, top=fp.top, width=fp.width,
+                            height=fp.height, font_size=fp.font_size,
+                            page=fp.page, tip=fp.tip)
 
     return result
 
 
 def clone_field(f):
     sbfbs = f.should_be_filled_by_sender
-    if isinstance(f, _field.SignatureField):
+    if isinstance(f, SignatureField):
         sbfbs = f.should_be_filled_by_sender
-        result = _field.SignatureField(name=f.name,
-                                       obligatory=f.obligatory,
-                                       should_be_filled_by_sender=sbfbs)
+        result = SignatureField(name=f.name, obligatory=f.obligatory,
+                                should_be_filled_by_sender=sbfbs)
         result._value = f.value
     else:
         result = type(f)(name=f.name,
@@ -36,7 +31,7 @@ def clone_field(f):
 
 
 def clone_signatory(sl):
-    result = _signatory.Signatory()
+    result = Signatory()
 
     result.sign_order = sl.sign_order
     result.invitation_delivery_method = sl.invitation_delivery_method
@@ -120,26 +115,26 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    source_api = _scrive.Scrive(client_credentials_identifier=
-                                args.source_client_credentials_identifier,
-                                client_credentials_secret=
-                                args.source_client_credentials_secret,
-                                token_credentials_identifier=
-                                args.source_token_credentials_identifier,
-                                token_credentials_secret=
-                                args.source_token_credentials_secret,
-                                api_hostname=args.source_hostname,
-                                https=not args.source_no_https)
-    target_api = _scrive.Scrive(client_credentials_identifier=
-                                args.target_client_credentials_identifier,
-                                client_credentials_secret=
-                                args.target_client_credentials_secret,
-                                token_credentials_identifier=
-                                args.target_token_credentials_identifier,
-                                token_credentials_secret=
-                                args.target_token_credentials_secret,
-                                api_hostname=args.target_hostname,
-                                https=not args.target_no_https)
+    source_api = Scrive(client_credentials_identifier=
+                        args.source_client_credentials_identifier,
+                        client_credentials_secret=
+                        args.source_client_credentials_secret,
+                        token_credentials_identifier=
+                        args.source_token_credentials_identifier,
+                        token_credentials_secret=
+                        args.source_token_credentials_secret,
+                        api_hostname=args.source_hostname,
+                        https=not args.source_no_https)
+    target_api = Scrive(client_credentials_identifier=
+                        args.target_client_credentials_identifier,
+                        client_credentials_secret=
+                        args.target_client_credentials_secret,
+                        token_credentials_identifier=
+                        args.target_token_credentials_identifier,
+                        token_credentials_secret=
+                        args.target_token_credentials_secret,
+                        api_hostname=args.target_hostname,
+                        https=not args.target_no_https)
 
     for did in args.DOCUMENT_ID:
         source_doc = source_api.get_document(did)

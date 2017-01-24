@@ -1,7 +1,7 @@
 import contextlib
 import os
 
-from scrivepy import _file, _exceptions
+from scrivepy import InvalidScriveObject, _file
 from tests import utils
 
 
@@ -67,7 +67,7 @@ class RemoteFileTest(utils.IntegrationTestCase):
         self.assertEqual(f.id, u'1')
 
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
+        with self.assertRaises(InvalidScriveObject):
             f.id
 
     def test_name(self):
@@ -89,5 +89,5 @@ class RemoteFileTest(utils.IntegrationTestCase):
         self.assertEqual(f.name, u'document.pdf')
 
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
+        with self.assertRaises(InvalidScriveObject):
             f.name

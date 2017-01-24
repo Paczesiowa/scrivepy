@@ -1,12 +1,14 @@
-import type_value_unifier as tvu
-from scrivepy import _unicode_dict, _object, _exceptions
+from scrivepy import (
+    InvalidScriveObject as INV,
+    ReadOnlyScriveObject as RO,
+    _object,
+    _unicode_dict
+)
 from tests import utils
 
 
 D = _unicode_dict.UnicodeDict
 O = _object.ScriveObject
-RO = _exceptions.ReadOnlyScriveObject
-INV = _exceptions.InvalidScriveObject
 
 
 class UnicodeDictTest(utils.TestCase):

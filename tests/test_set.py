@@ -1,12 +1,15 @@
 import type_value_unifier as tvu
-from scrivepy import _set, _object, _exceptions
+from scrivepy import (
+    InvalidScriveObject as INV,
+    ReadOnlyScriveObject as RO,
+    _object,
+    _set
+)
 from tests import utils
 
 
 S = _set.ScriveSet
 O = _object.ScriveObject
-RO = _exceptions.ReadOnlyScriveObject
-INV = _exceptions.InvalidScriveObject
 
 
 class ScriveSetTest(utils.TestCase):
@@ -393,7 +396,6 @@ class ScriveSetTest(utils.TestCase):
                                u'args[3] must be iterable, not 2'):
             s.intersection_update([], set(), S(), 2)
 
-
     def test_issubset(self):
         s = S([2])
         self.assertTrue(s.issubset([1, 2, 3]))
@@ -762,7 +764,6 @@ class ScriveSetTest(utils.TestCase):
         with self.assertRaises(TypeError,
                                u'other must be set, not 1.5'):
             s > 1.5
-
 
     def test___lt__(self):
         s = S([2])

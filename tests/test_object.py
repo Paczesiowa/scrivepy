@@ -1,4 +1,8 @@
-from scrivepy import _object, _exceptions
+from scrivepy import (
+    InvalidScriveObject,
+    ReadOnlyScriveObject,
+    _object
+)
 from tests import utils
 
 
@@ -10,12 +14,12 @@ class ScriveObjectTest(utils.TestCase):
         self.assertIsNone(obj._check_setter())
         obj._set_read_only()
         self.assertIsNone(obj._check_getter())
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           obj._check_setter)
         obj._set_invalid()
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           obj._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           obj._check_setter)
 
     def test_serialization(self):

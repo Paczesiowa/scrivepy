@@ -3,16 +3,15 @@ from datetime import datetime
 
 from dateutil import tz
 
-from scrivepy import _document, _signatory
+from scrivepy import (
+    AuthenticationMethod as AM,
+    AuthorAttachment as AA,
+    InvitationDeliveryMethod as IDM,
+    DocumentStatus as DS,
+    DeletionStatus as DelS,
+    Language as Lang
+)
 from tests import utils
-
-
-D = _document.Document
-DS = _document.DocumentStatus
-AM = _signatory.AuthenticationMethod
-IDM = _signatory.InvitationDeliveryMethod
-Lang = _document.Language
-DelS = _document.DeletionStatus
 
 
 class ScriveTest(utils.IntegrationTestCase):
@@ -316,8 +315,9 @@ class ScriveTest(utils.IntegrationTestCase):
     @utils.integration
     def test_set_author_attachments(self):
         contents = self.test_doc_contents
-        file_ = lambda n: _document.AuthorAttachment(
-            u'document' + unicode(n) + u'.pdf', contents)
+
+        def file_(n):
+            return AA(u'document' + unicode(n) + u'.pdf', contents)
 
         with self.new_document_from_file() as d:
             d.author_attachments.add(file_(1))

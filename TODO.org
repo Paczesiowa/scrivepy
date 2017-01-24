@@ -20,7 +20,6 @@
 * add field_handler
 * from_json should trigger read_only
 * write a documentation from code and get someone from scrive to review it
-* update __init__.py
 * add tests
 * write a documentation
 * add setup.py
@@ -36,6 +35,7 @@
 * pickling support
 * Document should not have a publically accesible ctor
 * Scrive
+** ctor that uses user/pass credentials
 ** get call
 *** handle non-existing document
 ** update call

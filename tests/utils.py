@@ -11,7 +11,7 @@ from os import path
 import nose
 import testconfig
 
-from scrivepy import _exceptions, _scrive
+from scrivepy import InvalidScriveObject, ReadOnlyScriveObject, Scrive
 
 
 class AssertRaisesContext(object):
@@ -78,7 +78,7 @@ class TestCase(unittest.TestCase):
         self.assertIsNone(getattr(o, field_name))
 
         o._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             getattr(o, field_name)
 
     def assertPDFsEqual(self, pdf_contents1, pdf_contents2):
@@ -141,14 +141,14 @@ class TestCase(unittest.TestCase):
         o._set_read_only()
         self.assertEqual(default_good_value, getattr(o, field_name))
         for good_value in other_good_values:
-            with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+            with self.assertRaises(ReadOnlyScriveObject, None):
                 setattr(o, field_name, good_value)
 
         o._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             getattr(o, field_name)
         for good_value in other_good_values:
-            with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            with self.assertRaises(InvalidScriveObject, None):
                 setattr(o, field_name, good_value)
 
     def _test_time_field(self, field_name, serialized_field_name):
@@ -176,7 +176,7 @@ class IntegrationTestCase(TestCase):
             print 'You need to set api server configuration in'
             print 'tests/test_config.json (see tests/test_config_example.json)'
         else:
-            class_.api = _scrive.Scrive(**cfg)
+            class_.api = Scrive(**cfg)
             class_.test_doc_path = \
                 path.join(path.dirname(path.abspath(__file__)), 'document.pdf')
             with open(class_.test_doc_path, 'rb') as f:

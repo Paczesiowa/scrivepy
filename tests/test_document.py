@@ -5,18 +5,25 @@ import time
 
 import pyPdf
 
-from scrivepy import _signatory, _document, _exceptions, \
-    _set, _file, _unicode_dict
+from scrivepy import (
+    AuthorAttachment as AA,
+    Signatory as S,
+    Document as D,
+    DocumentStatus as DS,
+    DeletionStatus as DelS,
+    Language as Lang,
+    InvalidScriveObject,
+    ReadOnlyScriveObject,
+    Error,
+    _document,
+    _set,
+    _file,
+    _unicode_dict
+)
 from tests import utils
 
 
-AA = _document.AuthorAttachment
 RAA = _document.RemoteAuthorAttachment
-S = _signatory.Signatory
-D = _document.Document
-DS = _document.DocumentStatus
-DelS = _document.DeletionStatus
-Lang = _document.Language
 ScriveSet = _set.ScriveSet
 UnicodeDict = _unicode_dict.UnicodeDict
 
@@ -75,7 +82,7 @@ class AuthorAttachmentTest(utils.IntegrationTestCase):
         self.assertEqual(f.name, u'document.pdf')
 
         f._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
+        with self.assertRaises(InvalidScriveObject):
             f.name
 
     def test_mandatory(self):
@@ -97,7 +104,7 @@ class AuthorAttachmentTest(utils.IntegrationTestCase):
         self.assertTrue(aa.mandatory)
 
         aa._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
+        with self.assertRaises(InvalidScriveObject):
             aa.mandatory
 
     def test_merge(self):
@@ -119,7 +126,7 @@ class AuthorAttachmentTest(utils.IntegrationTestCase):
         self.assertFalse(aa.merge)
 
         aa._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
+        with self.assertRaises(InvalidScriveObject):
             aa.merge
 
 
@@ -198,7 +205,7 @@ class RemoteAuthorAttachmentTest(utils.IntegrationTestCase):
         self.assertEqual(raa.id, u'1')
 
         raa._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
+        with self.assertRaises(InvalidScriveObject):
             raa.id
 
     def test_name(self):
@@ -220,7 +227,7 @@ class RemoteAuthorAttachmentTest(utils.IntegrationTestCase):
         self.assertEqual(raa.name, u'document.pdf')
 
         raa._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
+        with self.assertRaises(InvalidScriveObject):
             raa.name
 
     def test_mandatory(self):
@@ -242,7 +249,7 @@ class RemoteAuthorAttachmentTest(utils.IntegrationTestCase):
         self.assertTrue(raa.mandatory)
 
         raa._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
+        with self.assertRaises(InvalidScriveObject):
             raa.mandatory
 
     def test_merge(self):
@@ -264,7 +271,7 @@ class RemoteAuthorAttachmentTest(utils.IntegrationTestCase):
         self.assertFalse(raa.merge)
 
         raa._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject):
+        with self.assertRaises(InvalidScriveObject):
             raa.merge
 
 
@@ -273,30 +280,30 @@ class DocumentTest(utils.IntegrationTestCase):
     def setUp(self):
         self.O = D
         self.s1_json = {u'id': u'1',
-                   u'current': True,
-                   u'signorder': 1,
-                   u'undeliveredInvitation': True,
-                   u'undeliveredMailInvitation': False,
-                   u'undeliveredSMSInvitation': False,
-                   u'deliveredInvitation': False,
-                   u'delivery': u'email',
-                   u'confirmationdelivery': u'none',
-                   u'authentication': u'standard',
-                   u'signs': True,
-                   u'author': True,
-                   u'allowshighlighting': True,
-                   u'saved': True,
-                   u'datamismatch': None,
-                   u'signdate': None,
-                   u'seendate': None,
-                   u'readdate': None,
-                   u'rejecteddate': None,
-                   u'rejectionreason': None,
-                   u'signsuccessredirect': None,
-                   u'rejectredirect': None,
-                   u'signlink': None,
-                   u'attachments': [],
-                   u'fields': []}
+                        u'current': True,
+                        u'signorder': 1,
+                        u'undeliveredInvitation': True,
+                        u'undeliveredMailInvitation': False,
+                        u'undeliveredSMSInvitation': False,
+                        u'deliveredInvitation': False,
+                        u'delivery': u'email',
+                        u'confirmationdelivery': u'none',
+                        u'authentication': u'standard',
+                        u'signs': True,
+                        u'author': True,
+                        u'allowshighlighting': True,
+                        u'saved': True,
+                        u'datamismatch': None,
+                        u'signdate': None,
+                        u'seendate': None,
+                        u'readdate': None,
+                        u'rejecteddate': None,
+                        u'rejectionreason': None,
+                        u'signsuccessredirect': None,
+                        u'rejectredirect': None,
+                        u'signlink': None,
+                        u'attachments': [],
+                        u'fields': []}
         self.s1 = S._from_json_obj(self.s1_json)
         s2_json = self.s1_json.copy()
         s2_json[u'id'] = u'2'
@@ -357,25 +364,25 @@ class DocumentTest(utils.IntegrationTestCase):
         self.assertIsNone(d._check_getter())
         self.assertIsNone(s1._check_getter())
         self.assertIsNone(s2._check_getter())
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           d._check_setter)
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           s1._check_setter)
-        self.assertRaises(_exceptions.ReadOnlyScriveObject, None,
+        self.assertRaises(ReadOnlyScriveObject, None,
                           s2._check_setter)
 
         d._set_invalid()
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           d._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           s1._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           s2._check_getter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           d._check_setter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           s1._check_setter)
-        self.assertRaises(_exceptions.InvalidScriveObject, None,
+        self.assertRaises(InvalidScriveObject, None,
                           s2._check_setter)
 
     def test_to_json_obj(self):
@@ -479,15 +486,15 @@ class DocumentTest(utils.IntegrationTestCase):
         d._set_read_only()
         # set() is because the 2nd one is read only and not really equal
         self.assertEqual(set(ScriveSet([self.s2])), set(d.signatories))
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             d.signatories.clear()
             d.signatories.add(self.s1)
 
         sigs = d.signatories
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             d.signatories
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             sigs.add(self.s1)
 
     def test_id(self):
@@ -713,15 +720,15 @@ class DocumentTest(utils.IntegrationTestCase):
         d._set_read_only()
         # set() is because the 2nd one is read only and not really equal
         self.assertEqual(dict(UnicodeDict(foo=u'baz')), dict(d.tags))
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             d.tags.clear()
             d.tags[u'foo'] = u'bar'
 
         tags = d.tags
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             d.tags
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             tags[u'foo'] = u'bar'
 
     def test_saved_as_draft(self):
@@ -782,7 +789,7 @@ class DocumentTest(utils.IntegrationTestCase):
         self.assertTrue(d.original_file._read_only)
 
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             d.original_file.get_bytes()
 
     @utils.integration
@@ -812,7 +819,7 @@ class DocumentTest(utils.IntegrationTestCase):
             self.assertTrue(d.sealed_document._read_only)
 
             d._set_invalid()
-            with self.assertRaises(_exceptions.InvalidScriveObject, None):
+            with self.assertRaises(InvalidScriveObject, None):
                 d.sealed_document.get_bytes()
 
     def test_author_attachments(self):
@@ -848,15 +855,15 @@ class DocumentTest(utils.IntegrationTestCase):
         d2._set_read_only()
         # set() is because the 2nd one is read only and not really equal
         self.assertEqual(set(ScriveSet([file1])), set(d2.author_attachments))
-        with self.assertRaises(_exceptions.ReadOnlyScriveObject, None):
+        with self.assertRaises(ReadOnlyScriveObject, None):
             d2.author_attachments.clear()
             d2.author_attachments.add(_file.LocalFile(u'x', b''))
 
         atts = d2.author_attachments
         d2._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             d2.author_attachments
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             atts.add(AA(u'x', b''))
 
     def test_author(self):
@@ -865,13 +872,13 @@ class DocumentTest(utils.IntegrationTestCase):
         json[u'signatories'] = []
         d = self.O._from_json_obj(json)
 
-        with self.assertRaises(_exceptions.Error, u'No author'):
+        with self.assertRaises(Error, u'No author'):
             d.author
         d._set_read_only()
-        with self.assertRaises(_exceptions.Error, u'No author'):
+        with self.assertRaises(Error, u'No author'):
             d.author
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             d.author
 
         json = self.json.copy()
@@ -883,13 +890,13 @@ class DocumentTest(utils.IntegrationTestCase):
         json[u'signatories'] = [s1_json, s2_json]
         d = self.O._from_json_obj(json)
 
-        with self.assertRaises(_exceptions.Error, u'No author'):
+        with self.assertRaises(Error, u'No author'):
             d.author
         d._set_read_only()
-        with self.assertRaises(_exceptions.Error, u'No author'):
+        with self.assertRaises(Error, u'No author'):
             d.author
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             d.author
 
         json = self.json.copy()
@@ -901,13 +908,13 @@ class DocumentTest(utils.IntegrationTestCase):
         json[u'signatories'] = [s1_json, s2_json]
         d = self.O._from_json_obj(json)
 
-        with self.assertRaises(_exceptions.Error, u'Multiple authors'):
+        with self.assertRaises(Error, u'Multiple authors'):
             d.author
         d._set_read_only()
-        with self.assertRaises(_exceptions.Error, u'Multiple authors'):
+        with self.assertRaises(Error, u'Multiple authors'):
             d.author
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             d.author
 
         json = self.json.copy()
@@ -923,7 +930,7 @@ class DocumentTest(utils.IntegrationTestCase):
         d._set_read_only()
         self.assertEqual(d.author.id, s1_json[u'id'])
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             d.author
 
         d = self.o()
@@ -957,7 +964,7 @@ class DocumentTest(utils.IntegrationTestCase):
         self.assertEqual(set([u'2', u'3']), set(map(lambda s: s.id, others)))
 
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             list(d.other_parties())
 
     def test_other_signatories(self):
@@ -979,7 +986,7 @@ class DocumentTest(utils.IntegrationTestCase):
         self.assertEqual([u'2'], map(lambda s: s.id, d.other_signatories()))
 
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             list(d.other_signatories())
 
     def test_other_signatory(self):
@@ -1004,16 +1011,16 @@ class DocumentTest(utils.IntegrationTestCase):
         s3_json[u'signs'] = True
         d = self.O._from_json_obj(json)
         err_msg = u'Multiple signatories'
-        with self.assertRaises(_exceptions.Error, err_msg):
+        with self.assertRaises(Error, err_msg):
             d.other_signatory()
 
         s2_json[u'signs'] = False
         s3_json[u'signs'] = False
         d = self.O._from_json_obj(json)
         err_msg = u'No other signatories'
-        with self.assertRaises(_exceptions.Error, err_msg):
+        with self.assertRaises(Error, err_msg):
             d.other_signatory()
 
         d._set_invalid()
-        with self.assertRaises(_exceptions.InvalidScriveObject, None):
+        with self.assertRaises(InvalidScriveObject, None):
             list(d.other_signatories())
