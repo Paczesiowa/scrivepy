@@ -49,9 +49,10 @@ def clone_signatory(sl):
 
 
 def copy_doc(d1, d2):
-    file_path = '/tmp/' + d1.original_file.name
-    d1.original_file.save_as(file_path)
-    d2 = d2._api.change_document_file(d2, file_path)
+    if d1.original_file is not None:
+        file_path = '/tmp/' + d1.original_file.name
+        d1.original_file.save_as(file_path)
+        d2 = d2._api.change_document_file(d2, file_path)
 
     d2.title = d1.title
     d2.is_template = d1.is_template
