@@ -4,24 +4,12 @@
 * in tests prefer assertTrue/assertFalse/assertNone to assertEqual
 * Signatory.author should not be writable
 * invalidate previous version of a document after api call
-* implement Document.save() method with syncing of possible old versions of objects
-* seperate author signatory from the rest of the signatories
-* ScriveSet should be indexable like a list (overt sorted list by id)
 * polish all tvus used
 * ScriveFile object
 ** should not be consturctable by users
 ** add tvu thingies for file/dir path args to download methods
-* Signatory needs a csv field
-** research update validation
-** list of lists of unicode objects
-* Signatory needs a userid field
-** maybe a whole User type?
 * add tests for failing _from_json_obj()
-* add field_handler
 * from_json should trigger read_only
-* write a documentation from code and get someone from scrive to review it
-* add tests
-* write a documentation
 * add setup.py
 * port to other python versions
 * write utility functions
@@ -37,19 +25,24 @@
 * Scrive
 ** ctor that uses user/pass credentials
 ** get call
-*** handle non-existing document
+*** handle non-existing/not authorized document
 ** update call
 *** check if id is present - if not exception
 *** check status before making request
 *** figure out how objectversion works
 ** create_from_file
 *** handle exceptions
-** create_from_template
-** ready
-** downloading files
 ** handle generic request exceptions
 *** passing to all ScriveObjects
-** tests
-*** against mocked flask app
-*** against staging
-* __str__ methods for scrive objects
+
+* things todo after apiv2 is implemented
+** __str__ methods for scrive objects
+** write a documentation from code and get someone from scrive to review it
+** write a documentation
+** Signatory needs a userid field
+*** maybe a whole User type?
+** add field_handler
+* Signatory needs a csv field
+** research update validation
+** list of lists of unicode objects
+** implement Document.save() method with syncing of possible old versions of objects
