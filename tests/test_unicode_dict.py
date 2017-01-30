@@ -177,7 +177,7 @@ class UnicodeDictTest(utils.TestCase):
     def test_get(self):
         d = D(foo=u'bar')
         self.assertEqual(d.get(u'foo'), u'bar')
-        self.assertEqual(d.get(u'baz'), None)
+        self.assertIsNone(d.get(u'baz'))
         self.assertEqual(d.get(u'baz', 3), 3)
 
         d._set_read_only()

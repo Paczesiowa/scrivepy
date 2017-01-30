@@ -239,9 +239,9 @@ class StandardFieldTest(FieldTest):
         self.assertEqual(f.type, u'standard')
         self.assertEqual(f.name, self.FIELD_NAME.value)
         self.assertEqual(f.value, u'bar')
-        self.assertEqual(f.closed, False)
-        self.assertEqual(f.obligatory, True)
-        self.assertEqual(f.should_be_filled_by_sender, False)
+        self.assertFalse(f.closed)
+        self.assertTrue(f.obligatory)
+        self.assertFalse(f.should_be_filled_by_sender)
 
         self.assertEqual(sorted([fp._to_json_obj()
                                  for fp in f.placements]),
@@ -342,9 +342,9 @@ class CustomFieldTest(FieldTest, utils.TestCase):
         f = F._from_json_obj(json)
         self.assertTrue(isinstance(f, CF))
         self.assertEqual(f.value, u'fieldvalue')
-        self.assertEqual(f.closed, False)
-        self.assertEqual(f.obligatory, True)
-        self.assertEqual(f.should_be_filled_by_sender, False)
+        self.assertFalse(f.closed)
+        self.assertTrue(f.obligatory)
+        self.assertFalse(f.should_be_filled_by_sender)
 
         self.assertEqual(sorted([fp._to_json_obj()
                                  for fp in f.placements]),
@@ -418,9 +418,9 @@ class SignatureFieldTest(FieldTest, utils.TestCase):
         f = F._from_json_obj(json)
         self.assertTrue(isinstance(f, SigF))
         self.assertEqual(f.value, u'somejpegdata')
-        self.assertEqual(f.closed, True)
-        self.assertEqual(f.obligatory, True)
-        self.assertEqual(f.should_be_filled_by_sender, False)
+        self.assertTrue(f.closed)
+        self.assertTrue(f.obligatory)
+        self.assertFalse(f.should_be_filled_by_sender)
 
         self.assertEqual(sorted([fp._to_json_obj()
                                  for fp in f.placements]),
@@ -515,9 +515,9 @@ class CheckboxFieldTest(FieldTest, utils.TestCase):
         f = F._from_json_obj(json)
         self.assertTrue(isinstance(f, ChF))
         self.assertFalse(f.value)
-        self.assertEqual(f.closed, True)
-        self.assertEqual(f.obligatory, True)
-        self.assertEqual(f.should_be_filled_by_sender, False)
+        self.assertTrue(f.closed)
+        self.assertTrue(f.obligatory)
+        self.assertFalse(f.should_be_filled_by_sender)
 
         self.assertEqual(sorted([fp._to_json_obj()
                                  for fp in f.placements]),
