@@ -70,6 +70,30 @@ class TestCase(unittest.TestCase):
             test_err_msg = exc_class.__name__ + u' not raised'
             raise self.failureException(test_err_msg)
 
+    def _test_invalid_field(self, invalid_field_name):
+        # this field should not exist
+        o = self.o()
+
+        with self.assertRaises(AttributeError, None):
+            getattr(o, invalid_field_name)
+
+        with self.assertRaises(AttributeError, None):
+            setattr(o, invalid_field_name, None)
+
+        o._set_read_only()
+        with self.assertRaises(AttributeError, None):
+            getattr(o, invalid_field_name)
+
+        with self.assertRaises(AttributeError, None):
+            setattr(o, invalid_field_name, None)
+
+        o._set_invalid()
+        with self.assertRaises(AttributeError, None):
+            getattr(o, invalid_field_name)
+
+        with self.assertRaises(InvalidScriveObject, None):
+            setattr(o, invalid_field_name, None)
+
     def _test_server_field(self, field_name):
         o = self.o()
         self.assertIsNone(getattr(o, field_name))
@@ -80,6 +104,8 @@ class TestCase(unittest.TestCase):
         o._set_invalid()
         with self.assertRaises(InvalidScriveObject, None):
             getattr(o, field_name)
+
+        self._test_invalid_field(field_name + '77')
 
     def assertPDFsEqual(self, pdf_contents1, pdf_contents2):
         with temporary_file_path() as file_path:
@@ -150,6 +176,8 @@ class TestCase(unittest.TestCase):
         for good_value in other_good_values:
             with self.assertRaises(InvalidScriveObject, None):
                 setattr(o, field_name, good_value)
+
+        self._test_invalid_field(field_name + '77')
 
     def _test_time_field(self, field_name, serialized_field_name):
         self._test_server_field(field_name)

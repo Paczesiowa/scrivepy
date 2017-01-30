@@ -43,6 +43,17 @@ class ScriveObject(object):
     def _set_api(self, api, document):
         self._api = api
 
+    def __setattr__(self, attr, value):
+        if attr.startswith('_') or attr in dir(self):
+            # private properties and already existing attributes are allowed
+            super(ScriveObject, self).__setattr__(attr, value)
+        elif self._invalid:
+            # invalid objects are still invalid
+            raise _exceptions.InvalidScriveObject()
+        else:
+            # adding new attributes is not allowed
+            raise AttributeError(attr)
+
 
 def _scrive_method_wrap(fun, pre_fun_name):
     if fun is None:
