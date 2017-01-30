@@ -214,7 +214,9 @@ class IntegrationTestCase(TestCase):
     def new_document_from_file(self):
         try:
             doc = self.api.create_document_from_file(self.test_doc_path)
-            yield doc
+            doc.author.invitation_delivery_method = 'api'
+            doc.author.confirmation_delivery_method = 'none'
+            yield self.api.update_document(doc)
         finally:
             # refresh doc
             doc = self.api.get_document(doc.id)
