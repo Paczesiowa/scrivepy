@@ -429,7 +429,7 @@ class SignatoryTest(utils.IntegrationTestCase):
     @utils.integration
     def test_attachments_file(self):
         with self.new_document_from_file() as d:
-            author = list(d.signatories)[0]
+            author = d.author
             sig = self.o()
             sig.invitation_delivery_method = 'pad'
             sig.confirmation_delivery_method = 'none'
@@ -439,19 +439,19 @@ class SignatoryTest(utils.IntegrationTestCase):
             d.signatories.add(sig)
             d = self.api.update_document(d)
             d = self.api.ready(d)
-            author = filter(lambda s: s.author, d.signatories)[0]
+            author = d.author
             d = self.api._sign(d, author)
-            sig = filter(lambda s: not s.author, d.signatories)[0]
+            sig = d.other_signatory()
             d = self.api._set_signatory_attachment(d, sig, 'id1', 'pic1.pdf',
                                                    self.test_doc_contents,
                                                    'application/pdf')
-            sig = filter(lambda s: not s.author, d.signatories)[0]
+            sig = d.other_signatory()
             d = self.api._set_signatory_attachment(d, sig, 'id2', 'pic2.pdf',
                                                    self.test_doc_contents,
                                                    'application/pdf')
-            sig = filter(lambda s: not s.author, d.signatories)[0]
+            sig = d.other_signatory()
             d = self.api._sign(d, sig)
-            sig = filter(lambda s: not s.author, d.signatories)[0]
+            sig = d.other_signatory()
 
             for att in sig.attachments:
                 if att.requested_name == u'id1':

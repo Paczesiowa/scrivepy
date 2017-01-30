@@ -804,7 +804,7 @@ class DocumentTest(utils.IntegrationTestCase):
             self.assertIsNone(d.sealed_document)
             d = self.api.ready(d)
             self.assertIsNone(d.sealed_document)
-            author = list(d.signatories)[0]
+            author = d.author
             d = self.api._sign(d, author)
             self.assertIsNone(d.sealed_document)
 

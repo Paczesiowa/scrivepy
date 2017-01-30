@@ -64,7 +64,7 @@ class ScriveTest(utils.IntegrationTestCase):
         with self.new_document_from_file() as d:
             d.title = u'document2'
             d.number_of_days_to_sign = 21
-            sig = list(d.signatories)[0]
+            sig = d.author
             sig.authentication_method = AM.eleg
             sig.invitation_delivery_method = IDM.mobile
             d.show_header = False
@@ -122,7 +122,7 @@ class ScriveTest(utils.IntegrationTestCase):
         with self.new_document_from_file() as d:
             d.title = u'document2'
             d.number_of_days_to_sign = 21
-            sig = list(d.signatories)[0]
+            sig = d.author
             sig.authentication_method = AM.eleg
             sig.invitation_delivery_method = IDM.mobile
             d.show_header = False
@@ -179,7 +179,7 @@ class ScriveTest(utils.IntegrationTestCase):
         with self.new_document_from_file() as t:
             t.title = u'document2'
             t.number_of_days_to_sign = 21
-            sig = list(t.signatories)[0]
+            sig = t.author
             sig.authentication_method = AM.eleg
             sig.invitation_delivery_method = IDM.mobile
             t.show_header = False
@@ -246,7 +246,7 @@ class ScriveTest(utils.IntegrationTestCase):
             time.sleep(1)
 
             # make sure there's no email from running this test
-            author = list(d.signatories)[0]
+            author = d.author
             author.viewer = True
             d = self.api.update_document(d)
 
