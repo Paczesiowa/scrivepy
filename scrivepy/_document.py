@@ -135,58 +135,44 @@ class RemoteAuthorAttachment(_file.RemoteFile):
 
 class Document(_object.ScriveObject):
 
-    @tvu.validate_and_unify(title=tvu.instance(unicode),
-                            number_of_days_to_sign=tvu.bounded_int(1, 90),
-                            number_of_days_to_remind=
-                            tvu.nullable(tvu.PositiveInt),
-                            is_template=tvu.instance(bool),
-                            show_header=tvu.instance(bool),
-                            show_pdf_download=tvu.instance(bool),
-                            show_reject_option=tvu.instance(bool),
-                            show_reject_reason=tvu.instance(bool),
-                            show_footer=tvu.instance(bool),
-                            invitation_message=MaybeUnicode,
-                            confirmation_message=MaybeUnicode,
-                            api_callback_url=MaybeUnicode,
-                            language=tvu.instance(Language, enum=True),
-                            saved_as_draft=tvu.instance(bool),
-                            timezone=tvu.instance(unicode))
-    def __init__(self, title=u'', number_of_days_to_sign=14,
-                 number_of_days_to_remind=None,
-                 show_header=True, show_pdf_download=True,
-                 show_reject_option=True, show_reject_reason=True,
-                 show_footer=True, invitation_message=None,
-                 confirmation_message=None, api_callback_url=None,
-                 language=Language.swedish, is_template=False,
-                 saved_as_draft=False, timezone=u'Europe/Stockholm'):
+    def __init__(self):
+        raise TypeError(
+            u'Dont create Document objects directly. Use Scrive object.')
+
+    @classmethod
+    def _private_ctor(cls):
+        instance = _object.ScriveObject.__new__(cls)
+        instance._private_init()
+        return instance
+
+    def _private_init(self):
         super(Document, self).__init__()
         self._id = None
-        self._title = title
-        self._number_of_days_to_sign = number_of_days_to_sign
-        self._number_of_days_to_remind = number_of_days_to_remind
+        self._title = u''
+        self._number_of_days_to_sign = 14
+        self._number_of_days_to_remind = None
         self._status = None
         self._modification_time = None
         self._creation_time = None
         self._signing_deadline = None
         self._autoremind_time = None
         self._current_sign_order = None
-        self._is_template = is_template
-        self._show_header = show_header
-        self._show_pdf_download = show_pdf_download
-        self._show_reject_option = show_reject_option
-        self._show_reject_reason = show_reject_reason
-        self._show_footer = show_footer
-        self.invitation_message = invitation_message  # setter has better logic
-        self.confirmation_message = \
-            confirmation_message  # setter has better logic
-        self._api_callback_url = api_callback_url
-        self._language = language
+        self._is_template = False
+        self._show_header = True
+        self._show_pdf_download = True
+        self._show_reject_option = True
+        self._show_reject_reason = True
+        self._show_footer = True
+        self.invitation_message = None  # setter has better logic
+        self.confirmation_message = None  # setter has better logic
+        self._api_callback_url = None
+        self._language = Language.swedish
         self._tags = _unicode_dict.UnicodeDict()
-        self._saved_as_draft = saved_as_draft
+        self._saved_as_draft = False
         self._deletion_status = DeletionStatus.not_deleted
         self._signing_possible = None
         self._object_version = None
-        self._timezone = timezone
+        self._timezone = u'Europe/Stockholm'
         self._viewed_by_author = None
         self._access_token = None
         self._signatories = _set.ScriveSet()
@@ -205,22 +191,22 @@ class Document(_object.ScriveObject):
             lang_code = json[u'lang']
             if lang_code == u'gb':
                 lang_code = u'en'
-            document = Document(title=json[u'title'],
-                                number_of_days_to_sign=json[u'daystosign'],
-                                number_of_days_to_remind=json[u'daystoremind'],
-                                is_template=json[u'template'],
-                                show_header=json[u'showheader'],
-                                show_pdf_download=json[u'showpdfdownload'],
-                                show_reject_option=json[u'showrejectoption'],
-                                show_reject_reason=json[u'allowrejectreason'],
-                                show_footer=json[u'showfooter'],
-                                invitation_message=json[u'invitationmessage'],
-                                confirmation_message=
-                                json[u'confirmationmessage'],
-                                api_callback_url=json[u'apicallbackurl'],
-                                language=Language(lang_code),
-                                saved_as_draft=json[u'saved'],
-                                timezone=json[u'timezone'])
+            document = Document._private_ctor()
+            document.title = json[u'title']
+            document.number_of_days_to_sign = json[u'daystosign']
+            document.number_of_days_to_remind = json[u'daystoremind']
+            document.is_template = json[u'template']
+            document.show_header = json[u'showheader']
+            document.show_pdf_download = json[u'showpdfdownload']
+            document.show_reject_option = json[u'showrejectoption']
+            document.show_reject_reason = json[u'allowrejectreason']
+            document.show_footer = json[u'showfooter']
+            document.invitation_message = json[u'invitationmessage']
+            document.confirmation_message = json[u'confirmationmessage']
+            document.api_callback_url = json[u'apicallbackurl']
+            document.language = Language(lang_code)
+            document.saved_as_draft = json[u'saved']
+            document.timezone = json[u'timezone']
             document.signatories.update(signatories)
             document.tags.update({elem[u'name']: elem[u'value']
                                   for elem in json[u'tags']})

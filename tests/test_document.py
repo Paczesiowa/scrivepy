@@ -344,7 +344,10 @@ class DocumentTest(utils.IntegrationTestCase):
                      u'signatories': [self.s1_json, s2_json]}
 
     def o(self, *args, **kwargs):
-        return D(*args, **kwargs)
+        d = D._private_ctor()
+        for arg, val in kwargs.items():
+            setattr(d, arg, val)
+        return d
 
     def test_flags(self):
         s1 = S()
@@ -1024,3 +1027,8 @@ class DocumentTest(utils.IntegrationTestCase):
         d._set_invalid()
         with self.assertRaises(InvalidScriveObject, None):
             list(d.other_signatories())
+
+    def test_private_ctor(self):
+        msg = u'Dont create Document objects directly. Use Scrive object.'
+        with self.assertRaises(TypeError, msg):
+            D()
