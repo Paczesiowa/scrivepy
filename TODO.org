@@ -2,13 +2,11 @@
 * update call could skip setting attachments if they didn't change
 * add tests that there are no setters for fields of ScriveSet/Dict type
 * Signatory.author should not be writable
-* invalidate previous version of a document after api call
 * polish all tvus used
 * ScriveFile object
 ** should not be consturctable by users
 ** add tvu thingies for file/dir path args to download methods
 * add tests for failing _from_json_obj()
-* from_json should trigger read_only
 * add setup.py
 * port to other python versions
 * write utility functions

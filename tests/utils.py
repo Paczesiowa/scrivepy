@@ -205,21 +205,25 @@ class IntegrationTestCase(TestCase):
             print 'tests/test_config.json (see tests/test_config_example.json)'
         else:
             class_.api = Scrive(**cfg)
-            class_.test_doc_path = \
-                path.join(path.dirname(path.abspath(__file__)), 'document.pdf')
+            docs_path = path.dirname(path.abspath(__file__))
+            class_.test_doc_path = path.join(docs_path, 'document.pdf')
             with open(class_.test_doc_path, 'rb') as f:
                 class_.test_doc_contents = f.read()
+            class_.test_doc_path2 = path.join(docs_path, 'document2.pdf')
+            with open(class_.test_doc_path2, 'rb') as f:
+                class_.test_doc_contents2 = f.read()
 
     @contextlib.contextmanager
     def new_document_from_file(self):
         try:
             doc = self.api.create_document_from_file(self.test_doc_path)
+            doc_id = doc.id
             doc.author.invitation_delivery_method = 'api'
             doc.author.confirmation_delivery_method = 'none'
             yield self.api.update_document(doc)
         finally:
             # refresh doc
-            doc = self.api.get_document(doc.id)
+            doc = self.api.get_document(doc_id)
             self.api.delete_document(doc)
 
     @contextlib.contextmanager

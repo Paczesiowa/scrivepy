@@ -62,6 +62,14 @@ class Scrive(object):
         document._set_api(self, document)
         return document
 
+    def _make_doc_request_invalidate(self, url_elems, document,
+                                     method=requests.post, data=None,
+                                     files=None):
+        result = self._make_doc_request(url_elems, method,
+                                        data=data, files=files)
+        document._set_invalid()
+        return result
+
     def create_document_from_file(self, file_path):
         if file_path is None:
             files = None
@@ -82,8 +90,8 @@ class Scrive(object):
                               open(file_path, 'rb'),
                               'application/pdf')}
 
-        return self._make_doc_request(['changemainfile', document.id],
-                                      data='', files=files)
+        return self._make_doc_request_invalidate(
+            ['changemainfile', document.id], document, data='', files=files)
 
     def create_document_from_template(self, template_id):
         return self._make_doc_request(['createfromtemplate', template_id])
@@ -118,52 +126,59 @@ class Scrive(object):
                                          data=data, files=files)
         document._author_attachments = new_doc._author_attachments
 
-        return self._make_doc_request(['update', document.id],
-                                      data={'json': document._to_json()})
+        return self._make_doc_request_invalidate(
+            ['update', document.id], document,
+            data={'json': document._to_json()})
 
     def ready(self, document):
-        return self._make_doc_request(['ready', document.id])
+        return self._make_doc_request_invalidate(['ready', document.id],
+                                                 document)
 
     def _sign(self, document, signatory):
         '''
         WARNING! DO NOT USE! for testing purposes only!
         '''
         url_elems = ['sign', document.id, signatory.id]
-        return self._make_doc_request(url_elems=url_elems, data='fields=[]')
+        return self._make_doc_request_invalidate(url_elems, document,
+                                                 data='fields=[]')
 
     def _cancel_document(self, document):
         '''
         WARNING! DO NOT USE! for testing purposes only!
         '''
         url_elems = ['cancel', document.id]
-        return self._make_doc_request(url_elems=url_elems)
+        return self._make_doc_request_invalidate(url_elems, document)
 
     def _prolong(self, document, days):
         '''
         WARNING! DO NOT USE! for testing purposes only!
         '''
-        return self._make_doc_request(url_elems=['prolong', document.id],
-                                      data={'days': days,
-                                            'timezone': document.timezone})
+        return self._make_doc_request_invalidate(
+            ['prolong', document.id], document,
+            data={'days': days, 'timezone': document.timezone})
 
     def _send_reminders(self, document):
         '''
         WARNING! DO NOT USE! for testing purposes only!
         '''
-        return self._make_doc_request(url_elems=['remind', document.id],
-                                      data='')
+        return self._make_doc_request_invalidate(['remind', document.id],
+                                                 document, data='')
 
     def trash_document(self, document):
         if document.status is _document.DocumentStatus.pending:
-            self._cancel_document(document)
-        self._make_request(url_elems=['delete', document.id],
-                           method=requests.delete)
+            document = self._cancel_document(document)
+        result = self._make_request(['delete', document.id],
+                                    method=requests.delete)
+        document._set_invalid()
+        return result
 
     def delete_document(self, document):
+        doc_id = document.id
         if document.deletion_status is not _document.DeletionStatus.in_trash:
             self.trash_document(document)
-        self._make_request(url_elems=['reallydelete', document.id],
-                           method=requests.delete)
+        self._make_request(['reallydelete', doc_id], method=requests.delete)
+        if not document._invalid:
+            document._set_invalid()
 
     def _set_signatory_attachment(self, document, signatory, attachment_name,
                                   file_name, file_contents, content_type):
@@ -175,4 +190,5 @@ class Scrive(object):
         files = {'file': (file_name,
                           cStringIO.StringIO(file_contents),
                           content_type)}
-        return self._make_doc_request(url_elems, data='', files=files)
+        return self._make_doc_request_invalidate(url_elems, document,
+                                                 data='', files=files)

@@ -60,6 +60,57 @@ class ScriveTest(utils.IntegrationTestCase):
             self.assertIsNotNone(d.access_token)
 
     @utils.integration
+    def test_change_document_file(self):
+        with self.new_document_from_file() as d:
+            self.assertPDFsEqual(d.original_file.get_bytes(),
+                                 self.test_doc_contents)
+            d2 = self.api.change_document_file(d, self.test_doc_path2)
+            self.assertPDFsEqual(d2.original_file.get_bytes(),
+                                 self.test_doc_contents2)
+            self.assertTrue(d._invalid)
+
+            now = datetime.now(tz.tzutc())
+
+            self.assertEqual(d2.title, u'document2')
+            self.assertTrue(
+                abs((d2.creation_time - now).total_seconds()) < 120)
+            self.assertEqual(len(list(d2.signatories)), 1)
+            self.assertIsNotNone(d2.id)
+            self.assertEqual(d2.number_of_days_to_sign, 90)
+            self.assertEqual(d2.status, DS.preparation)
+            self.assertTrue(
+                abs((d2.modification_time - now).total_seconds()) < 120)
+            self.assertTrue(
+                abs((d2.creation_time -
+                     d2.modification_time).total_seconds()) < 10)
+            self.assertIsNone(d2.signing_deadline)
+            self.assertIsNone(d2.autoremind_time)
+            self.assertEqual(d2.current_sign_order, 1)
+            self.assertEqual(d2.authentication_method, AM.standard)
+            self.assertEqual(d2.invitation_delivery_method, IDM.api)
+            self.assertFalse(d2.is_template)
+            self.assertIsNone(d2.number_of_days_to_remind)
+            self.assertTrue(d2.show_header)
+            self.assertTrue(d2.show_pdf_download)
+            self.assertTrue(d2.show_reject_option)
+            self.assertTrue(d2.show_footer)
+            self.assertIsNone(d2.invitation_message)
+            self.assertIsNone(d2.confirmation_message)
+            self.assertIsNone(d2.api_callback_url)
+
+            # this depends on account settings
+            # self.assertEqual(d2.language, Lang.swedish)
+
+            self.assertEqual(dict(d2.tags), {})
+            self.assertTrue(d2.saved_as_draft)
+            self.assertEqual(d2.deletion_status, DelS.not_deleted)
+            self.assertFalse(d2.signing_possible)
+            self.assertEqual(d2.object_version, 3)
+            self.assertEqual(d2.timezone, u'Europe/Stockholm')
+            self.assertTrue(d2.viewed_by_author)
+            self.assertIsNotNone(d2.access_token)
+
+    @utils.integration
     def test_update_document(self):
         with self.new_document_from_file() as d:
             d.title = u'document2'
@@ -80,42 +131,44 @@ class ScriveTest(utils.IntegrationTestCase):
 
             # make sure that modification time is greater than ctime
             time.sleep(1)
-            d = self.api.update_document(d)
+            d2 = self.api.update_document(d)
+            self.assertTrue(d._invalid)
 
             now = datetime.now(tz.tzutc())
 
-            self.assertEqual(d.title, u'document2')
-            self.assertTrue(abs((d.creation_time - now).total_seconds()) < 120)
-            self.assertEqual(len(list(d.signatories)), 1)
-            self.assertIsNotNone(d.id)
-            self.assertEqual(d.number_of_days_to_sign, 21)
-            self.assertEqual(d.status, DS.preparation)
+            self.assertEqual(d2.title, u'document2')
             self.assertTrue(
-                abs((d.modification_time - now).total_seconds()) < 120)
-            self.assertTrue(d.creation_time < d.modification_time)
-            self.assertIsNone(d.signing_deadline)
-            self.assertIsNone(d.autoremind_time)
-            self.assertEqual(d.current_sign_order, 1)
-            self.assertEqual(d.authentication_method, AM.eleg)
-            self.assertEqual(d.invitation_delivery_method, IDM.mobile)
-            self.assertFalse(d.is_template)
-            self.assertIsNone(d.number_of_days_to_remind)
-            self.assertFalse(d.show_header)
-            self.assertFalse(d.show_pdf_download)
-            self.assertFalse(d.show_reject_option)
-            self.assertFalse(d.show_footer)
-            self.assertEqual(d.invitation_message, u'<p>hello</p>')
-            self.assertEqual(d.confirmation_message, u'<p>bye</p>')
-            self.assertEqual(d.api_callback_url, u'http://example.net/')
-            self.assertEqual(d.language, Lang.finnish)
-            self.assertEqual(dict(d.tags), {u'foo': u'bar'})
-            self.assertTrue(d.saved_as_draft)
-            self.assertEqual(d.deletion_status, DelS.not_deleted)
-            self.assertFalse(d.signing_possible)
-            self.assertEqual(d.object_version, 3)
-            self.assertEqual(d.timezone, u'Europe/Warsaw')
-            self.assertTrue(d.viewed_by_author)
-            self.assertIsNotNone(d.access_token)
+                abs((d2.creation_time - now).total_seconds()) < 120)
+            self.assertEqual(len(list(d2.signatories)), 1)
+            self.assertIsNotNone(d2.id)
+            self.assertEqual(d2.number_of_days_to_sign, 21)
+            self.assertEqual(d2.status, DS.preparation)
+            self.assertTrue(
+                abs((d2.modification_time - now).total_seconds()) < 120)
+            self.assertTrue(d2.creation_time < d2.modification_time)
+            self.assertIsNone(d2.signing_deadline)
+            self.assertIsNone(d2.autoremind_time)
+            self.assertEqual(d2.current_sign_order, 1)
+            self.assertEqual(d2.authentication_method, AM.eleg)
+            self.assertEqual(d2.invitation_delivery_method, IDM.mobile)
+            self.assertFalse(d2.is_template)
+            self.assertIsNone(d2.number_of_days_to_remind)
+            self.assertFalse(d2.show_header)
+            self.assertFalse(d2.show_pdf_download)
+            self.assertFalse(d2.show_reject_option)
+            self.assertFalse(d2.show_footer)
+            self.assertEqual(d2.invitation_message, u'<p>hello</p>')
+            self.assertEqual(d2.confirmation_message, u'<p>bye</p>')
+            self.assertEqual(d2.api_callback_url, u'http://example.net/')
+            self.assertEqual(d2.language, Lang.finnish)
+            self.assertEqual(dict(d2.tags), {u'foo': u'bar'})
+            self.assertTrue(d2.saved_as_draft)
+            self.assertEqual(d2.deletion_status, DelS.not_deleted)
+            self.assertFalse(d2.signing_possible)
+            self.assertEqual(d2.object_version, 3)
+            self.assertEqual(d2.timezone, u'Europe/Warsaw')
+            self.assertTrue(d2.viewed_by_author)
+            self.assertIsNotNone(d2.access_token)
 
     @utils.integration
     def test_get_document(self):
@@ -197,7 +250,7 @@ class ScriveTest(utils.IntegrationTestCase):
 
             # make sure that modification time is greater than ctime
             time.sleep(1)
-            self.api.update_document(t)
+            t = self.api.update_document(t)
 
             with self.new_document_from_template(t.id) as d:
                 now = datetime.now(tz.tzutc())
@@ -238,7 +291,7 @@ class ScriveTest(utils.IntegrationTestCase):
                 self.assertIsNotNone(d.access_token)
 
     @utils.integration
-    def test_ready(self):
+    def test_ready_document(self):
         with self.new_document_from_file() as d:
             self.assertEqual(d.status, DS.preparation)
 
@@ -250,47 +303,49 @@ class ScriveTest(utils.IntegrationTestCase):
             author.viewer = True
             d = self.api.update_document(d)
 
-            d = self.api.ready(d)
+            d2 = self.api.ready(d)
 
-            self.assertTrue(d._read_only)
+            self.assertTrue(d._invalid)
+            self.assertTrue(d2._read_only)
 
             now = datetime.now(tz.tzutc())
 
-            self.assertEqual(d.title, u'document')
-            self.assertTrue(abs((d.creation_time - now).total_seconds()) < 120)
-            self.assertEqual(len(list(d.signatories)), 1)
-            self.assertIsNotNone(d.id)
-            self.assertEqual(d.number_of_days_to_sign, 90)
-            self.assertEqual(d.status, DS.pending)
+            self.assertEqual(d2.title, u'document')
             self.assertTrue(
-                abs((d.modification_time - now).total_seconds()) < 120)
-            self.assertTrue(d.creation_time < d.modification_time)
-            self.assertTrue(89 <= (d.signing_deadline - now).days <= 90)
-            self.assertIsNone(d.autoremind_time)
-            self.assertEqual(d.current_sign_order, 1)
-            self.assertEqual(d.authentication_method, AM.standard)
-            self.assertEqual(d.invitation_delivery_method, IDM.api)
-            self.assertFalse(d.is_template)
-            self.assertIsNone(d.number_of_days_to_remind)
-            self.assertTrue(d.show_header)
-            self.assertTrue(d.show_pdf_download)
-            self.assertTrue(d.show_reject_option)
-            self.assertTrue(d.show_footer)
-            self.assertIsNone(d.invitation_message)
-            self.assertIsNone(d.confirmation_message)
-            self.assertIsNone(d.api_callback_url)
+                abs((d2.creation_time - now).total_seconds()) < 120)
+            self.assertEqual(len(list(d2.signatories)), 1)
+            self.assertIsNotNone(d2.id)
+            self.assertEqual(d2.number_of_days_to_sign, 90)
+            self.assertEqual(d2.status, DS.pending)
+            self.assertTrue(
+                abs((d2.modification_time - now).total_seconds()) < 120)
+            self.assertTrue(d2.creation_time < d2.modification_time)
+            self.assertTrue(89 <= (d2.signing_deadline - now).days <= 90)
+            self.assertIsNone(d2.autoremind_time)
+            self.assertEqual(d2.current_sign_order, 1)
+            self.assertEqual(d2.authentication_method, AM.standard)
+            self.assertEqual(d2.invitation_delivery_method, IDM.api)
+            self.assertFalse(d2.is_template)
+            self.assertIsNone(d2.number_of_days_to_remind)
+            self.assertTrue(d2.show_header)
+            self.assertTrue(d2.show_pdf_download)
+            self.assertTrue(d2.show_reject_option)
+            self.assertTrue(d2.show_footer)
+            self.assertIsNone(d2.invitation_message)
+            self.assertIsNone(d2.confirmation_message)
+            self.assertIsNone(d2.api_callback_url)
 
             # this depends on account settings
-            # self.assertEqual(d.language, Lang.swedish)
+            # self.assertEqual(d2.language, Lang.swedish)
 
-            self.assertEqual(dict(d.tags), {})
-            self.assertTrue(d.saved_as_draft)
-            self.assertEqual(d.deletion_status, DelS.not_deleted)
-            self.assertFalse(d.signing_possible)
-            self.assertEqual(d.object_version, 4)
-            self.assertEqual(d.timezone, u'Europe/Stockholm')
-            self.assertTrue(d.viewed_by_author)
-            self.assertIsNotNone(d.access_token)
+            self.assertEqual(dict(d2.tags), {})
+            self.assertTrue(d2.saved_as_draft)
+            self.assertEqual(d2.deletion_status, DelS.not_deleted)
+            self.assertFalse(d2.signing_possible)
+            self.assertEqual(d2.object_version, 4)
+            self.assertEqual(d2.timezone, u'Europe/Stockholm')
+            self.assertTrue(d2.viewed_by_author)
+            self.assertIsNotNone(d2.access_token)
 
     @utils.integration
     def test_trash_document(self):
@@ -299,8 +354,9 @@ class ScriveTest(utils.IntegrationTestCase):
             doc_id = d.id
 
             self.api.trash_document(d)
-            d = self.api.get_document(doc_id)
-            self.assertEqual(d.deletion_status, DelS.in_trash)
+            d2 = self.api.get_document(doc_id)
+            self.assertTrue(d._invalid)
+            self.assertEqual(d2.deletion_status, DelS.in_trash)
 
     @utils.integration
     def test_delete_document(self):
@@ -308,11 +364,11 @@ class ScriveTest(utils.IntegrationTestCase):
         self.assertEqual(d.deletion_status, DelS.not_deleted)
         doc_id = d.id
 
-        d = self.api.get_document(doc_id)
-
         self.api.delete_document(d)
-        d = self.api.get_document(doc_id)
-        self.assertEqual(d.deletion_status, DelS.deleted)
+        self.assertTrue(d._invalid)
+
+        d2 = self.api.get_document(doc_id)
+        self.assertEqual(d2.deletion_status, DelS.deleted)
 
     @utils.integration
     def test_set_author_attachments(self):
