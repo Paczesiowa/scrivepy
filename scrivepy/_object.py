@@ -1,6 +1,6 @@
 import json
 
-import type_value_unifier as tvu
+import tvu
 from scrivepy import _exceptions
 
 
@@ -79,5 +79,4 @@ class scrive_property(property):
         super(scrive_property, self).__init__(fget, fset, fdel, doc)
 
 
-class ID(tvu.NonEmptyUnicode):
-    pass
+ID = tvu.tvus.NonEmptyText

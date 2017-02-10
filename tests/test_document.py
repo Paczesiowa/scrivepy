@@ -64,12 +64,11 @@ class AuthorAttachmentTest(utils.IntegrationTestCase):
                 self.assertEqual(self.test_doc_contents, f.read())
 
     def test_name(self):
-        err_msg = u'name must be unicode, not None'
+        err_msg = u'name must be unicode or str, not None'
         with self.assertRaises(TypeError, err_msg):
             AA(name=None, content=b'')
 
-        err_msg = u'name must be non-empty string, not: '
-        with self.assertRaises(ValueError, err_msg):
+        with self.assertRaises(ValueError, u'name must be non-empty string'):
             AA(name=u'', content=b'')
 
         f = AA(name=u'document.pdf', content=b'')
@@ -187,12 +186,11 @@ class RemoteAuthorAttachmentTest(utils.IntegrationTestCase):
         self.assertFalse(raa.merge)
 
     def test_id(self):
-        err_msg = u'id_ must be unicode, not None'
+        err_msg = u'id_ must be unicode or str, not None'
         with self.assertRaises(TypeError, err_msg):
             RAA(id_=None, name=u'document.pdf')
 
-        err_msg = u'id_ must be non-empty string, not: '
-        with self.assertRaises(ValueError, err_msg):
+        with self.assertRaises(ValueError, u'id_ must be non-empty string'):
             RAA(id_=u'', name=u'document.pdf')
 
         raa = RAA(id_=u'1', name=u'document.pdf')
@@ -209,12 +207,11 @@ class RemoteAuthorAttachmentTest(utils.IntegrationTestCase):
             raa.id
 
     def test_name(self):
-        err_msg = u'name must be unicode, not None'
+        err_msg = u'name must be unicode or str, not None'
         with self.assertRaises(TypeError, err_msg):
             RAA(id_=u'1', name=None)
 
-        err_msg = u'name must be non-empty string, not: '
-        with self.assertRaises(ValueError, err_msg):
+        with self.assertRaises(ValueError, u'name must be non-empty string'):
             RAA(id_=u'1', name=u'')
 
         raa = RAA(id_=u'1', name=u'document.pdf')
@@ -593,7 +590,7 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def test_number_of_days_to_remind(self):
         self._test_field('number_of_days_to_remind',
-                         bad_value=[], correct_type='int, float or NoneType',
+                         bad_value=[], correct_type='int, float or None',
                          default_good_value=None,
                          other_good_values=[1, 20.],
                          serialized_name=u'daystoremind')
@@ -635,7 +632,7 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def test_invitation_message(self):
         self._test_field('invitation_message',
-                         bad_value={}, correct_type='unicode or NoneType',
+                         bad_value={}, correct_type='unicode or None',
                          default_good_value=None,
                          other_good_values=[u'some text'],
                          serialized_name=u'invitationmessage',
@@ -658,7 +655,7 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def test_confirmation_message(self):
         self._test_field('confirmation_message',
-                         bad_value={}, correct_type='unicode or NoneType',
+                         bad_value={}, correct_type='unicode or None',
                          default_good_value=None,
                          other_good_values=[u'some text'],
                          serialized_name=u'confirmationmessage',
@@ -681,7 +678,7 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def test_api_callback_url(self):
         self._test_field('api_callback_url',
-                         bad_value=[], correct_type='unicode or NoneType',
+                         bad_value=[], correct_type='unicode or None',
                          default_good_value=None,
                          other_good_values=[u'http://example.com/'],
                          serialized_name=u'apicallbackurl')

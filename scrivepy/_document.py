@@ -5,7 +5,7 @@ from contextlib import closing
 import enum
 from dateutil import parser as dateparser
 
-import type_value_unifier as tvu
+import tvu
 from scrivepy import _object, _signatory, _exceptions, \
     _set, _file, _unicode_dict
 
@@ -53,10 +53,10 @@ class DeletionStatus(enum.Enum):
 
 class AuthorAttachment(_file.File):
 
-    @tvu.validate_and_unify(name=tvu.NonEmptyUnicode,
-                            content=tvu.instance(bytes),
-                            mandatory=tvu.instance(bool),
-                            merge=tvu.instance(bool))
+    @tvu(name=tvu.tvus.NonEmptyText,
+         content=tvu.instance(bytes),
+         mandatory=tvu.instance(bool),
+         merge=tvu.instance(bool))
     def __init__(self, name, content, mandatory=False, merge=True):
         super(AuthorAttachment, self).__init__(name)
         self._content = content
@@ -82,7 +82,7 @@ class AuthorAttachment(_file.File):
         return self._mandatory
 
     @mandatory.setter
-    @tvu.validate_and_unify(mandatory=tvu.instance(bool))
+    @tvu(mandatory=tvu.instance(bool))
     def mandatory(self, mandatory):
         self._mandatory = mandatory
 
@@ -91,17 +91,17 @@ class AuthorAttachment(_file.File):
         return self._merge
 
     @merge.setter
-    @tvu.validate_and_unify(merge=tvu.instance(bool))
+    @tvu(merge=tvu.instance(bool))
     def merge(self, merge):
         self._merge = merge
 
 
 class RemoteAuthorAttachment(_file.RemoteFile):
 
-    @tvu.validate_and_unify(id_=_object.ID,
-                            name=tvu.NonEmptyUnicode,
-                            mandatory=tvu.instance(bool),
-                            merge=tvu.instance(bool))
+    @tvu(id_=_object.ID,
+         name=tvu.tvus.NonEmptyText,
+         mandatory=tvu.instance(bool),
+         merge=tvu.instance(bool))
     def __init__(self, id_, name, mandatory=False, merge=True):
         super(RemoteAuthorAttachment, self).__init__(id_, name)
         self._mandatory = mandatory
@@ -119,7 +119,7 @@ class RemoteAuthorAttachment(_file.RemoteFile):
         return self._mandatory
 
     @mandatory.setter
-    @tvu.validate_and_unify(mandatory=tvu.instance(bool))
+    @tvu(mandatory=tvu.instance(bool))
     def mandatory(self, mandatory):
         self._mandatory = mandatory
 
@@ -128,7 +128,7 @@ class RemoteAuthorAttachment(_file.RemoteFile):
         return self._merge
 
     @merge.setter
-    @tvu.validate_and_unify(merge=tvu.instance(bool))
+    @tvu(merge=tvu.instance(bool))
     def merge(self, merge):
         self._merge = merge
 
@@ -338,7 +338,7 @@ class Document(_object.ScriveObject):
         return self._title
 
     @title.setter
-    @tvu.validate_and_unify(title=tvu.instance(unicode))
+    @tvu(title=tvu.instance(unicode))
     def title(self, title):
         self._title = title
 
@@ -347,7 +347,7 @@ class Document(_object.ScriveObject):
         return self._number_of_days_to_sign
 
     @number_of_days_to_sign.setter
-    @tvu.validate_and_unify(number_of_days_to_sign=tvu.bounded_int(1, 90))
+    @tvu(number_of_days_to_sign=tvu.tvus.bounded_int(1, 90))
     def number_of_days_to_sign(self, number_of_days_to_sign):
         self._number_of_days_to_sign = number_of_days_to_sign
 
@@ -412,7 +412,7 @@ class Document(_object.ScriveObject):
         return self._is_template
 
     @is_template.setter
-    @tvu.validate_and_unify(is_template=tvu.instance(bool))
+    @tvu(is_template=tvu.instance(bool))
     def is_template(self, is_template):
         self._is_template = is_template
 
@@ -421,8 +421,7 @@ class Document(_object.ScriveObject):
         return self._number_of_days_to_remind
 
     @number_of_days_to_remind.setter
-    @tvu.validate_and_unify(
-        number_of_days_to_remind=tvu.nullable(tvu.PositiveInt))
+    @tvu(number_of_days_to_remind=tvu.nullable(tvu.tvus.PositiveInt))
     def number_of_days_to_remind(self, number_of_days_to_remind):
         self._number_of_days_to_remind = number_of_days_to_remind
 
@@ -431,7 +430,7 @@ class Document(_object.ScriveObject):
         return self._show_header
 
     @show_header.setter
-    @tvu.validate_and_unify(show_header=tvu.instance(bool))
+    @tvu(show_header=tvu.instance(bool))
     def show_header(self, show_header):
         self._show_header = show_header
 
@@ -440,7 +439,7 @@ class Document(_object.ScriveObject):
         return self._show_pdf_download
 
     @show_pdf_download.setter
-    @tvu.validate_and_unify(show_pdf_download=tvu.instance(bool))
+    @tvu(show_pdf_download=tvu.instance(bool))
     def show_pdf_download(self, show_pdf_download):
         self._show_pdf_download = show_pdf_download
 
@@ -449,7 +448,7 @@ class Document(_object.ScriveObject):
         return self._show_reject_option
 
     @show_reject_option.setter
-    @tvu.validate_and_unify(show_reject_option=tvu.instance(bool))
+    @tvu(show_reject_option=tvu.instance(bool))
     def show_reject_option(self, show_reject_option):
         self._show_reject_option = show_reject_option
 
@@ -458,7 +457,7 @@ class Document(_object.ScriveObject):
         return self._show_reject_reason
 
     @show_reject_reason.setter
-    @tvu.validate_and_unify(show_reject_reason=tvu.instance(bool))
+    @tvu(show_reject_reason=tvu.instance(bool))
     def show_reject_reason(self, show_reject_reason):
         self._show_reject_reason = show_reject_reason
 
@@ -467,7 +466,7 @@ class Document(_object.ScriveObject):
         return self._show_footer
 
     @show_footer.setter
-    @tvu.validate_and_unify(show_footer=tvu.instance(bool))
+    @tvu(show_footer=tvu.instance(bool))
     def show_footer(self, show_footer):
         self._show_footer = show_footer
 
@@ -476,7 +475,7 @@ class Document(_object.ScriveObject):
         return self._invitation_message
 
     @invitation_message.setter
-    @tvu.validate_and_unify(invitation_message=MaybeUnicode)
+    @tvu(invitation_message=MaybeUnicode)
     def invitation_message(self, invitation_message):
         if invitation_message is not None and invitation_message.isspace()\
            or invitation_message == u'':
@@ -488,7 +487,7 @@ class Document(_object.ScriveObject):
         return self._confirmation_message
 
     @confirmation_message.setter
-    @tvu.validate_and_unify(confirmation_message=MaybeUnicode)
+    @tvu(confirmation_message=MaybeUnicode)
     def confirmation_message(self, confirmation_message):
         if confirmation_message is not None and confirmation_message.isspace()\
            or confirmation_message == u'':
@@ -500,7 +499,7 @@ class Document(_object.ScriveObject):
         return self._api_callback_url
 
     @api_callback_url.setter
-    @tvu.validate_and_unify(api_callback_url=MaybeUnicode)
+    @tvu(api_callback_url=MaybeUnicode)
     def api_callback_url(self, api_callback_url):
         self._api_callback_url = api_callback_url
 
@@ -509,7 +508,7 @@ class Document(_object.ScriveObject):
         return self._language
 
     @language.setter
-    @tvu.validate_and_unify(language=tvu.instance(Language, enum=True))
+    @tvu(language=tvu.instance(Language, enum=True))
     def language(self, language):
         self._language = language
 
@@ -522,7 +521,7 @@ class Document(_object.ScriveObject):
         return self._saved_as_draft
 
     @saved_as_draft.setter
-    @tvu.validate_and_unify(saved_as_draft=tvu.instance(bool))
+    @tvu(saved_as_draft=tvu.instance(bool))
     def saved_as_draft(self, saved_as_draft):
         self._saved_as_draft = saved_as_draft
 
@@ -543,7 +542,7 @@ class Document(_object.ScriveObject):
         return self._timezone
 
     @timezone.setter
-    @tvu.validate_and_unify(timezone=tvu.instance(unicode))
+    @tvu(timezone=tvu.instance(unicode))
     def timezone(self, timezone):
         self._timezone = timezone
 
