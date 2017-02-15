@@ -1,6 +1,6 @@
 import enum
 
-import type_value_unifier as tvu
+import tvu
 from scrivepy import _object, _set, _field_placement, _exceptions
 
 
@@ -12,9 +12,9 @@ class Field(_object.ScriveObject):
 
     _default_placement_tip = _field_placement.TipSide.right_tip
 
-    @tvu.validate_and_unify(value=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool))
+    @tvu(value=tvu.instance(unicode),
+         obligatory=tvu.instance(bool),
+         should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, value=u'', obligatory=True,
                  should_be_filled_by_sender=False):
         super(Field, self).__init__()
@@ -104,7 +104,7 @@ class Field(_object.ScriveObject):
         return self._value
 
     @value.setter
-    @tvu.validate_and_unify(value=tvu.instance(unicode))
+    @tvu(value=tvu.instance(unicode))
     def value(self, value):
         self._value = value
 
@@ -117,7 +117,7 @@ class Field(_object.ScriveObject):
         return self._obligatory
 
     @obligatory.setter
-    @tvu.validate_and_unify(obligatory=tvu.instance(bool))
+    @tvu(obligatory=tvu.instance(bool))
     def obligatory(self, obligatory):
         self._obligatory = obligatory
 
@@ -126,7 +126,7 @@ class Field(_object.ScriveObject):
         return self._should_be_filled_by_sender
 
     @should_be_filled_by_sender.setter
-    @tvu.validate_and_unify(should_be_filled_by_sender=tvu.instance(bool))
+    @tvu(should_be_filled_by_sender=tvu.instance(bool))
     def should_be_filled_by_sender(self, should_be_filled_by_sender):
         self._should_be_filled_by_sender = should_be_filled_by_sender
 
@@ -147,10 +147,10 @@ class StandardFieldType(unicode, enum.Enum):
 
 class StandardField(Field):
 
-    @tvu.validate_and_unify(name=tvu.instance(StandardFieldType, enum=True),
-                            value=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool))
+    @tvu(name=tvu.instance(StandardFieldType, enum=True),
+         value=tvu.instance(unicode),
+         obligatory=tvu.instance(bool),
+         should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, value=u'', obligatory=True,
                  should_be_filled_by_sender=False):
         super(StandardField, self).__init__(
@@ -162,10 +162,10 @@ class StandardField(Field):
 
 class CustomField(Field):
 
-    @tvu.validate_and_unify(name=tvu.instance(unicode),
-                            value=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool))
+    @tvu(name=tvu.instance(unicode),
+         value=tvu.instance(unicode),
+         obligatory=tvu.instance(bool),
+         should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, value=u'', obligatory=True,
                  should_be_filled_by_sender=False):
         super(CustomField, self).__init__(
@@ -179,16 +179,16 @@ class CustomField(Field):
         return self._name
 
     @name.setter
-    @tvu.validate_and_unify(name=tvu.instance(unicode))
+    @tvu(name=tvu.instance(unicode))
     def name(self, name):
         self._name = name
 
 
 class SignatureField(Field):
 
-    @tvu.validate_and_unify(name=tvu.instance(unicode),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool))
+    @tvu(name=tvu.instance(unicode),
+         obligatory=tvu.instance(bool),
+         should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, obligatory=True,
                  should_be_filled_by_sender=False):
         super(SignatureField, self).__init__(
@@ -202,7 +202,7 @@ class SignatureField(Field):
         return self._name
 
     @name.setter
-    @tvu.validate_and_unify(name=tvu.instance(unicode))
+    @tvu(name=tvu.instance(unicode))
     def name(self, name):
         self._name = name
 
@@ -215,10 +215,10 @@ class CheckboxField(Field):
 
     _default_placement_tip = _field_placement.TipSide.left_tip
 
-    @tvu.validate_and_unify(name=tvu.instance(unicode),
-                            value=tvu.instance(bool),
-                            obligatory=tvu.instance(bool),
-                            should_be_filled_by_sender=tvu.instance(bool))
+    @tvu(name=tvu.instance(unicode),
+         value=tvu.instance(bool),
+         obligatory=tvu.instance(bool),
+         should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, value=False, obligatory=False,
                  should_be_filled_by_sender=False):
         super(CheckboxField, self).__init__(
@@ -232,7 +232,7 @@ class CheckboxField(Field):
         return self._name
 
     @name.setter
-    @tvu.validate_and_unify(name=tvu.instance(unicode))
+    @tvu(name=tvu.instance(unicode))
     def name(self, name):
         self._name = name
 
@@ -241,6 +241,6 @@ class CheckboxField(Field):
         return self._value.lower() == u'checked'
 
     @value.setter
-    @tvu.validate_and_unify(value=tvu.instance(bool))
+    @tvu(value=tvu.instance(bool))
     def value(self, value):
         self._value = u'CHECKED' if value else u''

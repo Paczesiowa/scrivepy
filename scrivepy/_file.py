@@ -3,8 +3,8 @@ import os
 import shutil
 
 import requests
+import tvu
 
-import type_value_unifier as tvu
 from scrivepy import _object
 
 
@@ -40,8 +40,7 @@ class File(_object.ScriveObject):
 
 class RemoteFile(File):
 
-    @tvu.validate_and_unify(id_=_object.ID,
-                            name=tvu.NonEmptyUnicode)
+    @tvu(id_=_object.ID, name=tvu.tvus.NonEmptyText)
     def __init__(self, id_, name):
         super(RemoteFile, self).__init__(name)
         self._id = id_

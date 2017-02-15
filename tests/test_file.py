@@ -70,12 +70,11 @@ class RemoteFileTest(utils.IntegrationTestCase):
             f.id
 
     def test_name(self):
-        err_msg = u'name must be unicode, not None'
+        err_msg = u'name must be unicode or str, not None'
         with self.assertRaises(TypeError, err_msg):
             _file.RemoteFile(id_=u'1', name=None)
 
-        err_msg = u'name must be non-empty string, not: '
-        with self.assertRaises(ValueError, err_msg):
+        with self.assertRaises(ValueError, u'name must be non-empty string'):
             _file.RemoteFile(id_=u'1', name=u'')
 
         f = _file.RemoteFile(id_=u'1', name=u'document.pdf')

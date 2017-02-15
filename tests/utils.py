@@ -139,7 +139,8 @@ class TestCase(unittest.TestCase):
         if bad_enum_value is not None:
             enum_type_err_msg = (field_name + u' could be ' +
                                  correct_type_name +
-                                 "'s variant name, not: " + bad_enum_value)
+                                 "'s variant name, not: " +
+                                 repr(bad_enum_value))
             with self.assertRaises(ValueError, enum_type_err_msg):
                 self.o(**{field_name: bad_enum_value})
 

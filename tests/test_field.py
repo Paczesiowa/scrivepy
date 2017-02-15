@@ -265,7 +265,8 @@ class StandardFieldTest(FieldTest):
         self.assertTrue(isinstance(f.name, SFT))
         self.assertEqual(f.name, self.FIELD_NAME)
 
-        err_msg = u"name could be StandardFieldType's variant name, not: wrong"
+        err_msg = \
+            u"name could be StandardFieldType's variant name, not: 'wrong'"
         with self.assertRaises(ValueError, err_msg):
             SF(name='wrong')
 

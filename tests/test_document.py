@@ -691,7 +691,7 @@ class DocumentTest(utils.IntegrationTestCase):
                                             ('greek', Lang.greek),
                                             Lang.finnish],
                          serialized_name=u'lang',
-                         bad_enum_value='wrong')
+                         bad_enum_value="'wrong'")
 
         json = self.json.copy()
         json[u'lang'] = u'gb'

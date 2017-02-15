@@ -200,22 +200,22 @@ class SignatoryTest(utils.IntegrationTestCase):
                          serialized_name=u'signorder')
 
         err_msg = \
-            u'sign_order must be an integer greater or equal than 1, not: 0'
+            u'sign_order must be an integer greater or equal to 1, not: 0'
         with self.assertRaises(ValueError, err_msg):
             self.o(sign_order=0)
 
-        err_msg = u'sign_order must be a round integer, not: 1.1'
+        err_msg = u'sign_order must be a round number, not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             self.o(sign_order=1.1)
 
         s = self.o()
 
         err_msg = \
-            u'sign_order must be an integer greater or equal than 1, not: 0'
+            u'sign_order must be an integer greater or equal to 1, not: 0'
         with self.assertRaises(ValueError, err_msg):
             s.sign_order = 0
 
-        err_msg = u'sign_order must be a round integer, not: 1.1'
+        err_msg = u'sign_order must be a round number, not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             s.sign_order = 1.1
 
@@ -318,14 +318,14 @@ class SignatoryTest(utils.IntegrationTestCase):
 
     def test_sign_success_redirect_url(self):
         self._test_field('sign_success_redirect_url',
-                         bad_value=[], correct_type='unicode or NoneType',
+                         bad_value=[], correct_type='unicode or None',
                          default_good_value=None,
                          other_good_values=[u'http://example.com/'],
                          serialized_name=u'signsuccessredirect')
 
     def test_rejection_redirect_url(self):
         self._test_field('rejection_redirect_url',
-                         bad_value=[], correct_type='unicode or NoneType',
+                         bad_value=[], correct_type='unicode or None',
                          default_good_value=None,
                          other_good_values=[u'http://example.net/'],
                          serialized_name=u'rejectredirect')

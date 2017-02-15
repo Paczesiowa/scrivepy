@@ -1,7 +1,7 @@
 import enum
 from dateutil import parser as dateparser
 
-import type_value_unifier as tvu
+import tvu
 from scrivepy import _object, _field, _exceptions, _set, _file
 
 
@@ -33,8 +33,8 @@ class AuthenticationMethod(unicode, enum.Enum):
 
 class SignatoryAttachment(_object.ScriveObject):
 
-    @tvu.validate_and_unify(requested_name=tvu.NonEmptyUnicode,
-                            description=tvu.NonEmptyUnicode)
+    @tvu(requested_name=tvu.tvus.NonEmptyText,
+         description=tvu.tvus.NonEmptyText)
     def __init__(self, requested_name, description):
         super(SignatoryAttachment, self).__init__()
         self._requested_name = requested_name
@@ -80,7 +80,7 @@ class SignatoryAttachment(_object.ScriveObject):
         return self._requested_name
 
     @requested_name.setter
-    @tvu.validate_and_unify(requested_name=tvu.NonEmptyUnicode)
+    @tvu(requested_name=tvu.tvus.NonEmptyText)
     def requested_name(self, requested_name):
         self._requested_name = requested_name
 
@@ -89,7 +89,7 @@ class SignatoryAttachment(_object.ScriveObject):
         return self._description
 
     @description.setter
-    @tvu.validate_and_unify(description=tvu.NonEmptyUnicode)
+    @tvu(description=tvu.tvus.NonEmptyText)
     def description(self, description):
         self._description = description
 
@@ -107,17 +107,13 @@ MaybeUnicode = tvu.nullable(tvu.instance(unicode))
 
 class Signatory(_object.ScriveObject):
 
-    @tvu.validate_and_unify(sign_order=tvu.PositiveInt,
-                            invitation_delivery_method=
-                            tvu.instance(IDM, enum=True),
-                            confirmation_delivery_method=
-                            tvu.instance(CDM, enum=True),
-                            authentication_method=
-                            tvu.instance(AM, enum=True),
-                            viewer=tvu.instance(bool),
-                            allows_highlighting=tvu.instance(bool),
-                            sign_success_redirect_url=MaybeUnicode,
-                            rejection_redirect_url=MaybeUnicode)
+    @tvu(sign_order=tvu.tvus.PositiveInt,
+         invitation_delivery_method=tvu.instance(IDM, enum=True),
+         confirmation_delivery_method=tvu.instance(CDM, enum=True),
+         authentication_method=tvu.instance(AM, enum=True),
+         viewer=tvu.instance(bool), allows_highlighting=tvu.instance(bool),
+         sign_success_redirect_url=MaybeUnicode,
+         rejection_redirect_url=MaybeUnicode)
     def __init__(self, sign_order=1, viewer=False,
                  invitation_delivery_method=IDM.email,
                  confirmation_delivery_method=CDM.email,
@@ -169,8 +165,8 @@ class Signatory(_object.ScriveObject):
                           authentication_method=AM(json[u'authentication']),
                           viewer=not json[u'signs'],
                           allows_highlighting=json[u'allowshighlighting'],
-                          sign_success_redirect_url=
-                          json[u'signsuccessredirect'],
+                          sign_success_redirect_url=(
+                          json[u'signsuccessredirect']),
                           rejection_redirect_url=json[u'rejectredirect'])
             signatory.fields.update(fields)
             signatory.attachments.update(attachments)
@@ -237,22 +233,6 @@ class Signatory(_object.ScriveObject):
             result[u'id'] = self.id
         return result
 
-#     @property
-#     def status(self):
-# documents.status                                == DocumentError => SCError           ~ "problem"
-# documents.status                                == Preparation   => SCDraft           ~ "draft"
-# signatory_links.sign_time                       != NULL          => SCSigned          ~ "signed"
-# documents.status                                == Canceled      => SCCancelled       ~ "cancelled"
-# documents.status                                == Timedout      => SCTimedout        ~ "timeouted"
-# documents.status                                == Rejected      => SCRejected        ~ "rejected"
-# signatory_links.seen_time                       != NULL          => SCOpened          ~ "opened"
-# signatory_links.read_invitation                 != NULL          => SCRead            ~ "read"
-# signatory_links.mail_invitation_delivery_status == Undelivered   => SCDeliveryProblem ~ "deliveryproblem"
-# signatory_links.sms_invitation_delivery_status  == Undelivered   => SCDeliveryProblem ~ "deliveryproblem"
-# signatory_links.mail_invitation_delivery_status == Delivered     => SCDelivered       ~ "delivered"
-# signatory_links.sms_invitation_delivery_status  == Delivered     => SCDelivered       ~ "delivered"
-# otherwise                                                        => SCSent            ~ "sent"
-
     @scrive_property
     def fields(self):
         return self._fields
@@ -274,7 +254,7 @@ class Signatory(_object.ScriveObject):
         return self._sign_order
 
     @sign_order.setter
-    @tvu.validate_and_unify(sign_order=tvu.PositiveInt)
+    @tvu(sign_order=tvu.tvus.PositiveInt)
     def sign_order(self, sign_order):
         self._sign_order = sign_order
 
@@ -299,7 +279,7 @@ class Signatory(_object.ScriveObject):
         return self._invitation_delivery_method
 
     @invitation_delivery_method.setter
-    @tvu.validate_and_unify(
+    @tvu(
         invitation_delivery_method=tvu.instance(IDM, enum=True))
     def invitation_delivery_method(self, invitation_delivery_method):
         self._invitation_delivery_method = invitation_delivery_method
@@ -309,7 +289,7 @@ class Signatory(_object.ScriveObject):
         return self._confirmation_delivery_method
 
     @confirmation_delivery_method.setter
-    @tvu.validate_and_unify(
+    @tvu(
         confirmation_delivery_method=tvu.instance(CDM, enum=True))
     def confirmation_delivery_method(self, confirmation_delivery_method):
         self._confirmation_delivery_method = confirmation_delivery_method
@@ -319,7 +299,7 @@ class Signatory(_object.ScriveObject):
         return self._viewer
 
     @viewer.setter
-    @tvu.validate_and_unify(viewer=tvu.instance(bool))
+    @tvu(viewer=tvu.instance(bool))
     def viewer(self, viewer):
         self._viewer = viewer
 
@@ -328,7 +308,7 @@ class Signatory(_object.ScriveObject):
         return self._allows_highlighting
 
     @allows_highlighting.setter
-    @tvu.validate_and_unify(allows_highlighting=tvu.instance(bool))
+    @tvu(allows_highlighting=tvu.instance(bool))
     def allows_highlighting(self, allows_highlighting):
         self._allows_highlighting = allows_highlighting
 
@@ -369,7 +349,7 @@ class Signatory(_object.ScriveObject):
         return self._sign_success_redirect_url
 
     @sign_success_redirect_url.setter
-    @tvu.validate_and_unify(sign_success_redirect_url=MaybeUnicode)
+    @tvu(sign_success_redirect_url=MaybeUnicode)
     def sign_success_redirect_url(self, sign_success_redirect_url):
         self._sign_success_redirect_url = sign_success_redirect_url
 
@@ -378,7 +358,7 @@ class Signatory(_object.ScriveObject):
         return self._rejection_redirect_url
 
     @rejection_redirect_url.setter
-    @tvu.validate_and_unify(rejection_redirect_url=MaybeUnicode)
+    @tvu(rejection_redirect_url=MaybeUnicode)
     def rejection_redirect_url(self, rejection_redirect_url):
         self._rejection_redirect_url = rejection_redirect_url
 
@@ -387,7 +367,7 @@ class Signatory(_object.ScriveObject):
         return self._authentication_method
 
     @authentication_method.setter
-    @tvu.validate_and_unify(
+    @tvu(
         authentication_method=tvu.instance(AM, enum=True))
     def authentication_method(self, authentication_method):
         self._authentication_method = authentication_method
@@ -434,7 +414,7 @@ class Signatory(_object.ScriveObject):
             return u''
 
     @full_name.setter
-    @tvu.validate_and_unify(full_name=tvu.instance(unicode))
+    @tvu(full_name=tvu.instance(unicode))
     def full_name(self, full_name):
         fst_name_fields = filter(lambda f: f.name == SFT.first_name,
                                  self.fields)

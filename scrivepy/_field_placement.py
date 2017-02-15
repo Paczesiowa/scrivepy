@@ -1,12 +1,12 @@
 import enum
 
-import type_value_unifier as tvu
+import tvu
 from scrivepy import _object
 
 scrive_property = _object.scrive_property
 
 
-class Ratio(tvu.TypeValueUnifier):
+class Ratio(tvu.TVU):
 
     TYPES = (float, int)
 
@@ -23,9 +23,7 @@ class TipSide(unicode, enum.Enum):
     right_tip = u'right'
 
 
-class MaybeTipSide(tvu.EnumTypeValueUnifier):
-
-    TYPES = (TipSide, type(None))
+MaybeTipSide = tvu.nullable(tvu.instance(TipSide, enum=True))
 
 
 class FieldPlacement(_object.ScriveObject):
@@ -35,9 +33,9 @@ class FieldPlacement(_object.ScriveObject):
     FONT_SIZE_LARGE = 20. / 943.
     FONT_SIZE_HUGE = 24. / 943.
 
-    @tvu.validate_and_unify(left=Ratio, top=Ratio, width=Ratio,
-                            height=Ratio, font_size=Ratio,
-                            page=tvu.PositiveInt, tip=MaybeTipSide)
+    @tvu(left=Ratio, top=Ratio, width=Ratio,
+         height=Ratio, font_size=Ratio,
+         page=tvu.tvus.PositiveInt, tip=MaybeTipSide)
     def __init__(self, left, top, width, height,
                  font_size=FONT_SIZE_NORMAL, page=1, tip=None):
         super(FieldPlacement, self).__init__()
@@ -79,7 +77,7 @@ class FieldPlacement(_object.ScriveObject):
         return self._left
 
     @left.setter
-    @tvu.validate_and_unify(left=Ratio)
+    @tvu(left=Ratio)
     def left(self, left):
         self._left = left
 
@@ -88,7 +86,7 @@ class FieldPlacement(_object.ScriveObject):
         return self._top
 
     @top.setter
-    @tvu.validate_and_unify(top=Ratio)
+    @tvu(top=Ratio)
     def top(self, top):
         self._top = top
 
@@ -97,7 +95,7 @@ class FieldPlacement(_object.ScriveObject):
         return self._width
 
     @width.setter
-    @tvu.validate_and_unify(width=Ratio)
+    @tvu(width=Ratio)
     def width(self, width):
         self._width = width
 
@@ -106,7 +104,7 @@ class FieldPlacement(_object.ScriveObject):
         return self._height
 
     @height.setter
-    @tvu.validate_and_unify(height=Ratio)
+    @tvu(height=Ratio)
     def height(self, height):
         self._height = height
 
@@ -115,7 +113,7 @@ class FieldPlacement(_object.ScriveObject):
         return self._font_size
 
     @font_size.setter
-    @tvu.validate_and_unify(font_size=Ratio)
+    @tvu(font_size=Ratio)
     def font_size(self, font_size):
         self._font_size = font_size
 
@@ -124,7 +122,7 @@ class FieldPlacement(_object.ScriveObject):
         return self._page
 
     @page.setter
-    @tvu.validate_and_unify(page=tvu.PositiveInt)
+    @tvu(page=tvu.tvus.PositiveInt)
     def page(self, page):
         self._page = page
 
@@ -136,6 +134,6 @@ class FieldPlacement(_object.ScriveObject):
         return tip
 
     @tip.setter
-    @tvu.validate_and_unify(tip=MaybeTipSide)
+    @tvu(tip=MaybeTipSide)
     def tip(self, tip):
         self._tip = tip

@@ -1,8 +1,8 @@
-import type_value_unifier as tvu
+import tvu
 from scrivepy import _object
 
 
-class TextMappingOrIterable(tvu.TypeValueUnifier):
+class TextMappingOrIterable(tvu.TVU):
 
     def type_check(self):
         value = self._value
@@ -27,17 +27,18 @@ class TextMappingOrIterable(tvu.TypeValueUnifier):
                 self.error(u'')
             else:
                 key = \
-                    tvu.Text(self._variable_name + u' key').unify_validate(key)
-                val = tvu.Text(self._variable_name + u' value') \
-                         .unify_validate(val)
+                    tvu.tvus.Text(self._variable_name + u' key') \
+                            .unify_validate(key)
+                val = tvu.tvus.Text(self._variable_name + u' value') \
+                              .unify_validate(val)
                 result[key] = val
         return result
 
 
 class UnicodeDict(dict, _object.ScriveObject):
 
-    @tvu.validate_and_unify(iterable=TextMappingOrIterable,
-                            kwargs=TextMappingOrIterable)
+    @tvu(iterable=TextMappingOrIterable,
+         kwargs=TextMappingOrIterable)
     def __init__(self, iterable=(), **kwargs):
         dict.__init__(self, iterable, **kwargs)
         _object.ScriveObject.__init__(self)
@@ -66,9 +67,9 @@ class UnicodeDict(dict, _object.ScriveObject):
         return result
 
     @classmethod
-    @tvu.validate_and_unify(keys=tvu.Iterable, value=tvu.Text)
+    @tvu(keys=tvu.tvus.iterable(), value=tvu.tvus.Text)
     def fromkeys(cls, keys, value=u''):
-        keys = [tvu.Text('keys[%d]' % (i,)).unify_validate(key)
+        keys = [tvu.tvus.Text('keys[%d]' % (i,)).unify_validate(key)
                 for i, key in enumerate(keys)]
         return UnicodeDict([(key, value) for key in keys])
 
@@ -124,13 +125,13 @@ class UnicodeDict(dict, _object.ScriveObject):
         self._check_setter()
         return dict.popitem(self)
 
-    @tvu.validate_and_unify(default=tvu.Text)
+    @tvu(default=tvu.tvus.Text)
     def setdefault(self, key, default=u''):
         self._check_setter()
         return dict.setdefault(self, key, default)
 
-    @tvu.validate_and_unify(iterable=TextMappingOrIterable,
-                            kwargs=TextMappingOrIterable)
+    @tvu(iterable=TextMappingOrIterable,
+         kwargs=TextMappingOrIterable)
     def update(self, iterable=(), **kwargs):
         self._check_setter()
         return dict.update(self, iterable, **kwargs)
@@ -139,7 +140,7 @@ class UnicodeDict(dict, _object.ScriveObject):
         self._check_setter()
         return dict.__delitem__(self, key)
 
-    @tvu.validate_and_unify(other=tvu.instance(dict))
+    @tvu(other=tvu.instance(dict))
     def __eq__(self, other):
         self._check_getter()
 
@@ -148,7 +149,7 @@ class UnicodeDict(dict, _object.ScriveObject):
 
         return self._read_only == other._read_only and dict.__eq__(self, other)
 
-    @tvu.validate_and_unify(other=tvu.instance(dict))
+    @tvu(other=tvu.instance(dict))
     def __ne__(self, other):
         self._check_getter()
 
@@ -157,22 +158,22 @@ class UnicodeDict(dict, _object.ScriveObject):
 
         return self._read_only != other._read_only or dict.__ne__(self, other)
 
-    @tvu.validate_and_unify(other=tvu.instance(dict))
+    @tvu(other=tvu.instance(dict))
     def __ge__(self, other):
         self._check_getter()
         return dict.__ge__(self, other)
 
-    @tvu.validate_and_unify(other=tvu.instance(dict))
+    @tvu(other=tvu.instance(dict))
     def __le__(self, other):
         self._check_getter()
         return dict.__le__(self, other)
 
-    @tvu.validate_and_unify(other=tvu.instance(dict))
+    @tvu(other=tvu.instance(dict))
     def __gt__(self, other):
         self._check_getter()
         return dict.__gt__(self, other)
 
-    @tvu.validate_and_unify(other=tvu.instance(dict))
+    @tvu(other=tvu.instance(dict))
     def __lt__(self, other):
         self._check_getter()
         return dict.__lt__(self, other)
@@ -181,7 +182,7 @@ class UnicodeDict(dict, _object.ScriveObject):
         self._check_getter()
         return dict.__getitem__(self, key)
 
-    @tvu.validate_and_unify(key=tvu.Text, value=tvu.Text)
+    @tvu(key=tvu.tvus.Text, value=tvu.tvus.Text)
     def __setitem__(self, key, value):
         self._check_setter()
         return dict.__setitem__(self, key, value)

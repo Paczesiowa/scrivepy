@@ -290,11 +290,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'page must be int or float, not []'):
             self._make_fp(page=[])
 
-        err_msg = u'page must be an integer greater or equal than 1, not: 0'
+        err_msg = u'page must be an integer greater or equal to 1, not: 0'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(page=0)
 
-        err_msg = u'page must be a round integer, not: 1.1'
+        err_msg = u'page must be a round number, not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(page=1.1)
 
@@ -312,11 +312,11 @@ class FieldPlacementTest(utils.TestCase):
                                u'page must be int or float, not []'):
             fp.page = []
 
-        err_msg = u'page must be an integer greater or equal than 1, not: 0'
+        err_msg = u'page must be an integer greater or equal to 1, not: 0'
         with self.assertRaises(ValueError, err_msg):
             fp.page = 0
 
-        err_msg = u'page must be a round integer, not: 1.1'
+        err_msg = u'page must be a round number, not: 1.1'
         with self.assertRaises(ValueError, err_msg):
             fp.page = 1.1
 
@@ -340,11 +340,11 @@ class FieldPlacementTest(utils.TestCase):
             fp.page = 4
 
     def test_tip(self):
-        err_msg = u'tip must be TipSide or NoneType, not {}'
+        err_msg = u'tip must be TipSide or None, not {}'
         with self.assertRaises(TypeError, err_msg):
             self._make_fp(tip={})
 
-        err_msg = u"tip could be TipSide's variant name, not: wrong"
+        err_msg = u"tip could be None or TipSide's variant name, not: 'wrong'"
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(tip='wrong')
 
@@ -358,7 +358,7 @@ class FieldPlacementTest(utils.TestCase):
         fp = self._make_fp(tip=TS.left_tip)
         self.assertEqual(TS.left_tip, fp.tip)
 
-        err_msg = u'tip must be TipSide or NoneType, not 0'
+        err_msg = u'tip must be TipSide or None, not 0'
         with self.assertRaises(TypeError, err_msg):
             fp.tip = 0
 
