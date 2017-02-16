@@ -102,7 +102,7 @@ IDM = InvitationDeliveryMethod
 CDM = ConfirmationDeliveryMethod
 AM = AuthenticationMethod
 
-MaybeUnicode = tvu.nullable(tvu.instance(unicode))
+MaybeUnicode = tvu.nullable(tvu.tvus.NonEmptyText)
 
 
 class Signatory(_object.ScriveObject):
@@ -414,7 +414,7 @@ class Signatory(_object.ScriveObject):
             return u''
 
     @full_name.setter
-    @tvu(full_name=tvu.instance(unicode))
+    @tvu(full_name=tvu.tvus.Text)
     def full_name(self, full_name):
         fst_name_fields = filter(lambda f: f.name == SFT.first_name,
                                  self.fields)

@@ -27,7 +27,8 @@ class FieldTest(object):
         return F(*args, **kwargs)
 
     def test_value(self):
-        with self.assertRaises(TypeError, u'value must be unicode, not 1'):
+        with self.assertRaises(TypeError,
+                               u'value must be unicode or str, not 1'):
             self.f(value=1)
 
         # check default ctor value
@@ -37,7 +38,8 @@ class FieldTest(object):
         f = self.f(value=u'foo')
         self.assertEqual(u'foo', f.value)
 
-        with self.assertRaises(TypeError, u'value must be unicode, not 1'):
+        with self.assertRaises(TypeError,
+                               u'value must be unicode or str, not 1'):
             f.value = 1
 
         f.value = u'bar'

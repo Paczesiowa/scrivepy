@@ -318,14 +318,14 @@ class SignatoryTest(utils.IntegrationTestCase):
 
     def test_sign_success_redirect_url(self):
         self._test_field('sign_success_redirect_url',
-                         bad_value=[], correct_type='unicode or None',
+                         bad_value=[], correct_type='unicode, str or None',
                          default_good_value=None,
                          other_good_values=[u'http://example.com/'],
                          serialized_name=u'signsuccessredirect')
 
     def test_rejection_redirect_url(self):
         self._test_field('rejection_redirect_url',
-                         bad_value=[], correct_type='unicode or None',
+                         bad_value=[], correct_type='unicode, str or None',
                          default_good_value=None,
                          other_good_values=[u'http://example.net/'],
                          serialized_name=u'rejectredirect')

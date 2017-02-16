@@ -502,7 +502,7 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def test_title(self):
         self._test_field('title',
-                         bad_value=[], correct_type=unicode,
+                         bad_value=[], correct_type='unicode or str',
                          default_good_value=u'',
                          other_good_values=[u'some document'])
 
@@ -632,14 +632,14 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def test_invitation_message(self):
         self._test_field('invitation_message',
-                         bad_value={}, correct_type='unicode or None',
+                         bad_value={}, correct_type='unicode, str or None',
                          default_good_value=None,
                          other_good_values=[u'some text'],
                          serialized_name=u'invitationmessage',
                          serialized_default_good_value=u'')
         d1 = self.o()
         self.assertIsNone(d1.invitation_message)
-        for x in [None, u'', u'   ', u'  \n  ']:
+        for x in [None, u'   ', u'  \n  ']:
             d1.invitation_message = x
 
             d2 = self.o(invitation_message=x)
@@ -655,14 +655,14 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def test_confirmation_message(self):
         self._test_field('confirmation_message',
-                         bad_value={}, correct_type='unicode or None',
+                         bad_value={}, correct_type='unicode, str or None',
                          default_good_value=None,
                          other_good_values=[u'some text'],
                          serialized_name=u'confirmationmessage',
                          serialized_default_good_value=u'')
         d1 = self.o()
         self.assertIsNone(d1.confirmation_message)
-        for x in [None, u'', u'   ', u'  \n  ']:
+        for x in [None, u'   ', u'  \n  ']:
             d1.confirmation_message = x
 
             d2 = self.o(confirmation_message=x)
@@ -678,7 +678,7 @@ class DocumentTest(utils.IntegrationTestCase):
 
     def test_api_callback_url(self):
         self._test_field('api_callback_url',
-                         bad_value=[], correct_type='unicode or None',
+                         bad_value=[], correct_type='unicode, str or None',
                          default_good_value=None,
                          other_good_values=[u'http://example.com/'],
                          serialized_name=u'apicallbackurl')

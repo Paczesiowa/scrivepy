@@ -2,7 +2,6 @@
 * update call could skip setting attachments if they didn't change
 * add tests that there are no setters for fields of ScriveSet/Dict type
 * Signatory.author should not be writable
-* polish all tvus used
 * ScriveFile object
 ** should not be consturctable by users
 ** add tvu thingies for file/dir path args to download methods

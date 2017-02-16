@@ -23,7 +23,7 @@ class DocumentStatus(unicode, enum.Enum):
     error = u'DocumentError'
 
 
-MaybeUnicode = tvu.nullable(tvu.instance(unicode))
+MaybeUnicode = tvu.nullable(tvu.tvus.NonEmptyText)
 
 
 class Language(unicode, enum.Enum):
@@ -201,8 +201,9 @@ class Document(_object.ScriveObject):
             document.show_reject_option = json[u'showrejectoption']
             document.show_reject_reason = json[u'allowrejectreason']
             document.show_footer = json[u'showfooter']
-            document.invitation_message = json[u'invitationmessage']
-            document.confirmation_message = json[u'confirmationmessage']
+            document.invitation_message = json[u'invitationmessage'] or None
+            document.confirmation_message = \
+                json[u'confirmationmessage'] or None
             document.api_callback_url = json[u'apicallbackurl']
             document.language = Language(lang_code)
             document.saved_as_draft = json[u'saved']
@@ -338,7 +339,7 @@ class Document(_object.ScriveObject):
         return self._title
 
     @title.setter
-    @tvu(title=tvu.instance(unicode))
+    @tvu(title=tvu.tvus.Text)
     def title(self, title):
         self._title = title
 
@@ -477,8 +478,7 @@ class Document(_object.ScriveObject):
     @invitation_message.setter
     @tvu(invitation_message=MaybeUnicode)
     def invitation_message(self, invitation_message):
-        if invitation_message is not None and invitation_message.isspace()\
-           or invitation_message == u'':
+        if invitation_message is not None and invitation_message.isspace():
             invitation_message = None
         self._invitation_message = invitation_message
 
@@ -489,8 +489,7 @@ class Document(_object.ScriveObject):
     @confirmation_message.setter
     @tvu(confirmation_message=MaybeUnicode)
     def confirmation_message(self, confirmation_message):
-        if confirmation_message is not None and confirmation_message.isspace()\
-           or confirmation_message == u'':
+        if confirmation_message is not None and confirmation_message.isspace():
             confirmation_message = None
         self._confirmation_message = confirmation_message
 

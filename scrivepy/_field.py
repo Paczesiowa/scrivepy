@@ -12,8 +12,7 @@ class Field(_object.ScriveObject):
 
     _default_placement_tip = _field_placement.TipSide.right_tip
 
-    @tvu(value=tvu.instance(unicode),
-         obligatory=tvu.instance(bool),
+    @tvu(value=tvu.tvus.Text, obligatory=tvu.instance(bool),
          should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, value=u'', obligatory=True,
                  should_be_filled_by_sender=False):
@@ -104,7 +103,7 @@ class Field(_object.ScriveObject):
         return self._value
 
     @value.setter
-    @tvu(value=tvu.instance(unicode))
+    @tvu(value=tvu.tvus.Text)
     def value(self, value):
         self._value = value
 
@@ -148,8 +147,7 @@ class StandardFieldType(unicode, enum.Enum):
 class StandardField(Field):
 
     @tvu(name=tvu.instance(StandardFieldType, enum=True),
-         value=tvu.instance(unicode),
-         obligatory=tvu.instance(bool),
+         value=tvu.tvus.Text, obligatory=tvu.instance(bool),
          should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, value=u'', obligatory=True,
                  should_be_filled_by_sender=False):
@@ -162,8 +160,7 @@ class StandardField(Field):
 
 class CustomField(Field):
 
-    @tvu(name=tvu.instance(unicode),
-         value=tvu.instance(unicode),
+    @tvu(name=tvu.tvus.Text, value=tvu.tvus.Text,
          obligatory=tvu.instance(bool),
          should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, value=u'', obligatory=True,
@@ -179,15 +176,14 @@ class CustomField(Field):
         return self._name
 
     @name.setter
-    @tvu(name=tvu.instance(unicode))
+    @tvu(name=tvu.tvus.Text)
     def name(self, name):
         self._name = name
 
 
 class SignatureField(Field):
 
-    @tvu(name=tvu.instance(unicode),
-         obligatory=tvu.instance(bool),
+    @tvu(name=tvu.tvus.Text, obligatory=tvu.instance(bool),
          should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, obligatory=True,
                  should_be_filled_by_sender=False):
@@ -202,7 +198,7 @@ class SignatureField(Field):
         return self._name
 
     @name.setter
-    @tvu(name=tvu.instance(unicode))
+    @tvu(name=tvu.tvus.Text)
     def name(self, name):
         self._name = name
 
@@ -215,8 +211,7 @@ class CheckboxField(Field):
 
     _default_placement_tip = _field_placement.TipSide.left_tip
 
-    @tvu(name=tvu.instance(unicode),
-         value=tvu.instance(bool),
+    @tvu(name=tvu.tvus.Text, value=tvu.instance(bool),
          obligatory=tvu.instance(bool),
          should_be_filled_by_sender=tvu.instance(bool))
     def __init__(self, name, value=False, obligatory=False,
@@ -232,7 +227,7 @@ class CheckboxField(Field):
         return self._name
 
     @name.setter
-    @tvu(name=tvu.instance(unicode))
+    @tvu(name=tvu.tvus.Text)
     def name(self, name):
         self._name = name
 
