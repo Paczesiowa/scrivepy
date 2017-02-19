@@ -1,9 +1,7 @@
 import enum
-
 import tvu
-from scrivepy import _object
 
-scrive_property = _object.scrive_property
+from scrivepy._object import scrive_descriptor, ScriveObject
 
 
 class Ratio(tvu.TVU):
@@ -26,7 +24,7 @@ class TipSide(unicode, enum.Enum):
 MaybeTipSide = tvu.nullable(tvu.instance(TipSide, enum=True))
 
 
-class FieldPlacement(_object.ScriveObject):
+class FieldPlacement(ScriveObject):
 
     FONT_SIZE_SMALL = 12. / 943.
     FONT_SIZE_NORMAL = 16. / 943.
@@ -72,68 +70,10 @@ class FieldPlacement(_object.ScriveObject):
         if self.tip is None:
             self.tip = default_tip_value
 
-    @scrive_property
-    def left(self):
-        return self._left
-
-    @left.setter
-    @tvu(left=Ratio)
-    def left(self, left):
-        self._left = left
-
-    @scrive_property
-    def top(self):
-        return self._top
-
-    @top.setter
-    @tvu(top=Ratio)
-    def top(self, top):
-        self._top = top
-
-    @scrive_property
-    def width(self):
-        return self._width
-
-    @width.setter
-    @tvu(width=Ratio)
-    def width(self, width):
-        self._width = width
-
-    @scrive_property
-    def height(self):
-        return self._height
-
-    @height.setter
-    @tvu(height=Ratio)
-    def height(self, height):
-        self._height = height
-
-    @scrive_property
-    def font_size(self):
-        return self._font_size
-
-    @font_size.setter
-    @tvu(font_size=Ratio)
-    def font_size(self, font_size):
-        self._font_size = font_size
-
-    @scrive_property
-    def page(self):
-        return self._page
-
-    @page.setter
-    @tvu(page=tvu.tvus.PositiveInt)
-    def page(self, page):
-        self._page = page
-
-    @scrive_property
-    def tip(self):
-        tip = self._tip
-        if tip is not None:
-            tip = TipSide(tip)
-        return tip
-
-    @tip.setter
-    @tvu(tip=MaybeTipSide)
-    def tip(self, tip):
-        self._tip = tip
+    left = scrive_descriptor(Ratio)
+    top = scrive_descriptor(Ratio)
+    width = scrive_descriptor(Ratio)
+    height = scrive_descriptor(Ratio)
+    font_size = scrive_descriptor(Ratio)
+    page = scrive_descriptor(tvu.tvus.PositiveInt)
+    tip = scrive_descriptor(MaybeTipSide)
