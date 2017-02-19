@@ -84,7 +84,7 @@ class scrive_property(property):
 
 class scrive_descriptor(object):
 
-    def __init__(self, tvu_):
+    def __init__(self, tvu_=None):
         self._name = None
         self._attr_name = None
         self._tvu = tvu_
@@ -105,6 +105,9 @@ class scrive_descriptor(object):
         return getattr(obj, self._attr_name)
 
     def __set__(self, obj, value):
+        if self._tvu is None:
+            # read only attribute
+            raise AttributeError()
         obj._check_setter()
         self._resolve_name(type(obj))
         value = self._tvu(self._name).unify_validate(value)
