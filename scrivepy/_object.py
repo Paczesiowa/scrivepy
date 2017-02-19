@@ -1,7 +1,8 @@
 import json
 
 import tvu
-from scrivepy import _exceptions
+
+from scrivepy._exceptions import InvalidScriveObject, ReadOnlyScriveObject
 
 
 class _JSONEncoder(json.JSONEncoder):
@@ -24,7 +25,7 @@ class ScriveObject(object):
 
     def _check_invalid(self):
         if self._invalid:
-            raise _exceptions.InvalidScriveObject()
+            raise InvalidScriveObject()
 
     def _set_invalid(self):
         self._invalid = True
@@ -38,7 +39,7 @@ class ScriveObject(object):
     def _check_setter(self):
         self._check_invalid()
         if self._read_only:
-            raise _exceptions.ReadOnlyScriveObject()
+            raise ReadOnlyScriveObject()
 
     def _set_api(self, api, document):
         self._api = api
@@ -49,10 +50,12 @@ class ScriveObject(object):
             super(ScriveObject, self).__setattr__(attr, value)
         elif self._invalid:
             # invalid objects are still invalid
-            raise _exceptions.InvalidScriveObject()
+            raise InvalidScriveObject()
         else:
             # adding new attributes is not allowed
             raise AttributeError(attr)
+
+ID = tvu.tvus.NonEmptyText
 
 
 def _scrive_method_wrap(fun, pre_fun_name):
@@ -79,4 +82,62 @@ class scrive_property(property):
         super(scrive_property, self).__init__(fget, fset, fdel, doc)
 
 
-ID = tvu.tvus.NonEmptyText
+class scrive_descriptor(object):
+
+    def __init__(self, tvu_):
+        self._name = None
+        self._attr_name = None
+        self._tvu = tvu_
+
+    def _resolve_name(self, obj_type):
+        if self._name is None:
+            for attr in dir(obj_type):
+                if getattr(obj_type, attr) is self:
+                    self._name = attr
+                    self._attr_name = '_' + attr
+                    break
+
+    def __get__(self, obj, obj_type):
+        if obj is None:
+            return self
+        self._resolve_name(obj_type)
+        obj._check_getter()
+        return getattr(obj, self._attr_name)
+
+    def __set__(self, obj, value):
+        obj._check_setter()
+        self._resolve_name(type(obj))
+        value = self._tvu(self._name).unify_validate(value)
+        setattr(obj, self._attr_name, value)
+
+'''
+class Foo(ScriveObject):
+
+The following properties are all equivalent:
+
+(1)
+    @property
+    def bar(self):
+        self._check_getter()
+        return self._bar
+
+    @bar.setter
+    @tvu(value=tvu.instance(int))
+    def bar(self, value):
+        self._check_setter()
+        self._bar = value
+
+(2)
+    @scrive_property
+    def baz(self):
+        return self._baz
+
+    @baz.setter
+    @tvu(value=tvu.instance(int))
+    def baz(self, value):
+        self._baz = value
+
+(3)
+
+    quux = scrive_descriptor(tvu.instance(int))
+'''
