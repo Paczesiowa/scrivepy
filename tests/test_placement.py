@@ -1,13 +1,55 @@
+# coding: utf-8
 from scrivepy import (
+    Anchor,
     InvalidScriveObject,
     Placement,
     ReadOnlyScriveObject,
     TipSide
 )
+from scrivepy._set import ScriveSet
 from tests import utils
 
 
+class AnchorTest(utils.TestCase):
+
+    O = Anchor
+    default_ctor_kwargs = {'text': 'foo', 'index': 2}
+    json = {u'text': u'foo', u'index': 2}
+
+    def test_text(self):
+        unicode_err = u'text must be unicode text, or ascii-only bytestring'
+        self._test_attr(
+            attr_name='text',
+            good_values=[u'foo', (b'bar', u'bar'), u'ą'],
+            bad_type_values=[([], u'unicode or str')],
+            bad_val_values=[(u'ą'.encode('utf-8'), unicode_err),
+                            (u'', u'text must be non-empty string')],
+            serialized_name='text',
+            serialized_values=[u'foo', u'ą'],
+            required=True)
+
+    def test_index(self):
+        self._test_attr(
+            attr_name='index',
+            good_values=[1, 2, -1],
+            bad_type_values=[([], u'int')],
+            bad_val_values=[],
+            serialized_name='index',
+            serialized_values=[1, 2, -1],
+            required=True)
+
+
 class PlacementTest(utils.TestCase):
+
+    O = Placement
+    default_ctor_kwargs = {'left': .1, 'top': .2, 'width': .3,
+                           'height': .4, 'font_size': .5, 'page': 1,
+                           'tip': TipSide.left_tip}
+    json = {u'xrel': .1, u'yrel': .2, u'wrel': .3,
+            u'hrel': .4, u'fsrel': .5, u'page': 1,
+            u'tip': u'left', u'anchors': [{u'text': u'foo', u'index': 2}]}
+    a1 = Anchor(text=u'foo', index=1)
+    a2 = Anchor(text=u'bar', index=2)
 
     def _make_fp(self, **override_kwargs):
         kwargs = {'left': .5, 'top': .5, 'width': .5, 'height': .5}
@@ -411,6 +453,7 @@ class PlacementTest(utils.TestCase):
                  u'hrel': 0.02620802620802621,
                  u'fsrel': 0.016967126193001062,
                  u'page': 1,
+                 u'anchors': [],
                  u'tip': 'right'}
         fp = Placement._from_json_obj(json1)
         self.assertTrue(.08 < fp.left < .09)
@@ -427,6 +470,7 @@ class PlacementTest(utils.TestCase):
                  u'hrel': 0.00819000819000819,
                  u'fsrel': 0.015906680805938492,
                  u'page': 1,
+                 u'anchors': [],
                  u'tip': 'left'}
         fp = Placement._from_json_obj(json2)
         self.assertTrue(.41 < fp.left < .42)
@@ -446,5 +490,37 @@ class PlacementTest(utils.TestCase):
                 u'hrel': .4,
                 u'fsrel': .5,
                 u'page': 6,
+                u'anchors': [],
                 u'tip': u'left'}
         self.assertEqual(json, fp._to_json_obj())
+
+    def test_anchors(self):
+        # check default ctor value
+        p = self.o()
+        self.assertEqual(ScriveSet(), p.anchors)
+
+        p.anchors.add(self.a1)
+        self.assertEqual(ScriveSet([self.a1]), p.anchors)
+
+        err_msg = u'elem must be Anchor, not 1'
+        with self.assertRaises(TypeError, err_msg):
+            p.anchors.add(1)
+
+        p.anchors.clear()
+        p.anchors.add(self.a2)
+        self.assertEqual(ScriveSet([self.a2]), p.anchors)
+
+        self.assertEqual([self.a2], p._to_json_obj()[u'anchors'])
+
+        p._set_read_only()
+        # set() is because the 2nd one is read only and not really equal
+        self.assertEqual(set(ScriveSet([self.a2])), set(p.anchors))
+        with self.assertRaises(ReadOnlyScriveObject, None):
+            p.anchors.clear()
+
+        anchors = p.anchors
+        p._set_invalid()
+        with self.assertRaises(InvalidScriveObject, None):
+            p.anchors
+        with self.assertRaises(InvalidScriveObject, None):
+            anchors.add(self.a1)

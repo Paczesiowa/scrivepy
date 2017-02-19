@@ -1,7 +1,7 @@
 from scrivepy import _document, _exceptions, _placement, \
      _field, _signatory, _scrive
 
-
+Anchor = _placement.Anchor
 AuthenticationMethod = _signatory.AuthenticationMethod
 AuthorAttachment = _document.AuthorAttachment
 CheckboxField = _field.CheckboxField
@@ -26,7 +26,8 @@ StandardField = _field.StandardField
 StandardFieldType = _field.StandardFieldType
 TipSide = _placement.TipSide
 
-__all__ = ['AuthenticationMethod',
+__all__ = ['Anchor',
+           'AuthenticationMethod',
            'AuthorAttachment',
            'CheckboxField',
            'ConfirmationDeliveryMethod',

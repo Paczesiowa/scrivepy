@@ -12,6 +12,7 @@ import nose
 import testconfig
 
 from scrivepy import InvalidScriveObject, ReadOnlyScriveObject, Scrive
+from scrivepy._object import ScriveObject
 
 
 class AssertRaisesContext(object):
@@ -117,6 +118,136 @@ class TestCase(unittest.TestCase):
                 f.write(pdf_contents2)
             png_contents2 = check_output(mutool_args)
         self.assertEqual(png_contents1, png_contents2)
+
+    def o(self, **override_kwargs):
+        kwargs = dict(self.default_ctor_kwargs)
+        for key, value in override_kwargs.items():
+            kwargs[key] = value
+        return self.O(**kwargs)
+
+    def _test_attr(self, attr_name, good_values,
+                   bad_type_values, bad_val_values,
+                   serialized_name, serialized_values,
+                   required=True, default_value=None):
+        # test, that for every pair (v1, v2) in good_values
+        # (or (v, v) if it's not a tuple)
+        # o(attr_name=v1).attr_name == v2
+        for value_tuple in good_values:
+            if isinstance(value_tuple, tuple):
+                value_in, value_out = value_tuple
+            else:
+                value_in, value_out = value_tuple, value_tuple
+            o = self.o(**{attr_name: value_in})
+            self.assertEqual(getattr(o, attr_name), value_out)
+
+        # test, that for every pair (v, err) in bad_type_values
+        # o(attr_name=v) throws TypeError(err)
+        for value_in, err_msg in bad_type_values:
+            err_msg = \
+                attr_name + ' must be ' + err_msg + ', not ' + repr(value_in)
+            with self.assertRaises(TypeError, err_msg):
+                o = self.o(**{attr_name: value_in})
+
+        # test, that for every pair (v, err) in bad_val_values
+        # o(attr_name=v) throws ValueError(err)
+        for value_in, err_msg in bad_val_values:
+            with self.assertRaises(ValueError, regex=err_msg):
+                o = self.o(**{attr_name: value_in})
+
+        # if attr_name is an optional ctor arg, check that
+        # without it it sets a good value: o().attr_name == default_value
+        if not required:
+            o = self.o()
+            self.assertEqual(getattr(o, attr_name), default_value)
+
+        # test, that for every pair (v1, v2) in good_values
+        # (or (v, v) if it's not a tuple)
+        # o = o(); o.attr_name = v1; o.attr_name == v2
+        for value_tuple in good_values:
+            if isinstance(value_tuple, tuple):
+                value_in, value_out = value_tuple
+            else:
+                value_in, value_out = value_tuple, value_tuple
+            o = self.o()
+            setattr(o, attr_name, value_in)
+            self.assertEqual(getattr(o, attr_name), value_out)
+
+        # test, that for every pair (v, err) in bad_type_values
+        # o = o(); o.attr_name=v throws TypeError(err)
+        for value_in, err_msg in bad_type_values:
+            o = self.o()
+            err_msg = \
+                attr_name + ' must be ' + err_msg + ', not ' + repr(value_in)
+            with self.assertRaises(TypeError, err_msg):
+                setattr(o, attr_name, value_in)
+
+        # test, that for every pair (v, err) in bad_value_values
+        # o = o(); o.attr_name=v throws ValueError(err)
+        for value_in, err_msg in bad_val_values:
+            o = self.o()
+            with self.assertRaises(ValueError, regex=err_msg):
+                setattr(o, attr_name, value_in)
+
+        # test that for every pair (v1, v2) in serialized_values
+        # (or (v, v) if it's not a tuple)
+        # o(attr_name=v1)._to_json_obj()[serialized_name] == v2
+        for value_tuple in serialized_values:
+            if isinstance(value_tuple, tuple):
+                value_in, value_out = value_tuple
+            else:
+                value_in, value_out = value_tuple, value_tuple
+            o = self.o()
+            setattr(o, attr_name, value_in)
+            self.assertEqual(o._to_json_obj()[serialized_name], value_out)
+
+        # test that for every pair (v1, v2) in serialized_values
+        # (or (v, v) if it's not a tuple)
+        # json[serialized_name]=v2; O._from_json_obj(json).attr_name == v1
+        for value_tuple in serialized_values:
+            if isinstance(value_tuple, tuple):
+                value_in, value_out = value_tuple
+            else:
+                value_in, value_out = value_tuple, value_tuple
+            json = dict(self.json)
+            json[serialized_name] = value_out
+            o = self.O._from_json_obj(json)
+            self.assertEqual(getattr(o, attr_name), value_in)
+
+        # test that o() and it ScriveObject deps are not read only
+        o = self.o()
+        deps = [getattr(o, attr)
+                for attr in dir(o)
+                if isinstance(getattr(o, attr), ScriveObject)]
+        self.assertFalse(o._read_only)
+        for dep in deps:
+            self.assertFalse(dep._read_only)
+
+        # test that o() and it ScriveObject deps are read only,
+        # after o._set_read_only()
+        o._set_read_only()
+        self.assertTrue(o._read_only)
+        with self.assertRaises(ReadOnlyScriveObject):
+                setattr(o, attr_name, 'whatever')
+        for dep in deps:
+            self.assertTrue(dep._read_only)
+
+        # test that o() and it ScriveObject deps are not invalid
+        o = self.o()
+        deps = [getattr(o, attr)
+                for attr in dir(o)
+                if isinstance(getattr(o, attr), ScriveObject)]
+        self.assertFalse(o._invalid)
+        for dep in deps:
+            self.assertFalse(dep._invalid)
+
+        # test that o() and it ScriveObject deps are invalid,
+        # after o._set_invalid()
+        o._set_invalid()
+        self.assertTrue(o._invalid)
+        with self.assertRaises(InvalidScriveObject):
+                getattr(o, attr_name)
+        for dep in deps:
+            self.assertTrue(dep._invalid)
 
     def _test_field(self, field_name, bad_value, correct_type,
                     default_good_value, other_good_values,
