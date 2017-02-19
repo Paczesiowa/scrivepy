@@ -41,6 +41,5 @@
 ** implement Document.save() method with syncing of possible old versions of objects
 * API v2
 ** Placement
-*** s/FieldPlacement/Placement
 *** no resolving tipsides, default is right, null means left
 *** anchors

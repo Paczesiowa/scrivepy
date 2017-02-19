@@ -1,16 +1,15 @@
 import enum
-
 import tvu
-from scrivepy import _object, _set, _field_placement, _exceptions
+
+from scrivepy._exceptions import InvalidResponse
+from scrivepy._object import scrive_property, ScriveObject
+from scrivepy._placement import Placement, TipSide
+from scrivepy._set import ScriveSet
 
 
-scrive_property = _object.scrive_property
-ScriveSet = _set.ScriveSet
+class Field(ScriveObject):
 
-
-class Field(_object.ScriveObject):
-
-    _default_placement_tip = _field_placement.TipSide.right_tip
+    _default_placement_tip = TipSide.right_tip
 
     @tvu(value=tvu.tvus.Text, obligatory=tvu.instance(bool),
          should_be_filled_by_sender=tvu.instance(bool))
@@ -22,8 +21,7 @@ class Field(_object.ScriveObject):
         self._obligatory = obligatory
         self._should_be_filled_by_sender = should_be_filled_by_sender
         self._placements = ScriveSet()
-        self._placements._elem_validator = \
-            tvu.instance(_field_placement.FieldPlacement)
+        self._placements._elem_validator = tvu.instance(Placement)
 
     def __str__(self):
         return u'%s(value=%s, %d placements)' % \
@@ -40,7 +38,7 @@ class Field(_object.ScriveObject):
             obligatory = json[u'obligatory']
             should_be_filled_by_sender = json[u'shouldbefilledbysender']
             placements = \
-                [_field_placement.FieldPlacement._from_json_obj(
+                [Placement._from_json_obj(
                     placement_json) for placement_json in json[u'placements']]
 
             if type_ == u'standard':
@@ -51,13 +49,13 @@ class Field(_object.ScriveObject):
             elif type_ == u'signature':
                 field = SignatureField(name=name)
                 if not isinstance(value, unicode):
-                    raise _exceptions.InvalidResponse(u'bad field value')
+                    raise InvalidResponse(u'bad field value')
                 field._value = value
             elif type_ == u'checkbox':
                 field = CheckboxField(name=name,
                                       value=value.lower() == u'checked')
             else:
-                raise _exceptions.InvalidResponse(u'bad field type')
+                raise InvalidResponse(u'bad field type')
 
             field.obligatory = obligatory
             field.should_be_filled_by_sender = should_be_filled_by_sender
@@ -65,10 +63,10 @@ class Field(_object.ScriveObject):
             if isinstance(closed, (bool, type(None))):
                 field._closed = closed
             else:
-                raise _exceptions.InvalidResponse()
+                raise InvalidResponse()
             return field
         except (KeyError, TypeError, ValueError) as e:
-            raise _exceptions.InvalidResponse(e)
+            raise InvalidResponse(e)
 
     def _set_invalid(self):
         # invalidate placements first, before getter stops working
@@ -209,7 +207,7 @@ class SignatureField(Field):
 
 class CheckboxField(Field):
 
-    _default_placement_tip = _field_placement.TipSide.left_tip
+    _default_placement_tip = TipSide.left_tip
 
     @tvu(name=tvu.tvus.Text, value=tvu.instance(bool),
          obligatory=tvu.instance(bool),

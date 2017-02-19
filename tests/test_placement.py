@@ -1,19 +1,19 @@
 from scrivepy import (
-    FieldPlacement as FP,
-    TipSide as TS,
     InvalidScriveObject,
-    ReadOnlyScriveObject
+    Placement,
+    ReadOnlyScriveObject,
+    TipSide
 )
 from tests import utils
 
 
-class FieldPlacementTest(utils.TestCase):
+class PlacementTest(utils.TestCase):
 
     def _make_fp(self, **override_kwargs):
         kwargs = {'left': .5, 'top': .5, 'width': .5, 'height': .5}
         for key, val in override_kwargs.items():
             kwargs[key] = val
-        return FP(**kwargs)
+        return Placement(**kwargs)
 
     def test_left(self):
         with self.assertRaises(TypeError,
@@ -231,14 +231,14 @@ class FieldPlacementTest(utils.TestCase):
             self._make_fp(font_size=1.1)
 
         # check that pre-defined font sizes pass validation
-        self._make_fp(font_size=FP.FONT_SIZE_SMALL)
-        self._make_fp(font_size=FP.FONT_SIZE_NORMAL)
-        self._make_fp(font_size=FP.FONT_SIZE_LARGE)
-        self._make_fp(font_size=FP.FONT_SIZE_HUGE)
+        self._make_fp(font_size=Placement.FONT_SIZE_SMALL)
+        self._make_fp(font_size=Placement.FONT_SIZE_NORMAL)
+        self._make_fp(font_size=Placement.FONT_SIZE_LARGE)
+        self._make_fp(font_size=Placement.FONT_SIZE_HUGE)
 
         # check default ctor value
         fp = self._make_fp()
-        self.assertEqual(FP.FONT_SIZE_NORMAL, fp.font_size)
+        self.assertEqual(Placement.FONT_SIZE_NORMAL, fp.font_size)
 
         fp = self._make_fp(font_size=.7)
         self.assertEqual(.7, fp.font_size)
@@ -261,10 +261,10 @@ class FieldPlacementTest(utils.TestCase):
             fp.font_size = 1.1
 
         # check that pre-defined font sizes pass validation
-        fp.font_size = FP.FONT_SIZE_SMALL
-        fp.font_size = FP.FONT_SIZE_NORMAL
-        fp.font_size = FP.FONT_SIZE_LARGE
-        fp.font_size = FP.FONT_SIZE_HUGE
+        fp.font_size = Placement.FONT_SIZE_SMALL
+        fp.font_size = Placement.FONT_SIZE_NORMAL
+        fp.font_size = Placement.FONT_SIZE_LARGE
+        fp.font_size = Placement.FONT_SIZE_HUGE
 
         fp.font_size = 1
         self.assertEqual(1., fp.font_size)
@@ -353,10 +353,10 @@ class FieldPlacementTest(utils.TestCase):
         self.assertIsNone(fp.tip)
 
         fp = self._make_fp(tip='right_tip')
-        self.assertEqual(TS.right_tip, fp.tip)
+        self.assertEqual(TipSide.right_tip, fp.tip)
 
-        fp = self._make_fp(tip=TS.left_tip)
-        self.assertEqual(TS.left_tip, fp.tip)
+        fp = self._make_fp(tip=TipSide.left_tip)
+        self.assertEqual(TipSide.left_tip, fp.tip)
 
         err_msg = u'tip must be TipSide or None, not 0'
         with self.assertRaises(TypeError, err_msg):
@@ -368,41 +368,41 @@ class FieldPlacementTest(utils.TestCase):
         self.assertIsNone(fp.tip)
         self.assertIsNone(fp._to_json_obj()[u'tip'])
 
-        fp.tip = TS.right_tip
-        self.assertEqual(TS.right_tip, fp.tip)
+        fp.tip = TipSide.right_tip
+        self.assertEqual(TipSide.right_tip, fp.tip)
 
         self.assertEqual(u'right', fp._to_json_obj()[u'tip'])
 
         fp._set_read_only()
-        self.assertEqual(TS.right_tip, fp.tip)
+        self.assertEqual(TipSide.right_tip, fp.tip)
         with self.assertRaises(ReadOnlyScriveObject, None):
-            fp.tip = TS.left_tip
+            fp.tip = TipSide.left_tip
 
         fp._set_invalid()
         with self.assertRaises(InvalidScriveObject, None):
             fp.tip
         with self.assertRaises(InvalidScriveObject, None):
-            fp.tip = TS.left_tip
+            fp.tip = TipSide.left_tip
 
     def test_resolve_default_tip(self):
         fp = self._make_fp()
         self.assertIsNone(fp.tip)
 
-        fp._resolve_default_tip(TS.left_tip)
-        self.assertEqual(TS.left_tip, fp.tip)
+        fp._resolve_default_tip(TipSide.left_tip)
+        self.assertEqual(TipSide.left_tip, fp.tip)
 
-        fp._resolve_default_tip(TS.right_tip)
-        self.assertEqual(TS.left_tip, fp.tip)
+        fp._resolve_default_tip(TipSide.right_tip)
+        self.assertEqual(TipSide.left_tip, fp.tip)
 
         fp = self._make_fp()
         fp._set_read_only()
         with self.assertRaises(ReadOnlyScriveObject, None):
-            fp._resolve_default_tip(TS.left_tip)
+            fp._resolve_default_tip(TipSide.left_tip)
 
         fp = self._make_fp()
         fp._set_invalid()
         with self.assertRaises(InvalidScriveObject, None):
-            fp._resolve_default_tip(TS.left_tip)
+            fp._resolve_default_tip(TipSide.left_tip)
 
     def test_from_json_obj(self):
         json1 = {u'xrel': 0.08589607635206786,
@@ -412,14 +412,14 @@ class FieldPlacementTest(utils.TestCase):
                  u'fsrel': 0.016967126193001062,
                  u'page': 1,
                  u'tip': 'right'}
-        fp = FP._from_json_obj(json1)
+        fp = Placement._from_json_obj(json1)
         self.assertTrue(.08 < fp.left < .09)
         self.assertTrue(.25 < fp.top < .26)
         self.assertTrue(.09 < fp.width < .1)
         self.assertTrue(.02 < fp.height < .03)
         self.assertTrue(.01 < fp.font_size < .02)
         self.assertEqual(fp.page, 1)
-        self.assertEqual(fp.tip, TS.right_tip)
+        self.assertEqual(fp.tip, TipSide.right_tip)
 
         json2 = {u'xrel': 0.4188759278897137,
                  u'yrel': 0.31367731367731366,
@@ -428,18 +428,18 @@ class FieldPlacementTest(utils.TestCase):
                  u'fsrel': 0.015906680805938492,
                  u'page': 1,
                  u'tip': 'left'}
-        fp = FP._from_json_obj(json2)
+        fp = Placement._from_json_obj(json2)
         self.assertTrue(.41 < fp.left < .42)
         self.assertTrue(.31 < fp.top < .32)
         self.assertTrue(.01 < fp.width < .02)
         self.assertTrue(.0 < fp.height < .01)
         self.assertTrue(.01 < fp.font_size < .02)
         self.assertEqual(fp.page, 1)
-        self.assertEqual(fp.tip, TS.left_tip)
+        self.assertEqual(fp.tip, TipSide.left_tip)
 
     def test_to_json_obj(self):
-        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
-                page=6, tip=TS.left_tip)
+        fp = Placement(left=.1, top=.2, width=.3, height=.4, font_size=.5,
+                       page=6, tip=TipSide.left_tip)
         json = {u'xrel': .1,
                 u'yrel': .2,
                 u'wrel': .3,

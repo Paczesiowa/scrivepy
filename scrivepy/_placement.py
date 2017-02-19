@@ -24,7 +24,7 @@ class TipSide(unicode, enum.Enum):
 MaybeTipSide = tvu.nullable(tvu.instance(TipSide, enum=True))
 
 
-class FieldPlacement(ScriveObject):
+class Placement(ScriveObject):
 
     FONT_SIZE_SMALL = 12. / 943.
     FONT_SIZE_NORMAL = 16. / 943.
@@ -36,7 +36,7 @@ class FieldPlacement(ScriveObject):
          page=tvu.tvus.PositiveInt, tip=MaybeTipSide)
     def __init__(self, left, top, width, height,
                  font_size=FONT_SIZE_NORMAL, page=1, tip=None):
-        super(FieldPlacement, self).__init__()
+        super(Placement, self).__init__()
         self._left = left
         self._top = top
         self._width = width
@@ -60,10 +60,10 @@ class FieldPlacement(ScriveObject):
 
     @classmethod
     def _from_json_obj(cls, json):
-        return FieldPlacement(left=json[u'xrel'], top=json[u'yrel'],
-                              width=json[u'wrel'], height=json[u'hrel'],
-                              font_size=json[u'fsrel'], page=json[u'page'],
-                              tip=TipSide(json[u'tip']))
+        return Placement(left=json[u'xrel'], top=json[u'yrel'],
+                         width=json[u'wrel'], height=json[u'hrel'],
+                         font_size=json[u'fsrel'], page=json[u'page'],
+                         tip=TipSide(json[u'tip']))
 
     def _resolve_default_tip(self, default_tip_value):
         self._check_invalid()

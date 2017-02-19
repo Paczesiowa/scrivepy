@@ -1,14 +1,14 @@
 from scrivepy import (
-    FieldPlacement as FP,
-    TipSide as TS,
-    Field as F,
-    StandardFieldType as SFT,
-    StandardField as SF,
-    CustomField as CF,
-    SignatureField as SigF,
     CheckboxField as ChF,
+    CustomField as CF,
+    Field as F,
     InvalidScriveObject,
+    Placement,
     ReadOnlyScriveObject,
+    SignatureField as SigF,
+    StandardField as SF,
+    StandardFieldType as SFT,
+    TipSide,
     _set
 )
 from tests import utils
@@ -20,8 +20,10 @@ ScriveSet = _set.ScriveSet
 class FieldTest(object):
 
     def setUp(self):
-        self.fp = FP(left=.5, top=.5, width=.5, height=.5, tip=TS.right_tip)
-        self.fp2 = FP(left=.7, top=.7, width=.7, height=.7, tip=TS.right_tip)
+        self.fp = Placement(left=.5, top=.5, width=.5,
+                            height=.5, tip=TipSide.right_tip)
+        self.fp2 = Placement(left=.7, top=.7, width=.7,
+                             height=.7, tip=TipSide.right_tip)
 
     def f(self, *args, **kwargs):
         return F(*args, **kwargs)
@@ -127,7 +129,7 @@ class FieldTest(object):
         f.placements.add(self.fp)
         self.assertEqual(ScriveSet([self.fp]), f.placements)
 
-        err_msg = u'elem must be FieldPlacement, not 1'
+        err_msg = u'elem must be Placement, not 1'
         with self.assertRaises(TypeError, err_msg):
             f.placements.add(1)
 
@@ -153,7 +155,7 @@ class FieldTest(object):
 
     def test_default_placement_tip(self):
         f = self.f()
-        self.assertEqual(TS.right_tip, f._default_placement_tip)
+        self.assertEqual(TipSide.right_tip, f._default_placement_tip)
 
     def test_closed(self):
         f = self.f()
@@ -167,8 +169,8 @@ class FieldTest(object):
             f.closed
 
     def test_flags(self):
-        fp1 = FP(left=.5, top=.5, width=.5, height=.5)
-        fp2 = FP(left=.7, top=.7, width=.7, height=.7)
+        fp1 = Placement(left=.5, top=.5, width=.5, height=.5)
+        fp2 = Placement(left=.7, top=.7, width=.7, height=.7)
         f = self.f()
         f.placements.update([fp1, fp2])
 
@@ -211,8 +213,8 @@ class StandardFieldTest(FieldTest):
         return SF(name=self.FIELD_NAME, *args, **kwargs)
 
     def test_to_json_obj(self):
-        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
-                page=6, tip=None)
+        fp = Placement(left=.1, top=.2, width=.3, height=.4,
+                       font_size=.5, page=6, tip=None)
 
         f = self.f(value=u'foo', obligatory=False,
                    should_be_filled_by_sender=True)
@@ -226,7 +228,7 @@ class StandardFieldTest(FieldTest):
                 u'name': self.FIELD_NAME}
 
         self.assertEqual(json, f._to_json_obj())
-        self.assertEqual(fp.tip, TS.right_tip)
+        self.assertEqual(fp.tip, TipSide.right_tip)
 
     def test_from_json_obj(self):
         json = {u'type': u'standard',
@@ -316,8 +318,8 @@ class CustomFieldTest(FieldTest, utils.TestCase):
         return CF(*args, **kwargs)
 
     def test_to_json_obj(self):
-        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
-                page=6, tip=None)
+        fp = Placement(left=.1, top=.2, width=.3, height=.4,
+                       font_size=.5, page=6, tip=None)
 
         f = self.f(name=u'fieldname', value=u'fieldvalue', obligatory=False,
                    should_be_filled_by_sender=True)
@@ -331,7 +333,7 @@ class CustomFieldTest(FieldTest, utils.TestCase):
                 u'name': u'fieldname'}
 
         self.assertEqual(json, f._to_json_obj())
-        self.assertEqual(fp.tip, TS.right_tip)
+        self.assertEqual(fp.tip, TipSide.right_tip)
 
     def test_from_json_obj(self):
         json = {u'type': u'custom',
@@ -392,8 +394,8 @@ class SignatureFieldTest(FieldTest, utils.TestCase):
             f.value
 
     def test_to_json_obj(self):
-        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
-                page=6, tip=None)
+        fp = Placement(left=.1, top=.2, width=.3, height=.4,
+                       font_size=.5, page=6, tip=None)
 
         f = self.f(name=u'signature-2', obligatory=False,
                    should_be_filled_by_sender=True)
@@ -407,7 +409,7 @@ class SignatureFieldTest(FieldTest, utils.TestCase):
                 u'name': u'signature-2'}
 
         self.assertEqual(json, f._to_json_obj())
-        self.assertEqual(fp.tip, TS.right_tip)
+        self.assertEqual(fp.tip, TipSide.right_tip)
 
     def test_from_json_obj(self):
         json = {u'type': u'signature',
@@ -486,11 +488,11 @@ class CheckboxFieldTest(FieldTest, utils.TestCase):
 
     def test_default_placement_tip(self):
         f = self.f()
-        self.assertEqual(TS.left_tip, f._default_placement_tip)
+        self.assertEqual(TipSide.left_tip, f._default_placement_tip)
 
     def test_to_json_obj(self):
-        fp = FP(left=.1, top=.2, width=.3, height=.4, font_size=.5,
-                page=6, tip=None)
+        fp = Placement(left=.1, top=.2, width=.3, height=.4,
+                       font_size=.5, page=6, tip=None)
 
         f = self.f(name=u'checkbox-2', obligatory=False,
                    should_be_filled_by_sender=True)
@@ -504,7 +506,7 @@ class CheckboxFieldTest(FieldTest, utils.TestCase):
                 u'name': u'checkbox-2'}
 
         self.assertEqual(json, f._to_json_obj())
-        self.assertEqual(fp.tip, TS.left_tip)
+        self.assertEqual(fp.tip, TipSide.left_tip)
 
     def test_from_json_obj(self):
         json = {u'type': u'checkbox',
