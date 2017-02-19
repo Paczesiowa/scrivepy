@@ -18,11 +18,8 @@ class Ratio(tvu.TVU):
 
 
 class TipSide(unicode, enum.Enum):
-    left_tip = u'left'
-    right_tip = u'right'
-
-
-MaybeTipSide = tvu.nullable(tvu.instance(TipSide, enum=True))
+    left = u'left'
+    right = u'right'
 
 
 class Anchor(ScriveObject):
@@ -53,9 +50,9 @@ class Placement(ScriveObject):
 
     @tvu(left=Ratio, top=Ratio, width=Ratio,
          height=Ratio, font_size=Ratio,
-         page=tvu.tvus.PositiveInt, tip=MaybeTipSide)
+         page=tvu.tvus.PositiveInt, tip=tvu.instance(TipSide, enum=True))
     def __init__(self, left, top, width, height,
-                 font_size=FONT_SIZE_NORMAL, page=1, tip=None):
+                 font_size=FONT_SIZE_NORMAL, page=1, tip=TipSide.right):
         super(Placement, self).__init__()
         self._left = left
         self._top = top
@@ -75,7 +72,7 @@ class Placement(ScriveObject):
                 u'fsrel': self.font_size,
                 u'page': self.page,
                 u'anchors': list(self.anchors),
-                u'tip': self.tip.value if self.tip else None}
+                u'tip': self.tip.value}
 
     def __str__(self):
         return u'Placement(page ' + str(self.page) + u',' + \
@@ -85,10 +82,15 @@ class Placement(ScriveObject):
     def _from_json_obj(cls, json):
         anchors = [Anchor._from_json_obj(anchor_json)
                    for anchor_json in json[u'anchors']]
+
+        if json[u'tip'] is None:
+            tip = TipSide.left
+        else:
+            tip = TipSide(json[u'tip'])
         placement = Placement(left=json[u'xrel'], top=json[u'yrel'],
                               width=json[u'wrel'], height=json[u'hrel'],
                               font_size=json[u'fsrel'], page=json[u'page'],
-                              tip=TipSide(json[u'tip']))
+                              tip=tip)
         placement.anchors.update(anchors)
         return placement
 
@@ -101,16 +103,11 @@ class Placement(ScriveObject):
         super(Placement, self)._set_read_only()
         self.anchors._set_read_only()
 
-    def _resolve_default_tip(self, default_tip_value):
-        self._check_invalid()
-        if self.tip is None:
-            self.tip = default_tip_value
-
     left = scrive_descriptor(Ratio)
     top = scrive_descriptor(Ratio)
     width = scrive_descriptor(Ratio)
     height = scrive_descriptor(Ratio)
     font_size = scrive_descriptor(Ratio)
     page = scrive_descriptor(tvu.tvus.PositiveInt)
-    tip = scrive_descriptor(MaybeTipSide)
+    tip = scrive_descriptor(tvu.instance(TipSide, enum=True))
     anchors = scrive_descriptor()

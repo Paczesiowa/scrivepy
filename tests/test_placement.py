@@ -44,7 +44,7 @@ class PlacementTest(utils.TestCase):
     O = Placement
     default_ctor_kwargs = {'left': .1, 'top': .2, 'width': .3,
                            'height': .4, 'font_size': .5, 'page': 1,
-                           'tip': TipSide.left_tip}
+                           'tip': TipSide.left}
     json = {u'xrel': .1, u'yrel': .2, u'wrel': .3,
             u'hrel': .4, u'fsrel': .5, u'page': 1,
             u'tip': u'left', u'anchors': [{u'text': u'foo', u'index': 2}]}
@@ -382,69 +382,45 @@ class PlacementTest(utils.TestCase):
             fp.page = 4
 
     def test_tip(self):
-        err_msg = u'tip must be TipSide or None, not {}'
+        err_msg = u'tip must be TipSide, not {}'
         with self.assertRaises(TypeError, err_msg):
             self._make_fp(tip={})
 
-        err_msg = u"tip could be None or TipSide's variant name, not: 'wrong'"
+        err_msg = u"tip could be TipSide's variant name, not: 'wrong'"
         with self.assertRaises(ValueError, err_msg):
             self._make_fp(tip='wrong')
 
         # check default ctor value
         fp = self._make_fp()
-        self.assertIsNone(fp.tip)
+        self.assertEqual(fp.tip, TipSide.right)
 
-        fp = self._make_fp(tip='right_tip')
-        self.assertEqual(TipSide.right_tip, fp.tip)
+        fp = self._make_fp(tip='right')
+        self.assertEqual(TipSide.right, fp.tip)
 
-        fp = self._make_fp(tip=TipSide.left_tip)
-        self.assertEqual(TipSide.left_tip, fp.tip)
+        fp = self._make_fp(tip=TipSide.left)
+        self.assertEqual(TipSide.left, fp.tip)
 
-        err_msg = u'tip must be TipSide or None, not 0'
+        err_msg = u'tip must be TipSide, not 0'
         with self.assertRaises(TypeError, err_msg):
             fp.tip = 0
 
         self.assertEqual(u'left', fp._to_json_obj()[u'tip'])
 
-        fp.tip = None
-        self.assertIsNone(fp.tip)
-        self.assertIsNone(fp._to_json_obj()[u'tip'])
-
-        fp.tip = TipSide.right_tip
-        self.assertEqual(TipSide.right_tip, fp.tip)
+        fp.tip = TipSide.right
+        self.assertEqual(TipSide.right, fp.tip)
 
         self.assertEqual(u'right', fp._to_json_obj()[u'tip'])
 
         fp._set_read_only()
-        self.assertEqual(TipSide.right_tip, fp.tip)
+        self.assertEqual(TipSide.right, fp.tip)
         with self.assertRaises(ReadOnlyScriveObject, None):
-            fp.tip = TipSide.left_tip
+            fp.tip = TipSide.left
 
         fp._set_invalid()
         with self.assertRaises(InvalidScriveObject, None):
             fp.tip
         with self.assertRaises(InvalidScriveObject, None):
-            fp.tip = TipSide.left_tip
-
-    def test_resolve_default_tip(self):
-        fp = self._make_fp()
-        self.assertIsNone(fp.tip)
-
-        fp._resolve_default_tip(TipSide.left_tip)
-        self.assertEqual(TipSide.left_tip, fp.tip)
-
-        fp._resolve_default_tip(TipSide.right_tip)
-        self.assertEqual(TipSide.left_tip, fp.tip)
-
-        fp = self._make_fp()
-        fp._set_read_only()
-        with self.assertRaises(ReadOnlyScriveObject, None):
-            fp._resolve_default_tip(TipSide.left_tip)
-
-        fp = self._make_fp()
-        fp._set_invalid()
-        with self.assertRaises(InvalidScriveObject, None):
-            fp._resolve_default_tip(TipSide.left_tip)
+            fp.tip = TipSide.left
 
     def test_from_json_obj(self):
         json1 = {u'xrel': 0.08589607635206786,
@@ -462,7 +438,7 @@ class PlacementTest(utils.TestCase):
         self.assertTrue(.02 < fp.height < .03)
         self.assertTrue(.01 < fp.font_size < .02)
         self.assertEqual(fp.page, 1)
-        self.assertEqual(fp.tip, TipSide.right_tip)
+        self.assertEqual(fp.tip, TipSide.right)
 
         json2 = {u'xrel': 0.4188759278897137,
                  u'yrel': 0.31367731367731366,
@@ -471,7 +447,7 @@ class PlacementTest(utils.TestCase):
                  u'fsrel': 0.015906680805938492,
                  u'page': 1,
                  u'anchors': [],
-                 u'tip': 'left'}
+                 u'tip': None}
         fp = Placement._from_json_obj(json2)
         self.assertTrue(.41 < fp.left < .42)
         self.assertTrue(.31 < fp.top < .32)
@@ -479,11 +455,11 @@ class PlacementTest(utils.TestCase):
         self.assertTrue(.0 < fp.height < .01)
         self.assertTrue(.01 < fp.font_size < .02)
         self.assertEqual(fp.page, 1)
-        self.assertEqual(fp.tip, TipSide.left_tip)
+        self.assertEqual(fp.tip, TipSide.left)
 
     def test_to_json_obj(self):
         fp = Placement(left=.1, top=.2, width=.3, height=.4, font_size=.5,
-                       page=6, tip=TipSide.left_tip)
+                       page=6, tip=TipSide.left)
         json = {u'xrel': .1,
                 u'yrel': .2,
                 u'wrel': .3,

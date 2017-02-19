@@ -3,13 +3,11 @@ import tvu
 
 from scrivepy._exceptions import InvalidResponse
 from scrivepy._object import scrive_property, ScriveObject
-from scrivepy._placement import Placement, TipSide
+from scrivepy._placement import Placement
 from scrivepy._set import ScriveSet
 
 
 class Field(ScriveObject):
-
-    _default_placement_tip = TipSide.right_tip
 
     @tvu(value=tvu.tvus.Text, obligatory=tvu.instance(bool),
          should_be_filled_by_sender=tvu.instance(bool))
@@ -78,8 +76,6 @@ class Field(ScriveObject):
         self.placements._set_read_only()
 
     def _to_json_obj(self):
-        for placement in self.placements:
-            placement._resolve_default_tip(self._default_placement_tip)
         return {u'name': self.name,
                 u'obligatory': self.obligatory,
                 u'shouldbefilledbysender': self.should_be_filled_by_sender,
@@ -206,8 +202,6 @@ class SignatureField(Field):
 
 
 class CheckboxField(Field):
-
-    _default_placement_tip = TipSide.left_tip
 
     @tvu(name=tvu.tvus.Text, value=tvu.instance(bool),
          obligatory=tvu.instance(bool),
