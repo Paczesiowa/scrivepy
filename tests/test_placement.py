@@ -42,385 +42,100 @@ class AnchorTest(utils.TestCase):
 class PlacementTest(utils.TestCase):
 
     O = Placement
-    default_ctor_kwargs = {'left': .1, 'top': .2, 'width': .3,
-                           'height': .4, 'font_size': .5, 'page': 1,
-                           'tip': TipSide.left}
+    default_ctor_kwargs = {'left': .1, 'top': .2, 'width': .3, 'height': .4}
     json = {u'xrel': .1, u'yrel': .2, u'wrel': .3,
             u'hrel': .4, u'fsrel': .5, u'page': 1,
             u'tip': u'left', u'anchors': [{u'text': u'foo', u'index': 2}]}
     a1 = Anchor(text=u'foo', index=1)
     a2 = Anchor(text=u'bar', index=2)
 
-    def _make_fp(self, **override_kwargs):
-        kwargs = {'left': .5, 'top': .5, 'width': .5, 'height': .5}
-        for key, val in override_kwargs.items():
-            kwargs[key] = val
-        return Placement(**kwargs)
-
     def test_left(self):
-        with self.assertRaises(TypeError,
-                               u'left must be float or int, not []'):
-            self._make_fp(left=[])
-
-        err_msg = u'left must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(left=-.1)
-
-        err_msg = u'left must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(left=1.1)
-
-        fp = self._make_fp(left=.7)
-        self.assertEqual(.7, fp.left)
-
-        fp = self._make_fp(left=0)
-        self.assertEqual(0., fp.left)
-
-        with self.assertRaises(TypeError,
-                               u'left must be float or int, not []'):
-            fp.left = []
-
-        err_msg = u'left must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.left = -.1
-
-        err_msg = u'left must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.left = 1.1
-
-        fp.left = 1
-        self.assertEqual(1., fp.left)
-
-        fp.left = .8
-        self.assertEqual(.8, fp.left)
-
-        self.assertEqual(.8, fp._to_json_obj()[u'xrel'])
-
-        fp._set_read_only()
-        self.assertEqual(.8, fp.left)
-        with self.assertRaises(ReadOnlyScriveObject, None):
-            fp.left = .9
-
-        fp._set_invalid()
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.left
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.left = .9
+        range_err = r'left must be in the <0,1> range \(inclusive\).*'
+        self._test_attr(
+            attr_name='left',
+            good_values=[.0, .5, 1., .001, (0, 0.), (1, 1.)],
+            bad_type_values=[([], u'float or int')],
+            bad_val_values=[(-1., range_err), (1.1, range_err)],
+            serialized_name='xrel',
+            serialized_values=[(0, 0.), .0, .1, 1., (1, 1.), .5],
+            required=True)
 
     def test_top(self):
-        with self.assertRaises(TypeError,
-                               u'top must be float or int, not []'):
-            self._make_fp(top=[])
-
-        err_msg = u'top must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(top=-.1)
-
-        err_msg = u'top must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(top=1.1)
-
-        fp = self._make_fp(top=.7)
-        self.assertEqual(.7, fp.top)
-
-        fp = self._make_fp(top=0)
-        self.assertEqual(0., fp.top)
-
-        with self.assertRaises(TypeError,
-                               u'top must be float or int, not []'):
-            fp.top = []
-
-        err_msg = u'top must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.top = -.1
-
-        err_msg = u'top must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.top = 1.1
-
-        fp.top = 1
-        self.assertEqual(1., fp.top)
-
-        fp.top = .8
-        self.assertEqual(.8, fp.top)
-
-        self.assertEqual(.8, fp._to_json_obj()[u'yrel'])
-
-        fp._set_read_only()
-        self.assertEqual(.8, fp.top)
-        with self.assertRaises(ReadOnlyScriveObject, None):
-            fp.top = .9
-
-        fp._set_invalid()
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.top
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.top = .9
+        range_err = r'top must be in the <0,1> range \(inclusive\).*'
+        self._test_attr(
+            attr_name='top',
+            good_values=[.0, .5, 1., .001, (0, 0.), (1, 1.)],
+            bad_type_values=[([], u'float or int')],
+            bad_val_values=[(-1., range_err), (1.1, range_err)],
+            serialized_name='yrel',
+            serialized_values=[(0, .0), .0, .1, 1., (1, 1.), .5],
+            required=True)
 
     def test_width(self):
-        with self.assertRaises(TypeError,
-                               u'width must be float or int, not []'):
-            self._make_fp(width=[])
-
-        err_msg = u'width must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(width=-.1)
-
-        err_msg = u'width must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(width=1.1)
-
-        fp = self._make_fp(width=.7)
-        self.assertEqual(.7, fp.width)
-
-        fp = self._make_fp(width=0)
-        self.assertEqual(0., fp.width)
-
-        with self.assertRaises(TypeError,
-                               u'width must be float or int, not []'):
-            fp.width = []
-
-        err_msg = u'width must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.width = -.1
-
-        err_msg = u'width must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.width = 1.1
-
-        fp.width = 1
-        self.assertEqual(1., fp.width)
-
-        fp.width = .8
-        self.assertEqual(.8, fp.width)
-
-        self.assertEqual(.8, fp._to_json_obj()[u'wrel'])
-
-        fp._set_read_only()
-        self.assertEqual(.8, fp.width)
-        with self.assertRaises(ReadOnlyScriveObject, None):
-            fp.width = .9
-
-        fp._set_invalid()
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.width
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.width = .9
+        range_err = r'width must be in the <0,1> range \(inclusive\).*'
+        self._test_attr(
+            attr_name='width',
+            good_values=[.0, .5, 1., .001, (0, 0.), (1, 1.)],
+            bad_type_values=[([], u'float or int')],
+            bad_val_values=[(-1., range_err), (1.1, range_err)],
+            serialized_name='wrel',
+            serialized_values=[(0, .0), .0, .1, 1., (1, 1.), .5],
+            required=True)
 
     def test_height(self):
-        with self.assertRaises(TypeError,
-                               u'height must be float or int, not []'):
-            self._make_fp(height=[])
-
-        err_msg = u'height must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(height=-.1)
-
-        err_msg = u'height must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(height=1.1)
-
-        fp = self._make_fp(height=.7)
-        self.assertEqual(.7, fp.height)
-
-        fp = self._make_fp(height=0)
-        self.assertEqual(0., fp.height)
-
-        with self.assertRaises(TypeError,
-                               u'height must be float or int, not []'):
-            fp.height = []
-
-        err_msg = u'height must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.height = -.1
-
-        err_msg = u'height must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.height = 1.1
-
-        fp.height = 1
-        self.assertEqual(1., fp.height)
-
-        fp.height = .8
-        self.assertEqual(.8, fp.height)
-
-        self.assertEqual(.8, fp._to_json_obj()[u'hrel'])
-
-        fp._set_read_only()
-        self.assertEqual(.8, fp.height)
-        with self.assertRaises(ReadOnlyScriveObject, None):
-            fp.height = .9
-
-        fp._set_invalid()
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.height
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.height = .9
+        range_err = r'height must be in the <0,1> range \(inclusive\).*'
+        self._test_attr(
+            attr_name='height',
+            good_values=[.0, .5, 1., .001, (0, 0.), (1, 1.)],
+            bad_type_values=[([], u'float or int')],
+            bad_val_values=[(-1., range_err), (1.1, range_err)],
+            serialized_name='hrel',
+            serialized_values=[(0, .0), .0, .1, 1., (1, 1.), .5],
+            required=True)
 
     def test_font_size(self):
-        with self.assertRaises(TypeError,
-                               u'font_size must be float or int, not []'):
-            self._make_fp(font_size=[])
-
-        err_msg = \
-            u'font_size must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(font_size=-.1)
-
-        err_msg = \
-            u'font_size must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(font_size=1.1)
-
-        # check that pre-defined font sizes pass validation
-        self._make_fp(font_size=Placement.FONT_SIZE_SMALL)
-        self._make_fp(font_size=Placement.FONT_SIZE_NORMAL)
-        self._make_fp(font_size=Placement.FONT_SIZE_LARGE)
-        self._make_fp(font_size=Placement.FONT_SIZE_HUGE)
-
-        # check default ctor value
-        fp = self._make_fp()
-        self.assertEqual(Placement.FONT_SIZE_NORMAL, fp.font_size)
-
-        fp = self._make_fp(font_size=.7)
-        self.assertEqual(.7, fp.font_size)
-
-        fp = self._make_fp(font_size=0)
-        self.assertEqual(0., fp.font_size)
-
-        with self.assertRaises(TypeError,
-                               u'font_size must be float or int, not []'):
-            fp.font_size = []
-
-        err_msg = \
-            u'font_size must be in the <0,1> range (inclusive), not: -0.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.font_size = -.1
-
-        err_msg = \
-            u'font_size must be in the <0,1> range (inclusive), not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.font_size = 1.1
-
-        # check that pre-defined font sizes pass validation
-        fp.font_size = Placement.FONT_SIZE_SMALL
-        fp.font_size = Placement.FONT_SIZE_NORMAL
-        fp.font_size = Placement.FONT_SIZE_LARGE
-        fp.font_size = Placement.FONT_SIZE_HUGE
-
-        fp.font_size = 1
-        self.assertEqual(1., fp.font_size)
-
-        fp.font_size = .8
-        self.assertEqual(.8, fp.font_size)
-
-        self.assertEqual(.8, fp._to_json_obj()[u'fsrel'])
-
-        fp._set_read_only()
-        self.assertEqual(.8, fp.font_size)
-        with self.assertRaises(ReadOnlyScriveObject, None):
-            fp.font_size = .9
-
-        fp._set_invalid()
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.font_size
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.font_size = .9
+        range_err = r'font_size must be in the <0,1> range \(inclusive\).*'
+        self._test_attr(
+            attr_name='font_size',
+            good_values=[.0, .5, 1., .001, (0, 0.), (1, 1.),
+                         Placement.FONT_SIZE_SMALL, Placement.FONT_SIZE_NORMAL,
+                         Placement.FONT_SIZE_LARGE, Placement.FONT_SIZE_HUGE],
+            bad_type_values=[([], u'float or int')],
+            bad_val_values=[(-1., range_err), (1.1, range_err)],
+            serialized_name='fsrel',
+            serialized_values=[(0, .0), .0, .1, 1., (1, 1.), .5],
+            default_value=Placement.FONT_SIZE_NORMAL,
+            required=False)
 
     def test_page(self):
-        with self.assertRaises(TypeError,
-                               u'page must be int or float, not []'):
-            self._make_fp(page=[])
-
-        err_msg = u'page must be an integer greater or equal to 1, not: 0'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(page=0)
-
-        err_msg = u'page must be a round number, not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(page=1.1)
-
-        # check default ctor value
-        fp = self._make_fp()
-        self.assertEqual(1, fp.page)
-
-        fp = self._make_fp(page=8.)
-        self.assertEqual(8, fp.page)
-
-        fp = self._make_fp(page=2)
-        self.assertEqual(2, fp.page)
-
-        with self.assertRaises(TypeError,
-                               u'page must be int or float, not []'):
-            fp.page = []
-
-        err_msg = u'page must be an integer greater or equal to 1, not: 0'
-        with self.assertRaises(ValueError, err_msg):
-            fp.page = 0
-
-        err_msg = u'page must be a round number, not: 1.1'
-        with self.assertRaises(ValueError, err_msg):
-            fp.page = 1.1
-
-        fp.page = 8.
-        self.assertEqual(8, fp.page)
-
-        fp.page = 3
-        self.assertEqual(3, fp.page)
-
-        self.assertEqual(3, fp._to_json_obj()[u'page'])
-
-        fp._set_read_only()
-        self.assertEqual(3, fp.page)
-        with self.assertRaises(ReadOnlyScriveObject, None):
-            fp.page = 4
-
-        fp._set_invalid()
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.page
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.page = 4
+        self._test_attr(
+            attr_name='page',
+            good_values=[1, 2, 100, (1., 1)],
+            bad_type_values=[([], u'int or float')],
+            bad_val_values=[(0, r'.*integer greater or equal to 1.*'),
+                            (1.1, r'.*round number.*')],
+            serialized_name='page',
+            serialized_values=[1, 2, 3, 100, (2., 2)],
+            default_value=1,
+            required=False)
 
     def test_tip(self):
-        err_msg = u'tip must be TipSide, not {}'
-        with self.assertRaises(TypeError, err_msg):
-            self._make_fp(tip={})
+        self._test_attr(
+            attr_name='tip',
+            good_values=[('left', TipSide.left), ('right', TipSide.right),
+                         TipSide.left, TipSide.right],
+            bad_type_values=[({}, u'TipSide'), (0, u'TipSide')],
+            bad_val_values=[('wrong', r".*could be TipSide's variant name.*")],
+            serialized_name='tip',
+            serialized_values=[('left', u'left'), (TipSide.left, u'left'),
+                               ('right', u'right'), (TipSide.right, u'right')],
+            default_value=TipSide.right,
+            required=False)
 
-        err_msg = u"tip could be TipSide's variant name, not: 'wrong'"
-        with self.assertRaises(ValueError, err_msg):
-            self._make_fp(tip='wrong')
-
-        # check default ctor value
-        fp = self._make_fp()
-        self.assertEqual(fp.tip, TipSide.right)
-
-        fp = self._make_fp(tip='right')
-        self.assertEqual(TipSide.right, fp.tip)
-
-        fp = self._make_fp(tip=TipSide.left)
-        self.assertEqual(TipSide.left, fp.tip)
-
-        err_msg = u'tip must be TipSide, not 0'
-        with self.assertRaises(TypeError, err_msg):
-            fp.tip = 0
-
-        self.assertEqual(u'left', fp._to_json_obj()[u'tip'])
-
-        fp.tip = TipSide.right
-        self.assertEqual(TipSide.right, fp.tip)
-
-        self.assertEqual(u'right', fp._to_json_obj()[u'tip'])
-
-        fp._set_read_only()
-        self.assertEqual(TipSide.right, fp.tip)
-        with self.assertRaises(ReadOnlyScriveObject, None):
-            fp.tip = TipSide.left
-
-        fp._set_invalid()
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.tip
-        with self.assertRaises(InvalidScriveObject, None):
-            fp.tip = TipSide.left
+        json = dict(self.json)
+        json[u'tip'] = None
+        p = self.O._from_json_obj(json)
+        self.assertEqual(p.tip, TipSide.left)
 
     def test_from_json_obj(self):
         json1 = {u'xrel': 0.08589607635206786,
@@ -430,7 +145,7 @@ class PlacementTest(utils.TestCase):
                  u'fsrel': 0.016967126193001062,
                  u'page': 1,
                  u'anchors': [],
-                 u'tip': 'right'}
+                 u'tip': u'right'}
         fp = Placement._from_json_obj(json1)
         self.assertTrue(.08 < fp.left < .09)
         self.assertTrue(.25 < fp.top < .26)
