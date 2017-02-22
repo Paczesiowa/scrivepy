@@ -40,6 +40,51 @@
 ** list of lists of unicode objects
 ** implement Document.save() method with syncing of possible old versions of objects
 * API v2
-** Placement
-*** no resolving tipsides, default is right, null means left
-*** anchors
+** Field
+*** Base field type only has type, obligatory, placements
+*** base class should not be exported
+*** NameField
+**** type=='name'
+**** order:int, required, >=1 ?
+**** value: text
+**** should_be_filled_by_sender: bool
+*** StandardField
+**** type=='company_number'|'email'|'mobile'|'personal_number'
+**** value: text
+**** should_be_filled_by_sender: bool
+*** CustomField
+**** type=='text'
+**** name:non empty text (?)
+**** value: text
+**** should_be_filled_by_sender: bool
+*** Signature
+**** type=='signature'
+**** name:non empty text (?)
+**** signature: bytes
+**** NO should_be_filled_by_sender
+*** Checkbox
+**** type=='checkbox'
+**** name:non empty text (?)
+**** is_checked:bool
+**** should_be_filled_by_sender: bool
+*** Base class
+**** lose value
+**** add type
+***** string, only docs, no enum type
+**** lose closed
+**** should_be_filled_by_sender, that is const true for signatures
+**** _from_json_obj() should be done at the end
+**** _to_json_obj should probably be moved to subclasses
+**** private ctor
+**** name should be pushed to subclasses
+*** standardfieldtype
+**** remove first_name
+**** remove last_name
+**** remove first_name
+**** remove company_name (?)
+*** standardfield
+**** no name arg
+**** name RO property that returns type
+**** value stays
+**** sbfbs stays
+**** add from/to json methods
