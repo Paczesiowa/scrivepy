@@ -24,21 +24,21 @@ class TipSide(unicode, enum.Enum):
 
 class Anchor(ScriveObject):
 
+    text = scrive_descriptor(tvu.tvus.NonEmptyText)
+    index = scrive_descriptor(tvu.instance(int))
+
     @tvu(text=tvu.tvus.NonEmptyText, index=tvu.instance(int))
     def __init__(self, text, index):
         super(Anchor, self).__init__()
         self._text = text
         self._index = index
 
-    text = scrive_descriptor(tvu.tvus.NonEmptyText)
-    index = scrive_descriptor(tvu.instance(int))
-
-    def _to_json_obj(self):
-        return {u'text': self.text, u'index': self.index}
-
     @classmethod
     def _from_json_obj(cls, json):
         return Anchor(text=json[u'text'], index=json[u'index'])
+
+    def _to_json_obj(self):
+        return {u'text': self.text, u'index': self.index}
 
 
 class Placement(ScriveObject):
@@ -47,6 +47,15 @@ class Placement(ScriveObject):
     FONT_SIZE_NORMAL = 16. / 943.
     FONT_SIZE_LARGE = 20. / 943.
     FONT_SIZE_HUGE = 24. / 943.
+
+    anchors = scrive_descriptor()
+    font_size = scrive_descriptor(Ratio)
+    height = scrive_descriptor(Ratio)
+    left = scrive_descriptor(Ratio)
+    page = scrive_descriptor(tvu.tvus.PositiveInt)
+    tip = scrive_descriptor(tvu.instance(TipSide, enum=True))
+    top = scrive_descriptor(Ratio)
+    width = scrive_descriptor(Ratio)
 
     @tvu(left=Ratio, top=Ratio, width=Ratio,
          height=Ratio, font_size=Ratio,
@@ -64,19 +73,14 @@ class Placement(ScriveObject):
         self._anchors = ScriveSet()
         self._anchors._elem_validator = tvu.instance(Anchor)
 
-    def _to_json_obj(self):
-        return {u'xrel': self.left,
-                u'yrel': self.top,
-                u'wrel': self.width,
-                u'hrel': self.height,
-                u'fsrel': self.font_size,
-                u'page': self.page,
-                u'anchors': list(self.anchors),
-                u'tip': self.tip.value}
+    def _set_invalid(self):
+        # invalidate anchors first, before getter stops working
+        self.anchors._set_invalid()
+        super(Placement, self)._set_invalid()
 
-    def __str__(self):
-        return u'Placement(page ' + str(self.page) + u',' + \
-            str(self.left) + u':' + str(self.top) + u')'
+    def _set_read_only(self):
+        super(Placement, self)._set_read_only()
+        self.anchors._set_read_only()
 
     @classmethod
     def _from_json_obj(cls, json):
@@ -94,20 +98,12 @@ class Placement(ScriveObject):
         placement.anchors.update(anchors)
         return placement
 
-    def _set_invalid(self):
-        # invalidate anchors first, before getter stops working
-        self.anchors._set_invalid()
-        super(Placement, self)._set_invalid()
-
-    def _set_read_only(self):
-        super(Placement, self)._set_read_only()
-        self.anchors._set_read_only()
-
-    left = scrive_descriptor(Ratio)
-    top = scrive_descriptor(Ratio)
-    width = scrive_descriptor(Ratio)
-    height = scrive_descriptor(Ratio)
-    font_size = scrive_descriptor(Ratio)
-    page = scrive_descriptor(tvu.tvus.PositiveInt)
-    tip = scrive_descriptor(tvu.instance(TipSide, enum=True))
-    anchors = scrive_descriptor()
+    def _to_json_obj(self):
+        return {u'xrel': self.left,
+                u'yrel': self.top,
+                u'wrel': self.width,
+                u'hrel': self.height,
+                u'fsrel': self.font_size,
+                u'page': self.page,
+                u'anchors': list(self.anchors),
+                u'tip': self.tip.value}

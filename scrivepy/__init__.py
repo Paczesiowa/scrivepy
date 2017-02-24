@@ -6,16 +6,15 @@ AuthenticationMethod = _signatory.AuthenticationMethod
 AuthorAttachment = _document.AuthorAttachment
 CheckboxField = _field.CheckboxField
 ConfirmationDeliveryMethod = _signatory.ConfirmationDeliveryMethod
-CustomField = _field.CustomField
 DeletionStatus = _document.DeletionStatus
 Document = _document.Document
 DocumentStatus = _document.DocumentStatus
 Error = _exceptions.Error
-Field = _field.Field
 InvalidResponse = _exceptions.InvalidResponse
 InvalidScriveObject = _exceptions.InvalidScriveObject
 InvitationDeliveryMethod = _signatory.InvitationDeliveryMethod
 Language = _document.Language
+NameField = _field.NameField
 Placement = _placement.Placement
 ReadOnlyScriveObject = _exceptions.ReadOnlyScriveObject
 Scrive = _scrive.Scrive
@@ -24,6 +23,7 @@ SignatoryAttachment = _signatory.SignatoryAttachment
 SignatureField = _field.SignatureField
 StandardField = _field.StandardField
 StandardFieldType = _field.StandardFieldType
+TextField = _field.TextField
 TipSide = _placement.TipSide
 
 __all__ = ['Anchor',
@@ -31,16 +31,15 @@ __all__ = ['Anchor',
            'AuthorAttachment',
            'CheckboxField',
            'ConfirmationDeliveryMethod',
-           'CustomField',
            'DeletionStatus',
            'Document',
            'DocumentStatus',
            'Error',
-           'Field',
            'InvalidResponse',
            'InvalidScriveObject',
            'InvitationDeliveryMethod',
            'Language',
+           'NameField',
            'Placement',
            'ReadOnlyScriveObject',
            'Scrive',
@@ -49,4 +48,5 @@ __all__ = ['Anchor',
            'SignatureField',
            'StandardField',
            'StandardFieldType',
+           'TextField',
            'TipSide']
