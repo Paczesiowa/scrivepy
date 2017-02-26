@@ -44,8 +44,6 @@
 * sort tvu/__init__ arguments
 * use functional syntax for enums
 * before update call verify fields
-* write test_attrs()
-* write test_attr() wrapper that is tailored to e.g. nonemptytext
 ** NameField
 *** names have proper numbers (continous, >=1, no duplicates)
 ** TextField
@@ -56,6 +54,8 @@
 *** checkboxes have no duplicates (by name)
 ** StandardField
 *** standard fields have no duplicates
+* write test_attrs()
+* write test_attr() wrapper that is tailored to e.g. nonemptytext
 * API v2
 ** Field
 *** StandardField
