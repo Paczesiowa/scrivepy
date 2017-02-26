@@ -130,10 +130,71 @@ class TestCase(unittest.TestCase):
                 else (value_tuple, value_tuple)
                 for value_tuple in values]
 
+    def _test_ctor_param(self, attr_name, serialized_name=None,
+                         ctor_attr_name=None, ctor_params=None,
+                         default_value=None, serialized_values=None):
+        if ctor_attr_name is None:
+            ctor_attr_name = attr_name
+        if ctor_params is None:
+            ctor_params = []
+        if serialized_values is None:
+            serialized_values = []
+
+        ctor_params = self._value_pairs(ctor_params)
+        serialized_values = self._value_pairs(serialized_values)
+
+        if ctor_params:
+            for ctor_param_in, ctor_param_out in ctor_params:
+                o = self.o(**{ctor_attr_name: ctor_param_in})
+                self.assertEqual(getattr(o, attr_name), ctor_param_out)
+        else:
+            o = self.o()
+            self.assertEqual(getattr(o, attr_name), default_value)
+
+        # it's not a valid ctor param
+        with self.assertRaises(TypeError, r'.*unexpected keyword argument.*',
+                               regex=True):
+            self.o(type=None)
+
+        # it's not a writable attribute
+        o = self.o()
+        with self.assertRaises(AttributeError):
+            setattr(o, attr_name, None)
+
+        # test that for every pair (v1, v2) in serialized_values
+        # o(attr_name=v1)._to_json_obj()[serialized_name] == v2
+        for value_in, value_out in serialized_values:
+            o = self.o(**{ctor_attr_name: value_in})
+            self.assertEqual(o._to_json_obj()[serialized_name], value_out)
+            self.assertEqual(type(o._to_json_obj()[serialized_name]),
+                             type(value_out))
+
+        # test that for every pair (v1, v2) in serialized_values
+        # json[serialized_name]=v2; O._from_json_obj(json).attr_name == v1
+        for value_in, value_out in serialized_values:
+            json = dict(self.json)
+            json[serialized_name] = value_out
+            o = self.O._from_json_obj(json)
+            self.assertTrue(isinstance(o, self.O))
+            self.assertEqual(getattr(o, attr_name), value_in)
+
+        # it can be read
+        getattr(o, attr_name)
+
+        # even after RO
+        o._set_read_only()
+        getattr(o, attr_name)
+
+        # but not after invalidation
+        o._set_invalid()
+        with self.assertRaises(InvalidScriveObject):
+            getattr(o, attr_name)
+
     def _test_attr(self, attr_name, good_values,
                    bad_type_values, bad_val_values,
                    serialized_name, serialized_values,
-                   required=True, default_value=None):
+                   required=True, default_value=None,
+                   sealed_attr=False):
         good_values = self._value_pairs(good_values)
         serialized_values = self._value_pairs(serialized_values)
         # test, that for every pair (v1, v2) in good_values
@@ -165,33 +226,38 @@ class TestCase(unittest.TestCase):
 
         # test, that for every pair (v1, v2) in good_values
         # o = o(); o.attr_name = v1; o.attr_name == v2
-        for value_in, value_out in good_values:
-            o = self.o()
-            setattr(o, attr_name, value_in)
-            self.assertEqual(getattr(o, attr_name), value_out)
-            self.assertEqual(type(getattr(o, attr_name)), type(value_out))
+        # unless sealed_attr is True
+        if not sealed_attr:
+            for value_in, value_out in good_values:
+                o = self.o()
+                setattr(o, attr_name, value_in)
+                self.assertEqual(getattr(o, attr_name), value_out)
+                self.assertEqual(type(getattr(o, attr_name)), type(value_out))
 
         # test, that for every pair (v, err) in bad_type_values
         # o = o(); o.attr_name=v throws TypeError(err)
-        for value_in, err_msg in bad_type_values:
-            o = self.o()
-            err_msg = \
-                attr_name + ' must be ' + err_msg + ', not ' + repr(value_in)
-            with self.assertRaises(TypeError, err_msg):
-                setattr(o, attr_name, value_in)
+        # unless sealed_attr is True
+        if not sealed_attr:
+            for value_in, err_msg in bad_type_values:
+                o = self.o()
+                err_msg = (attr_name + ' must be ' + err_msg +
+                           ', not ' + repr(value_in))
+                with self.assertRaises(TypeError, err_msg):
+                    setattr(o, attr_name, value_in)
 
         # test, that for every pair (v, err) in bad_value_values
         # o = o(); o.attr_name=v throws ValueError(err)
-        for value_in, err_msg in bad_val_values:
-            o = self.o()
-            with self.assertRaises(ValueError, regex=err_msg):
-                setattr(o, attr_name, value_in)
+        # unless sealed_attr is True
+        if not sealed_attr:
+            for value_in, err_msg in bad_val_values:
+                o = self.o()
+                with self.assertRaises(ValueError, regex=err_msg):
+                    setattr(o, attr_name, value_in)
 
         # test that for every pair (v1, v2) in serialized_values
         # o(attr_name=v1)._to_json_obj()[serialized_name] == v2
         for value_in, value_out in serialized_values:
-            o = self.o()
-            setattr(o, attr_name, value_in)
+            o = self.o(**{attr_name: value_in})
             self.assertEqual(o._to_json_obj()[serialized_name], value_out)
             self.assertEqual(type(o._to_json_obj()[serialized_name]),
                              type(value_out))
@@ -202,17 +268,20 @@ class TestCase(unittest.TestCase):
             json = dict(self.json)
             json[serialized_name] = value_out
             o = self.O._from_json_obj(json)
+            self.assertTrue(isinstance(o, self.O))
             self.assertEqual(getattr(o, attr_name), value_in)
 
         # test that o() and it ScriveObject deps are not read only
         # good_values can still be read, but not set after _set_read_only()
+        # (setting skipped if sealed_attr == True)
         for value_in, value_out in good_values:
             o = self.o(**{attr_name: value_in})
             o._set_read_only()
             self.assertEqual(getattr(o, attr_name), value_out)
             self.assertEqual(type(getattr(o, attr_name)), type(value_out))
-            with self.assertRaises(ReadOnlyScriveObject):
-                setattr(o, attr_name, value_in)
+            if not sealed_attr:
+                with self.assertRaises(ReadOnlyScriveObject):
+                    setattr(o, attr_name, value_in)
 
         o = self.o()
         deps = [getattr(o, attr)
@@ -223,10 +292,11 @@ class TestCase(unittest.TestCase):
             self.assertFalse(dep._read_only)
 
         # test that o() and it ScriveObject deps are read only,
-        # after o._set_read_only()
+        # after o._set_read_only() (unless sealed_attr is True)
         o._set_read_only()
         self.assertTrue(o._read_only)
-        with self.assertRaises(ReadOnlyScriveObject):
+        if not sealed_attr:
+            with self.assertRaises(ReadOnlyScriveObject):
                 setattr(o, attr_name, 'whatever')
         for dep in deps:
             self.assertTrue(dep._read_only)
@@ -246,7 +316,8 @@ class TestCase(unittest.TestCase):
         self.assertTrue(o._invalid)
         with self.assertRaises(InvalidScriveObject):
                 getattr(o, attr_name)
-        with self.assertRaises(InvalidScriveObject):
+        if not sealed_attr:
+            with self.assertRaises(InvalidScriveObject):
                 setattr(o, attr_name, good_values[0][0])
         for dep in deps:
             self.assertTrue(dep._invalid)

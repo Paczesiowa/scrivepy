@@ -44,6 +44,8 @@
 * sort tvu/__init__ arguments
 * use functional syntax for enums
 * before update call verify fields
+* write test_attrs()
+* write test_attr() wrapper that is tailored to e.g. nonemptytext
 ** NameField
 *** names have proper numbers (continous, >=1, no duplicates)
 ** TextField
@@ -56,8 +58,13 @@
 *** standard fields have no duplicates
 * API v2
 ** Field
+*** StandardField
+**** company_name ??
 *** Signature
-**** signature: bytes ????
+**** signature
+***** RO
+***** no ctor param
+***** file_id/null
 *** Tests
 ** Signatory
 ** Document

@@ -2,7 +2,7 @@ import enum
 import tvu
 
 from scrivepy._exceptions import InvalidResponse
-from scrivepy._object import scrive_descriptor, scrive_property, ScriveObject
+from scrivepy._object import scrive_descriptor, ScriveObject
 from scrivepy._placement import Placement
 from scrivepy._set import ScriveSet
 
@@ -50,7 +50,7 @@ class Field(ScriveObject):
                 field = NameField(obligatory=obligatory, value=value,
                                   order=order,
                                   should_be_filled_by_sender=sbfbs)
-            if type_ in StandardFieldType.__members__:
+            elif type_ in StandardFieldType.__members__:
                 field = StandardField(type_=StandardFieldType(type_),
                                       obligatory=obligatory, value=value,
                                       should_be_filled_by_sender=sbfbs)
@@ -68,7 +68,7 @@ class Field(ScriveObject):
                                       obligatory=obligatory,
                                       should_be_filled_by_sender=sbfbs)
             else:
-                raise InvalidResponse(u'bad field type')
+                raise InvalidResponse(u'bad field type: ' + repr(type_))
 
             field.placements.update(placements)
 
@@ -195,7 +195,7 @@ class CheckboxField(Field):
                  should_be_filled_by_sender=False):
         super(CheckboxField, self).__init__(
             obligatory=obligatory,
-            should_be_filled_by_sender=False)
+            should_be_filled_by_sender=should_be_filled_by_sender)
         self._type = u'checkbox'
         self._checked = checked
         self._name = name
