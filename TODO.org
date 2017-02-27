@@ -56,7 +56,12 @@
 *** standard fields have no duplicates
 * write test_attrs()
 * write test_attr() wrapper that is tailored to e.g. nonemptytext
+* get rid of test_field()
+* add custom UA to requests
 * API v2
+** Placement
+*** test_tip
+**** tests for serialized_values work by accident, should disappear after func syntax for enums
 ** Field
 *** StandardField
 **** company_name ??
@@ -67,5 +72,26 @@
 ***** file_id/null
 *** Tests
 ** Signatory
+*** id
+*** user_id
+*** is_author
+*** is_signatory
+*** fields
+**** tvu for field subclasses
+*** sign_order
+*** sign_time
+*** seen_time
+*** read_invitation_time
+*** rejected_time
+*** sign_success_redirect_url
+*** reject_redirect_url
+*** email_delivery_status
+*** mobile_delivery_status
+*** csv
+*** authentication_method_to_view
+*** authentication_method_to_sign
+*** allows_highlighting
+*** highlighted_pages
+*** attachments
 ** Document
 ** API
