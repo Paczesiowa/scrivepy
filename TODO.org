@@ -43,7 +43,7 @@
 * add subobjects method to ScriveObject (use it for set_invalid/set_ro)
 * sort tvu/__init__ arguments
 * use functional syntax for enums
-* before update call verify fields
+* before update call verify fields/signatories
 ** NameField
 *** names have proper numbers (continous, >=1, no duplicates)
 ** TextField
@@ -54,6 +54,8 @@
 *** checkboxes have no duplicates (by name)
 ** StandardField
 *** standard fields have no duplicates
+** Signatory
+*** sign_orders have proper numbers (continous, >=1, no duplicates)
 * write test_attrs()
 * write test_attr() wrapper that is tailored to e.g. nonemptytext
 * get rid of test_field()
@@ -70,26 +72,19 @@
 ***** RO
 ***** no ctor param
 ***** file_id/null
-*** Tests
 ** Signatory
 *** id
 *** user_id
 *** is_author
-*** is_signatory
 *** fields
 **** tvu for field subclasses
-*** sign_order
 *** sign_time
 *** seen_time
 *** read_invitation_time
 *** rejected_time
-*** sign_success_redirect_url
-*** reject_redirect_url
 *** email_delivery_status
 *** mobile_delivery_status
 *** csv
-*** authentication_method_to_view
-*** authentication_method_to_sign
 *** allows_highlighting
 *** highlighted_pages
 *** attachments

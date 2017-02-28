@@ -1,8 +1,11 @@
+# coding: utf-8
 from scrivepy import (
     ConfirmationDeliveryMethod,
     InvitationDeliveryMethod,
+    SignAuthenticationMethod,
     Signatory,
-    TextField
+    TextField,
+    ViewAuthenticationMethod
     # AuthenticationMethod as AM,
     # ConfirmationDeliveryMethod as CDM,
     # TextField as CF,
@@ -27,6 +30,12 @@ class SignatoryTest(utils.IntegrationTestCase):
     O = Signatory
     default_ctor_kwargs = {}
     json = {u'delivery_method': u'email',
+            u'authentication_method_to_sign': u'standard',
+            u'authentication_method_to_view': u'standard',
+            u'is_signatory': True,
+            u'sign_order': 1,
+            u'sign_success_redirect_url': u'',
+            u'reject_redirect_url': u'',
             u'confirmation_delivery_method': u'email'}
 
     def f1(self):
@@ -86,6 +95,103 @@ class SignatoryTest(utils.IntegrationTestCase):
                                (ConfirmationDeliveryMethod.email_and_mobile,
                                 u'email_mobile')],
             default_value=ConfirmationDeliveryMethod.email,
+            required=False)
+
+    def test_sign_auth(self):
+        variant_err = r".*could be SignAuthenticationMethod's variant name.*"
+        self._test_attr(
+            attr_name='sign_auth',
+            good_values=[('standard', SignAuthenticationMethod.standard),
+                         ('swedish_bankid',
+                          SignAuthenticationMethod.swedish_bankid),
+                         ('sms_pin', SignAuthenticationMethod.sms_pin),
+                         SignAuthenticationMethod.standard,
+                         SignAuthenticationMethod.swedish_bankid,
+                         SignAuthenticationMethod.sms_pin],
+            bad_type_values=[({}, u'SignAuthenticationMethod'),
+                             (0, u'SignAuthenticationMethod')],
+            bad_val_values=[('wrong', variant_err)],
+            serialized_name='authentication_method_to_sign',
+            serialized_values=[(SignAuthenticationMethod.standard,
+                                u'standard'),
+                               (SignAuthenticationMethod.swedish_bankid,
+                                u'se_bankid'),
+                               (SignAuthenticationMethod.sms_pin, u'sms_pin')],
+            default_value=SignAuthenticationMethod.standard,
+            required=False)
+
+    def test_viewer(self):
+        self._test_attr(
+            attr_name='viewer',
+            good_values=[True, False],
+            bad_type_values=[([], u'bool')],
+            bad_val_values=[],
+            serialized_name='is_signatory',
+            serialized_values=[(True, False), (False, True)],
+            default_value=False,
+            required=False)
+
+    def test_sign_order(self):
+        self._test_attr(
+            attr_name='sign_order',
+            good_values=[1, 2, 100, (1., 1)],
+            bad_type_values=[([], u'int or float')],
+            bad_val_values=[(0, r'.*integer greater or equal to 1.*'),
+                            (1.1, r'.*round number.*')],
+            serialized_name='sign_order',
+            serialized_values=[1, 2, 3, 100, (2., 2)],
+            default_value=1,
+            required=False)
+
+    def test_sign_redirect_url(self):
+        unicode_err = \
+            u'sign_redirect_url must be unicode text, or ascii-only bytestring'
+        self._test_attr(
+            attr_name='sign_redirect_url',
+            good_values=[u'foo', (b'bar', u'bar'), u'ą'],
+            bad_type_values=[([], u'unicode or str')],
+            bad_val_values=[(u'ą'.encode('utf-8'), unicode_err)],
+            serialized_name='sign_success_redirect_url',
+            serialized_values=[u'foo', u'ą'],
+            default_value=u'',
+            required=False)
+
+    def test_reject_redirect_url(self):
+        unicode_err = (u'reject_redirect_url must be unicode text, ' +
+                       u'or ascii-only bytestring')
+        self._test_attr(
+            attr_name='reject_redirect_url',
+            good_values=[u'foo', (b'bar', u'bar'), u'ą'],
+            bad_type_values=[([], u'unicode or str')],
+            bad_val_values=[(u'ą'.encode('utf-8'), unicode_err)],
+            serialized_name='reject_redirect_url',
+            serialized_values=[u'foo', u'ą'],
+            default_value=u'',
+            required=False)
+
+    def test_view_auth(self):
+        variant_err = r".*could be ViewAuthenticationMethod's variant name.*"
+        self._test_attr(
+            attr_name='view_auth',
+            good_values=[('standard', ViewAuthenticationMethod.standard),
+                         ('swedish_bankid',
+                          ViewAuthenticationMethod.swedish_bankid),
+                         ('norwegian_bankid',
+                          ViewAuthenticationMethod.norwegian_bankid),
+                         ViewAuthenticationMethod.standard,
+                         ViewAuthenticationMethod.swedish_bankid,
+                         ViewAuthenticationMethod.norwegian_bankid],
+            bad_type_values=[({}, u'ViewAuthenticationMethod'),
+                             (0, u'ViewAuthenticationMethod')],
+            bad_val_values=[('wrong', variant_err)],
+            serialized_name='authentication_method_to_view',
+            serialized_values=[(ViewAuthenticationMethod.standard,
+                                u'standard'),
+                               (ViewAuthenticationMethod.swedish_bankid,
+                                u'se_bankid'),
+                               (ViewAuthenticationMethod.norwegian_bankid,
+                                u'no_bankid')],
+            default_value=ViewAuthenticationMethod.standard,
             required=False)
 
     # def setUp(self):
@@ -259,33 +365,6 @@ class SignatoryTest(utils.IntegrationTestCase):
     # def test_current(self):
     #     self._test_server_field('current')
 
-    # def test_sign_order(self):
-    #     self._test_field('sign_order',
-    #                      bad_value=[], correct_type='int or float',
-    #                      default_good_value=1,
-    #                      other_good_values=[(8., 8), 2],
-    #                      serialized_name=u'signorder')
-
-    #     err_msg = \
-    #         u'sign_order must be an integer greater or equal to 1, not: 0'
-    #     with self.assertRaises(ValueError, err_msg):
-    #         self.o(sign_order=0)
-
-    #     err_msg = u'sign_order must be a round number, not: 1.1'
-    #     with self.assertRaises(ValueError, err_msg):
-    #         self.o(sign_order=1.1)
-
-    #     s = self.o()
-
-    #     err_msg = \
-    #         u'sign_order must be an integer greater or equal to 1, not: 0'
-    #     with self.assertRaises(ValueError, err_msg):
-    #         s.sign_order = 0
-
-    #     err_msg = u'sign_order must be a round number, not: 1.1'
-    #     with self.assertRaises(ValueError, err_msg):
-    #         s.sign_order = 1.1
-
     # def test_undelivered_invitation(self):
     #     self._test_server_field('undelivered_invitation')
 
@@ -297,14 +376,6 @@ class SignatoryTest(utils.IntegrationTestCase):
 
     # def test_delivered_invitation(self):
     #     self._test_server_field('delivered_invitation')
-
-    # def test_viewer(self):
-    #     self._test_field('viewer',
-    #                      bad_value=[], correct_type=bool,
-    #                      default_good_value=False,
-    #                      other_good_values=[True],
-    #                      serialized_name=u'signs',
-    #                      serialized_default_good_value=True)
 
     # def test_allows_highlighting(self):
     #     self._test_field('allows_highlighting',
@@ -358,29 +429,6 @@ class SignatoryTest(utils.IntegrationTestCase):
 
     # def test_rejection_message(self):
     #     self._test_server_field('rejection_message')
-
-    # def test_sign_success_redirect_url(self):
-    #     self._test_field('sign_success_redirect_url',
-    #                      bad_value=[], correct_type='unicode, str or None',
-    #                      default_good_value=None,
-    #                      other_good_values=[u'http://example.com/'],
-    #                      serialized_name=u'signsuccessredirect')
-
-    # def test_rejection_redirect_url(self):
-    #     self._test_field('rejection_redirect_url',
-    #                      bad_value=[], correct_type='unicode, str or None',
-    #                      default_good_value=None,
-    #                      other_good_values=[u'http://example.net/'],
-    #                      serialized_name=u'rejectredirect')
-
-    # def test_authentication_method(self):
-    #     self._test_field('authentication_method',
-    #                      bad_value=0, correct_type=AM,
-    #                      default_good_value=AM.standard,
-    #                      other_good_values=[AM.eleg, ('sms_pin', AM.sms_pin)],
-    #                      serialized_name=u'authentication',
-    #                      serialized_default_good_value=u'standard',
-    #                      bad_enum_value='wrong')
 
     # def test_sign_url(self):
     #     self._test_server_field('sign_url')

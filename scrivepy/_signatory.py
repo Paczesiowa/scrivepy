@@ -25,10 +25,16 @@ class ConfirmationDeliveryMethod(unicode, enum.Enum):
     none = u'none'
 
 
-# class AuthenticationMethod(unicode, enum.Enum):
-#     standard = u'standard'
-#     eleg = u'eleg'
-#     sms_pin = u'sms_pin'
+class SignAuthenticationMethod(unicode, enum.Enum):
+    standard = u'standard'
+    swedish_bankid = u'se_bankid'
+    sms_pin = u'sms_pin'
+
+
+class ViewAuthenticationMethod(unicode, enum.Enum):
+    standard = u'standard'
+    swedish_bankid = u'se_bankid'
+    norwegian_bankid = u'no_bankid'
 
 
 # class SignatoryAttachment(ScriveObject):
@@ -107,28 +113,34 @@ class Signatory(ScriveObject):
         InvitationDeliveryMethod, enum=True))
     confirmation_delivery = scrive_descriptor(tvu.instance(
         ConfirmationDeliveryMethod, enum=True))
+    sign_auth = scrive_descriptor(tvu.instance(
+        SignAuthenticationMethod, enum=True))
+    view_auth = scrive_descriptor(tvu.instance(
+        ViewAuthenticationMethod, enum=True))
+    viewer = scrive_descriptor(tvu.instance(bool))
+    sign_order = scrive_descriptor(tvu.tvus.PositiveInt)
+    sign_redirect_url = scrive_descriptor(tvu.tvus.Text)
+    reject_redirect_url = scrive_descriptor(tvu.tvus.Text)
 
-    @tvu(#sign_order=tvu.tvus.PositiveInt,
+    @tvu(sign_order=tvu.tvus.PositiveInt,
          invitation_delivery=tvu.instance(InvitationDeliveryMethod, enum=True),
          confirmation_delivery=tvu.instance(ConfirmationDeliveryMethod,
                                             enum=True),
-         # authentication_method=tvu.instance(AM, enum=True),
-         # viewer=tvu.instance(bool), allows_highlighting=tvu.instance(bool),
-         # sign_success_redirect_url=MaybeUnicode,
-         # rejection_redirect_url=MaybeUnicode
-         )
-    def __init__(self, # sign_order=1, viewer=False,
+         sign_auth=tvu.instance(SignAuthenticationMethod, enum=True),
+         view_auth=tvu.instance(ViewAuthenticationMethod, enum=True),
+         viewer=tvu.instance(bool), #allows_highlighting=tvu.instance(bool),
+         sign_redirect_url=tvu.tvus.Text, reject_redirect_url=tvu.tvus.Text)
+    def __init__(self, sign_order=1, viewer=False,
                  invitation_delivery=InvitationDeliveryMethod.email,
-                 confirmation_delivery=ConfirmationDeliveryMethod.email#,
-                 # authentication_method=AM.standard,
+                 confirmation_delivery=ConfirmationDeliveryMethod.email,
+                 sign_auth=SignAuthenticationMethod.standard,
+                 view_auth=ViewAuthenticationMethod.standard,
                  # allows_highlighting=False,
-                 # sign_success_redirect_url=None,
-                 # rejection_redirect_url=None
-                 ):
+                 sign_redirect_url=u'', reject_redirect_url=u''):
         super(Signatory, self).__init__()
         # self._id = None
         # self._current = None
-        # self._sign_order = sign_order
+        self._sign_order = sign_order
         # self._undelivered_invitation = None
         # self._undelivered_email_invitation = None
         # self._undelivered_sms_invitation = None
@@ -136,7 +148,7 @@ class Signatory(ScriveObject):
         # self._has_account = None
         self._invitation_delivery = invitation_delivery
         self._confirmation_delivery = confirmation_delivery
-        # self._viewer = viewer
+        self._viewer = viewer
         # self._allows_highlighting = allows_highlighting
         # self._author = False
         # self._eleg_mismatch_message = None
@@ -145,9 +157,10 @@ class Signatory(ScriveObject):
         # self._invitation_view_time = None
         # self._rejection_time = None
         # self._rejection_message = None
-        # self._sign_success_redirect_url = sign_success_redirect_url
-        # self._rejection_redirect_url = rejection_redirect_url
-        # self._authentication_method = authentication_method
+        self._sign_redirect_url = sign_redirect_url
+        self._reject_redirect_url = reject_redirect_url
+        self._sign_auth = sign_auth
+        self._view_auth = view_auth
         # self._sign_url = None
         # self._fields = ScriveSet()
         # self._fields._elem_validator = tvu.instance(Field)
@@ -161,28 +174,43 @@ class Signatory(ScriveObject):
             #           for field_json in json[u'fields']]
             # attachments = [SignatoryAttachment._from_json_obj(att_json)
             #                for att_json in json[u'attachments']]
+
             if json[u'delivery_method'] == u'email_mobile':
                 invitation_delivery = InvitationDeliveryMethod.email_and_mobile
             else:
                 invitation_delivery = \
                     InvitationDeliveryMethod(json[u'delivery_method'])
+
             if json[u'confirmation_delivery_method'] == u'email_mobile':
                 confirmation_delivery = \
                     ConfirmationDeliveryMethod.email_and_mobile
             else:
                 confirmation_delivery = ConfirmationDeliveryMethod(
                     json[u'confirmation_delivery_method'])
+
+            if json[u'authentication_method_to_sign'] == u'se_bankid':
+                sign_auth = SignAuthenticationMethod.swedish_bankid
+            else:
+                sign_auth = SignAuthenticationMethod(
+                    json[u'authentication_method_to_sign'])
+
+            if json[u'authentication_method_to_view'] == u'se_bankid':
+                view_auth = ViewAuthenticationMethod.swedish_bankid
+            elif json[u'authentication_method_to_view'] == u'no_bankid':
+                view_auth = ViewAuthenticationMethod.norwegian_bankid
+            else:
+                view_auth = ViewAuthenticationMethod(
+                    json[u'authentication_method_to_view'])
+
             signatory = \
-                Signatory(# sign_order=json[u'signorder'],
+                Signatory(sign_order=json[u'sign_order'],
                           invitation_delivery=invitation_delivery,
                           confirmation_delivery=confirmation_delivery,
-                          # authentication_method=AM(json[u'authentication']),
-                          # viewer=not json[u'signs'],
+                          sign_auth=sign_auth, view_auth=view_auth,
+                          viewer=not json[u'is_signatory'],
                           # allows_highlighting=json[u'allowshighlighting'],
-                          # sign_success_redirect_url=(
-                          # json[u'signsuccessredirect']),
-                          # rejection_redirect_url=json[u'rejectredirect']
-                          )
+                          sign_redirect_url=json[u'sign_success_redirect_url'],
+                          reject_redirect_url=json[u'reject_redirect_url'])
             # signatory.fields.update(fields)
             # signatory.attachments.update(attachments)
             # signatory._id = json[u'id']
@@ -218,17 +246,17 @@ class Signatory(ScriveObject):
     def _to_json_obj(self):
         result = {# u'fields': list(self.fields),
                   # u'attachments': list(self.attachments),
-                  # u'signorder': self.sign_order,
+                  u'sign_order': self.sign_order,
                   u'delivery_method': self.invitation_delivery.value,
                   u'confirmation_delivery_method':
                   self.confirmation_delivery.value,
-                  # u'authentication': self.authentication_method.value,
-                  # u'signs': not self.viewer,
+                  u'authentication_method_to_sign': self.sign_auth.value,
+                  u'authentication_method_to_view': self.view_auth.value,
+                  u'is_signatory': not self.viewer,
                   # u'allowshighlighting': self.allows_highlighting,
                   # u'author': self.author,
-                  # u'signsuccessredirect': self.sign_success_redirect_url,
-                  # u'rejectredirect': self.rejection_redirect_url
-                  }
+                  u'sign_success_redirect_url': self.sign_redirect_url,
+                  u'reject_redirect_url': self.reject_redirect_url}
         # if self.id is not None:
         #     result[u'id'] = self.id
         return result
@@ -266,15 +294,6 @@ class Signatory(ScriveObject):
     #     return self._current
 
     # @scrive_property
-    # def sign_order(self):
-    #     return self._sign_order
-
-    # @sign_order.setter
-    # @tvu(sign_order=tvu.tvus.PositiveInt)
-    # def sign_order(self, sign_order):
-    #     self._sign_order = sign_order
-
-    # @scrive_property
     # def undelivered_invitation(self):
     #     return self._undelivered_invitation
 
@@ -289,15 +308,6 @@ class Signatory(ScriveObject):
     # @scrive_property
     # def delivered_invitation(self):
     #     return self._delivered_invitation
-
-    # @scrive_property
-    # def viewer(self):
-    #     return self._viewer
-
-    # @viewer.setter
-    # @tvu(viewer=tvu.instance(bool))
-    # def viewer(self, viewer):
-    #     self._viewer = viewer
 
     # @scrive_property
     # def allows_highlighting(self):
@@ -339,34 +349,6 @@ class Signatory(ScriveObject):
     # @scrive_property
     # def rejection_message(self):
     #     return self._rejection_message
-
-    # @scrive_property
-    # def sign_success_redirect_url(self):
-    #     return self._sign_success_redirect_url
-
-    # @sign_success_redirect_url.setter
-    # @tvu(sign_success_redirect_url=MaybeUnicode)
-    # def sign_success_redirect_url(self, sign_success_redirect_url):
-    #     self._sign_success_redirect_url = sign_success_redirect_url
-
-    # @scrive_property
-    # def rejection_redirect_url(self):
-    #     return self._rejection_redirect_url
-
-    # @rejection_redirect_url.setter
-    # @tvu(rejection_redirect_url=MaybeUnicode)
-    # def rejection_redirect_url(self, rejection_redirect_url):
-    #     self._rejection_redirect_url = rejection_redirect_url
-
-    # @scrive_property
-    # def authentication_method(self):
-    #     return self._authentication_method
-
-    # @authentication_method.setter
-    # @tvu(
-    #     authentication_method=tvu.instance(AM, enum=True))
-    # def authentication_method(self, authentication_method):
-    #     self._authentication_method = authentication_method
 
     # @scrive_property
     # def sign_url(self):

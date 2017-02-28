@@ -2,7 +2,7 @@ from scrivepy import _document, _exceptions, _placement, \
      _field, _signatory, _scrive
 
 Anchor = _placement.Anchor
-# AuthenticationMethod = _signatory.AuthenticationMethod
+SignAuthenticationMethod = _signatory.SignAuthenticationMethod
 AuthorAttachment = _document.AuthorAttachment
 CheckboxField = _field.CheckboxField
 ConfirmationDeliveryMethod = _signatory.ConfirmationDeliveryMethod
@@ -18,6 +18,7 @@ NameField = _field.NameField
 Placement = _placement.Placement
 ReadOnlyScriveObject = _exceptions.ReadOnlyScriveObject
 Scrive = _scrive.Scrive
+SignAuthenticationMethod = _signatory.SignAuthenticationMethod
 Signatory = _signatory.Signatory
 # SignatoryAttachment = _signatory.SignatoryAttachment
 SignatureField = _field.SignatureField
@@ -25,9 +26,9 @@ StandardField = _field.StandardField
 StandardFieldType = _field.StandardFieldType
 TextField = _field.TextField
 TipSide = _placement.TipSide
+ViewAuthenticationMethod = _signatory.ViewAuthenticationMethod
 
 __all__ = ['Anchor',
-           # 'AuthenticationMethod',
            'AuthorAttachment',
            'CheckboxField',
            'ConfirmationDeliveryMethod',
@@ -43,10 +44,12 @@ __all__ = ['Anchor',
            'Placement',
            'ReadOnlyScriveObject',
            'Scrive',
+           'SignAuthenticationMethod',
            'Signatory',
            # 'SignatoryAttachment',
            'SignatureField',
            'StandardField',
            'StandardFieldType',
            'TextField',
-           'TipSide']
+           'TipSide',
+           'ViewAuthenticationMethod']
