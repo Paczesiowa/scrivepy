@@ -1,6 +1,11 @@
 # coding: utf-8
+from datetime import datetime
+from dateutil.tz import tzutc
+
 from scrivepy import (
     ConfirmationDeliveryMethod,
+    InvalidResponse,
+    InvalidScriveObject,
     InvitationDeliveryMethod,
     SignAuthenticationMethod,
     Signatory,
@@ -15,7 +20,6 @@ from scrivepy import (
     # Scrive,
     # StandardField as SF,
     # StandardFieldType as SFT,
-    # InvalidScriveObject,
     # ReadOnlyScriveObject,
     # Error
 )
@@ -36,6 +40,14 @@ class SignatoryTest(utils.IntegrationTestCase):
             u'sign_order': 1,
             u'sign_success_redirect_url': u'',
             u'reject_redirect_url': u'',
+            u'allows_highlighting': False,
+            u'id': u'123',
+            u'user_id': None,
+            u'is_author': False,
+            u'seen_time': None,
+            u'sign_time': None,
+            u'read_invitation_time': None,
+            u'rejected_time': None,
             u'confirmation_delivery_method': u'email'}
 
     def f1(self):
@@ -193,6 +205,60 @@ class SignatoryTest(utils.IntegrationTestCase):
                                 u'no_bankid')],
             default_value=ViewAuthenticationMethod.standard,
             required=False)
+
+    def test_allows_highlighting(self):
+        self._test_attr(
+            attr_name='allows_highlighting',
+            good_values=[True, False],
+            bad_type_values=[([], u'bool')],
+            bad_val_values=[],
+            serialized_name='allows_highlighting',
+            serialized_values=[True, False],
+            default_value=False,
+            required=False)
+
+    def test_id(self):
+        self._test_server_attr(attr_name='id', serialized_name=u'id',
+                               serialized_values=[u'123', u'456'],
+                               is_send_back=True)
+
+    def test_user_id(self):
+        self._test_server_attr(attr_name='user_id', serialized_name=u'user_id',
+                               serialized_values=[u'123', None])
+
+    def test_author(self):
+        self._test_server_attr(attr_name='author',
+                               serialized_name=u'is_author',
+                               serialized_values=[True, False],
+                               default_manual_val=False)
+
+    def test_view_time(self):
+        time_tuple = (datetime(2014, 10, 29, 15, 40, 20, tzinfo=tzutc()),
+                      u'2014-10-29T15:40:20Z')
+        self._test_server_attr(attr_name='view_time',
+                               serialized_name=u'seen_time',
+                               serialized_values=[None, time_tuple])
+
+    def test_sign_time(self):
+        time_tuple = (datetime(2014, 10, 29, 15, 40, 20, tzinfo=tzutc()),
+                      u'2014-10-29T15:40:20Z')
+        self._test_server_attr(attr_name='sign_time',
+                               serialized_name=u'sign_time',
+                               serialized_values=[None, time_tuple])
+
+    def test_read_invitation_time(self):
+        time_tuple = (datetime(2014, 10, 29, 15, 40, 20, tzinfo=tzutc()),
+                      u'2014-10-29T15:40:20Z')
+        self._test_server_attr(attr_name='invitation_view_time',
+                               serialized_name=u'read_invitation_time',
+                               serialized_values=[None, time_tuple])
+
+    def test_rejection_time(self):
+        time_tuple = (datetime(2014, 10, 29, 15, 40, 20, tzinfo=tzutc()),
+                      u'2014-10-29T15:40:20Z')
+        self._test_server_attr(attr_name='rejection_time',
+                               serialized_name=u'rejected_time',
+                               serialized_values=[None, time_tuple])
 
     # def setUp(self):
     #     self.O = S
@@ -359,9 +425,6 @@ class SignatoryTest(utils.IntegrationTestCase):
     #     with self.assertRaises(InvalidScriveObject, None):
     #         flds.add(self.f1)
 
-    # def test_id(self):
-    #     self._test_server_field('id')
-
     # def test_current(self):
     #     self._test_server_field('current')
 
@@ -377,58 +440,14 @@ class SignatoryTest(utils.IntegrationTestCase):
     # def test_delivered_invitation(self):
     #     self._test_server_field('delivered_invitation')
 
-    # def test_allows_highlighting(self):
-    #     self._test_field('allows_highlighting',
-    #                      bad_value=[], correct_type=bool,
-    #                      default_good_value=False,
-    #                      other_good_values=[True],
-    #                      serialized_name=u'allowshighlighting',
-    #                      serialized_default_good_value=False)
-
-    # def test_author(self):
-    #     s = self.o()
-    #     self.assertFalse(s.author)
-
-    #     s._set_read_only()
-    #     self.assertFalse(s.author)
-
-    #     s._set_invalid()
-    #     with self.assertRaises(InvalidScriveObject, None):
-    #         s.author
-
-    #     json = self.json.copy()
-    #     json[u'author'] = True
-    #     s = S._from_json_obj(json)
-
-    #     self.assertTrue(s.author)
-
-    #     s._set_read_only()
-    #     self.assertTrue(s.author)
-
-    #     s._set_invalid()
-    #     with self.assertRaises(InvalidScriveObject, None):
-    #         s.author
-
     # def test_has_account(self):
     #     self._test_server_field('has_account')
 
     # def test_eleg_mismatch_message(self):
     #     self._test_server_field('eleg_mismatch_message')
 
-    # def test_sign_time(self):
-    #     self._test_time_field('sign_time', u'signdate')
-
-    # def test_view_time(self):
-    #     self._test_time_field('view_time', u'seendate')
-
     # def test_invitation_view_time(self):
     #     self._test_time_field('invitation_view_time', u'readdate')
-
-    # def test_rejection_time(self):
-    #     self._test_time_field('rejection_time', u'rejecteddate')
-
-    # def test_rejection_message(self):
-    #     self._test_server_field('rejection_message')
 
     # def test_sign_url(self):
     #     self._test_server_field('sign_url')

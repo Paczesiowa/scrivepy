@@ -41,7 +41,7 @@
 ** implement Document.save() method with syncing of possible old versions of objects
 * Signatory needs a status field
 * add subobjects method to ScriveObject (use it for set_invalid/set_ro)
-* sort tvu/__init__ arguments
+* sort tvu/__init__ arguments (and most other things)
 * use functional syntax for enums
 * before update call verify fields/signatories
 ** NameField
@@ -60,6 +60,10 @@
 * write test_attr() wrapper that is tailored to e.g. nonemptytext
 * get rid of test_field()
 * add custom UA to requests
+* clean up tests/utils.py
+* test_attr() (and test_id) should test for InvalidResponse for things in json that do not validate
+* follow convention that bool attrs start with is_
+* validation of RO enums returned from server (e.g. email_delivery_status)
 * API v2
 ** Placement
 *** test_tip
@@ -73,20 +77,14 @@
 ***** no ctor param
 ***** file_id/null
 ** Signatory
-*** id
 *** user_id
-*** is_author
+**** add get_user() method
 *** fields
 **** tvu for field subclasses
-*** sign_time
-*** seen_time
-*** read_invitation_time
-*** rejected_time
 *** email_delivery_status
 *** mobile_delivery_status
-*** csv
-*** allows_highlighting
 *** highlighted_pages
 *** attachments
+*** api_delivery_url
 ** Document
 ** API

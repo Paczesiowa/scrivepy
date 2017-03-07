@@ -1,6 +1,6 @@
 import enum
 
-from dateutil import parser as dateparser
+from dateutil.parser import parse as time_parse
 import tvu
 
 from scrivepy._exceptions import Error, InvalidResponse
@@ -121,6 +121,14 @@ class Signatory(ScriveObject):
     sign_order = scrive_descriptor(tvu.tvus.PositiveInt)
     sign_redirect_url = scrive_descriptor(tvu.tvus.Text)
     reject_redirect_url = scrive_descriptor(tvu.tvus.Text)
+    allows_highlighting = scrive_descriptor(tvu.instance(bool))
+    id = scrive_descriptor()
+    user_id = scrive_descriptor()
+    author = scrive_descriptor()
+    view_time = scrive_descriptor()
+    sign_time = scrive_descriptor()
+    invitation_view_time = scrive_descriptor()
+    rejection_time = scrive_descriptor()
 
     @tvu(sign_order=tvu.tvus.PositiveInt,
          invitation_delivery=tvu.instance(InvitationDeliveryMethod, enum=True),
@@ -128,17 +136,19 @@ class Signatory(ScriveObject):
                                             enum=True),
          sign_auth=tvu.instance(SignAuthenticationMethod, enum=True),
          view_auth=tvu.instance(ViewAuthenticationMethod, enum=True),
-         viewer=tvu.instance(bool), #allows_highlighting=tvu.instance(bool),
+         viewer=tvu.instance(bool), allows_highlighting=tvu.instance(bool),
          sign_redirect_url=tvu.tvus.Text, reject_redirect_url=tvu.tvus.Text)
     def __init__(self, sign_order=1, viewer=False,
                  invitation_delivery=InvitationDeliveryMethod.email,
                  confirmation_delivery=ConfirmationDeliveryMethod.email,
                  sign_auth=SignAuthenticationMethod.standard,
                  view_auth=ViewAuthenticationMethod.standard,
-                 # allows_highlighting=False,
+                 allows_highlighting=False,
                  sign_redirect_url=u'', reject_redirect_url=u''):
         super(Signatory, self).__init__()
-        # self._id = None
+        self._id = None
+        self._user_id = None
+        self._author = False
         # self._current = None
         self._sign_order = sign_order
         # self._undelivered_invitation = None
@@ -149,14 +159,13 @@ class Signatory(ScriveObject):
         self._invitation_delivery = invitation_delivery
         self._confirmation_delivery = confirmation_delivery
         self._viewer = viewer
-        # self._allows_highlighting = allows_highlighting
+        self._allows_highlighting = allows_highlighting
         # self._author = False
         # self._eleg_mismatch_message = None
-        # self._sign_time = None
-        # self._view_time = None
-        # self._invitation_view_time = None
-        # self._rejection_time = None
-        # self._rejection_message = None
+        self._sign_time = None
+        self._view_time = None
+        self._invitation_view_time = None
+        self._rejection_time = None
         self._sign_redirect_url = sign_redirect_url
         self._reject_redirect_url = reject_redirect_url
         self._sign_auth = sign_auth
@@ -208,13 +217,14 @@ class Signatory(ScriveObject):
                           confirmation_delivery=confirmation_delivery,
                           sign_auth=sign_auth, view_auth=view_auth,
                           viewer=not json[u'is_signatory'],
-                          # allows_highlighting=json[u'allowshighlighting'],
+                          allows_highlighting=json[u'allows_highlighting'],
                           sign_redirect_url=json[u'sign_success_redirect_url'],
                           reject_redirect_url=json[u'reject_redirect_url'])
             # signatory.fields.update(fields)
             # signatory.attachments.update(attachments)
-            # signatory._id = json[u'id']
-            # signatory._author = json[u'author']
+            signatory._id = json[u'id']
+            signatory._user_id = json[u'user_id']
+            signatory._author = json[u'is_author']
             # signatory._current = json[u'current']
             # signatory._undelivered_invitation = json[u'undeliveredInvitation']
             # signatory._undelivered_email_invitation = \
@@ -227,17 +237,15 @@ class Signatory(ScriveObject):
             #     json[u'saved']
             # signatory._eleg_mismatch_message = \
             #     json[u'datamismatch']
-            # if json[u'signdate'] is not None:
-            #     signatory._sign_time = dateparser.parse(json[u'signdate'])
-            # if json[u'seendate'] is not None:
-            #     signatory._view_time = dateparser.parse(json[u'seendate'])
-            # if json[u'readdate'] is not None:
-            #     signatory._invitation_view_time = \
-            #         dateparser.parse(json[u'readdate'])
-            # if json[u'rejecteddate'] is not None:
-            #     signatory._rejection_time = \
-            #         dateparser.parse(json[u'rejecteddate'])
-            # signatory._rejection_message = json[u'rejectionreason']
+            if json[u'sign_time'] is not None:
+                signatory._sign_time = time_parse(json[u'sign_time'])
+            if json[u'seen_time'] is not None:
+                signatory._view_time = time_parse(json[u'seen_time'])
+            if json[u'read_invitation_time'] is not None:
+                signatory._invitation_view_time = \
+                    time_parse(json[u'read_invitation_time'])
+            if json[u'rejected_time'] is not None:
+                signatory._rejection_time = time_parse(json[u'rejected_time'])
             # signatory._sign_url = json.get(u'signlink')
             return signatory
         except (KeyError, TypeError, ValueError) as e:
@@ -253,12 +261,12 @@ class Signatory(ScriveObject):
                   u'authentication_method_to_sign': self.sign_auth.value,
                   u'authentication_method_to_view': self.view_auth.value,
                   u'is_signatory': not self.viewer,
-                  # u'allowshighlighting': self.allows_highlighting,
+                  u'allows_highlighting': self.allows_highlighting,
                   # u'author': self.author,
                   u'sign_success_redirect_url': self.sign_redirect_url,
                   u'reject_redirect_url': self.reject_redirect_url}
-        # if self.id is not None:
-        #     result[u'id'] = self.id
+        if self.id is not None:
+            result[u'id'] = self.id
         return result
 
     # def _set_invalid(self):
@@ -286,10 +294,6 @@ class Signatory(ScriveObject):
     #     return self._attachments
 
     # @scrive_property
-    # def id(self):
-    #     return self._id
-
-    # @scrive_property
     # def current(self):
     #     return self._current
 
@@ -310,45 +314,12 @@ class Signatory(ScriveObject):
     #     return self._delivered_invitation
 
     # @scrive_property
-    # def allows_highlighting(self):
-    #     return self._allows_highlighting
-
-    # @allows_highlighting.setter
-    # @tvu(allows_highlighting=tvu.instance(bool))
-    # def allows_highlighting(self, allows_highlighting):
-    #     self._allows_highlighting = allows_highlighting
-
-    # @scrive_property
-    # def author(self):
-    #     return self._author
-
-    # @scrive_property
     # def has_account(self):
     #     return self._has_account
 
     # @scrive_property
     # def eleg_mismatch_message(self):
     #     return self._eleg_mismatch_message
-
-    # @scrive_property
-    # def sign_time(self):
-    #     return self._sign_time
-
-    # @scrive_property
-    # def view_time(self):
-    #     return self._view_time
-
-    # @scrive_property
-    # def invitation_view_time(self):
-    #     return self._invitation_view_time
-
-    # @scrive_property
-    # def rejection_time(self):
-    #     return self._rejection_time
-
-    # @scrive_property
-    # def rejection_message(self):
-    #     return self._rejection_message
 
     # @scrive_property
     # def sign_url(self):

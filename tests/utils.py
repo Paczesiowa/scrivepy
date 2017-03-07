@@ -322,6 +322,62 @@ class TestCase(unittest.TestCase):
         for dep in deps:
             self.assertTrue(dep._invalid)
 
+        self._test_invalid_field(attr_name + '77')
+
+    def _test_server_attr(self, attr_name, serialized_name, serialized_values,
+                          is_send_back=False, default_manual_val=None):
+        serialized_values = self._value_pairs(serialized_values)
+
+        o = self.o()
+        self.assertEqual(getattr(o, attr_name), default_manual_val)
+
+        # test that attribute is read only
+        with self.assertRaises(AttributeError):
+            setattr(o, attr_name, None)
+
+        o._set_read_only()
+        self.assertEqual(getattr(o, attr_name), default_manual_val)
+
+        o._set_invalid()
+        with self.assertRaises(InvalidScriveObject):
+            getattr(o, attr_name)
+
+        self._test_invalid_field(attr_name + '77')
+
+        # test that for every pair (v1, v2) in serialized_values
+        # json[serialized_name]=v2; O._from_json_obj(json).attr_name == v1
+        for value_in, value_out in serialized_values:
+            json = dict(self.json)
+            json[serialized_name] = value_out
+            o = self.O._from_json_obj(json)
+            self.assertTrue(isinstance(o, self.O))
+            self.assertEqual(getattr(o, attr_name), value_in)
+
+        # test that after deserialization attribute is still read only
+        for value_in, _ in serialized_values:
+            json = dict(self.json)
+            json[serialized_name] = value_out
+            o = self.O._from_json_obj(json)
+            with self.assertRaises(AttributeError):
+                setattr(o, attr_name, None)
+
+        # test that serializing manually constructed object does not use attr
+        o = self.o()
+        self.assertFalse(serialized_name in o._to_json_obj())
+
+        # test that serializing previously deserialized object preserves attr
+        # or skips it entirely
+        for _, value in serialized_values:
+            json = dict(self.json)
+            json[serialized_name] = value
+            o = self.O._from_json_obj(json)
+            json2 = o._to_json_obj()
+            if is_send_back:
+                self.assertEqual(value, json2[serialized_name])
+                self.assertEqual(type(value), type(json2[serialized_name]))
+            else:
+                self.assertFalse(serialized_name in json2)
+
     def _test_field(self, field_name, bad_value, correct_type,
                     default_good_value, other_good_values,
                     serialized_name=None, serialized_default_good_value=None,
