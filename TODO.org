@@ -81,10 +81,7 @@
 **** add get_user() method
 *** fields
 **** tvu for field subclasses
-*** email_delivery_status
-*** mobile_delivery_status
 *** highlighted_pages
 *** attachments
-*** api_delivery_url
 ** Document
 ** API

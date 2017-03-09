@@ -129,6 +129,9 @@ class Signatory(ScriveObject):
     sign_time = scrive_descriptor()
     invitation_view_time = scrive_descriptor()
     rejection_time = scrive_descriptor()
+    email_delivery_status = scrive_descriptor()
+    mobile_delivery_status = scrive_descriptor()
+    sign_url = scrive_descriptor()
 
     @tvu(sign_order=tvu.tvus.PositiveInt,
          invitation_delivery=tvu.instance(InvitationDeliveryMethod, enum=True),
@@ -149,19 +152,13 @@ class Signatory(ScriveObject):
         self._id = None
         self._user_id = None
         self._author = False
-        # self._current = None
+        self._email_delivery_status = u'unknown'
+        self._mobile_delivery_status = u'unknown'
         self._sign_order = sign_order
-        # self._undelivered_invitation = None
-        # self._undelivered_email_invitation = None
-        # self._undelivered_sms_invitation = None
-        # self._delivered_invitation = None
-        # self._has_account = None
         self._invitation_delivery = invitation_delivery
         self._confirmation_delivery = confirmation_delivery
         self._viewer = viewer
         self._allows_highlighting = allows_highlighting
-        # self._author = False
-        # self._eleg_mismatch_message = None
         self._sign_time = None
         self._view_time = None
         self._invitation_view_time = None
@@ -170,7 +167,7 @@ class Signatory(ScriveObject):
         self._reject_redirect_url = reject_redirect_url
         self._sign_auth = sign_auth
         self._view_auth = view_auth
-        # self._sign_url = None
+        self._sign_url = None
         # self._fields = ScriveSet()
         # self._fields._elem_validator = tvu.instance(Field)
         # self._attachments = ScriveSet()
@@ -222,21 +219,11 @@ class Signatory(ScriveObject):
                           reject_redirect_url=json[u'reject_redirect_url'])
             # signatory.fields.update(fields)
             # signatory.attachments.update(attachments)
+            signatory._email_delivery_status = json[u'email_delivery_status']
+            signatory._mobile_delivery_status = json[u'mobile_delivery_status']
             signatory._id = json[u'id']
             signatory._user_id = json[u'user_id']
             signatory._author = json[u'is_author']
-            # signatory._current = json[u'current']
-            # signatory._undelivered_invitation = json[u'undeliveredInvitation']
-            # signatory._undelivered_email_invitation = \
-            #     json[u'undeliveredMailInvitation']
-            # signatory._undelivered_sms_invitation = \
-            #     json[u'undeliveredSMSInvitation']
-            # signatory._delivered_invitation = \
-            #     json[u'deliveredInvitation']
-            # signatory._has_account = \
-            #     json[u'saved']
-            # signatory._eleg_mismatch_message = \
-            #     json[u'datamismatch']
             if json[u'sign_time'] is not None:
                 signatory._sign_time = time_parse(json[u'sign_time'])
             if json[u'seen_time'] is not None:
@@ -246,7 +233,7 @@ class Signatory(ScriveObject):
                     time_parse(json[u'read_invitation_time'])
             if json[u'rejected_time'] is not None:
                 signatory._rejection_time = time_parse(json[u'rejected_time'])
-            # signatory._sign_url = json.get(u'signlink')
+            signatory._sign_url = json.get(u'api_delivery_url')
             return signatory
         except (KeyError, TypeError, ValueError) as e:
             raise InvalidResponse(e)
@@ -262,7 +249,6 @@ class Signatory(ScriveObject):
                   u'authentication_method_to_view': self.view_auth.value,
                   u'is_signatory': not self.viewer,
                   u'allows_highlighting': self.allows_highlighting,
-                  # u'author': self.author,
                   u'sign_success_redirect_url': self.sign_redirect_url,
                   u'reject_redirect_url': self.reject_redirect_url}
         if self.id is not None:
@@ -293,46 +279,12 @@ class Signatory(ScriveObject):
     # def attachments(self):
     #     return self._attachments
 
-    # @scrive_property
-    # def current(self):
-    #     return self._current
-
-    # @scrive_property
-    # def undelivered_invitation(self):
-    #     return self._undelivered_invitation
-
-    # @scrive_property
-    # def undelivered_email_invitation(self):
-    #     return self._undelivered_email_invitation
-
-    # @scrive_property
-    # def undelivered_sms_invitation(self):
-    #     return self._undelivered_sms_invitation
-
-    # @scrive_property
-    # def delivered_invitation(self):
-    #     return self._delivered_invitation
-
-    # @scrive_property
-    # def has_account(self):
-    #     return self._has_account
-
-    # @scrive_property
-    # def eleg_mismatch_message(self):
-    #     return self._eleg_mismatch_message
-
-    # @scrive_property
-    # def sign_url(self):
-    #     return self._sign_url
-
-    # def absolute_sign_url(self):
-    #     self._check_getter()
-    #     if self._sign_url is None:
-    #         return None
-    #     if self._api is None:
-    #         raise Error(u'API not set')
-    #     proto = b'https' if self._api.https else b'http'
-    #     return proto + b'://' + self._api.api_hostname + self._sign_url
+    def absolute_sign_url(self):
+        self._check_getter()
+        if self._sign_url is None or self._api is None:
+            return None
+        proto = b'https' if self._api.https else b'http'
+        return proto + b'://' + self._api.api_hostname + self._sign_url
 
     # @scrive_property
     # def full_name(self):

@@ -4,11 +4,12 @@ from dateutil.tz import tzutc
 
 from scrivepy import (
     ConfirmationDeliveryMethod,
-    InvalidResponse,
+    Error,
     InvalidScriveObject,
     InvitationDeliveryMethod,
     SignAuthenticationMethod,
     Signatory,
+    Scrive,
     TextField,
     ViewAuthenticationMethod
     # AuthenticationMethod as AM,
@@ -21,7 +22,6 @@ from scrivepy import (
     # StandardField as SF,
     # StandardFieldType as SFT,
     # ReadOnlyScriveObject,
-    # Error
 )
 
 from scrivepy._set import ScriveSet
@@ -48,6 +48,8 @@ class SignatoryTest(utils.IntegrationTestCase):
             u'sign_time': None,
             u'read_invitation_time': None,
             u'rejected_time': None,
+            u'email_delivery_status': u'unknown',
+            u'mobile_delivery_status': u'unknown',
             u'confirmation_delivery_method': u'email'}
 
     def f1(self):
@@ -260,6 +262,27 @@ class SignatoryTest(utils.IntegrationTestCase):
                                serialized_name=u'rejected_time',
                                serialized_values=[None, time_tuple])
 
+    def test_email_delivery_status(self):
+        serialized_values = [u'unknown', u'not_delivered',
+                             u'delivered', u'deferred']
+        self._test_server_attr(attr_name='email_delivery_status',
+                               serialized_name=u'email_delivery_status',
+                               serialized_values=serialized_values,
+                               default_manual_val=u'unknown')
+
+    def test_mobile_delivery_status(self):
+        serialized_values = [u'unknown', u'not_delivered',
+                             u'delivered', u'deferred']
+        self._test_server_attr(attr_name='mobile_delivery_status',
+                               serialized_name=u'mobile_delivery_status',
+                               serialized_values=serialized_values,
+                               default_manual_val=u'unknown')
+
+    def test_sign_url(self):
+        self._test_server_attr(attr_name='sign_url',
+                               serialized_name=u'api_delivery_url',
+                               serialized_values=[u'/s/1/2/3', None])
+
     # def setUp(self):
     #     self.O = S
     #     self.f1 = SF(name='first_name', value=u'John')
@@ -425,84 +448,47 @@ class SignatoryTest(utils.IntegrationTestCase):
     #     with self.assertRaises(InvalidScriveObject, None):
     #         flds.add(self.f1)
 
-    # def test_current(self):
-    #     self._test_server_field('current')
+    def test_absolute_sign_url(self):
+        json = self.json.copy()
+        o = self.O._from_json_obj(json)
 
-    # def test_undelivered_invitation(self):
-    #     self._test_server_field('undelivered_invitation')
+        self.assertIsNone(o.absolute_sign_url())
+        o._set_read_only()
+        self.assertIsNone(o.absolute_sign_url())
+        o._set_invalid()
+        with self.assertRaises(InvalidScriveObject, None):
+            o.absolute_sign_url()
 
-    # def test_undelivered_email_invitation(self):
-    #     self._test_server_field('undelivered_email_invitation')
+        api = Scrive(client_credentials_identifier='',
+                     client_credentials_secret='',
+                     token_credentials_identifier='',
+                     token_credentials_secret='',
+                     api_hostname='127.0.0.1:8000',
+                     https=True)
 
-    # def test_undelivered_sms_invitation(self):
-    #     self._test_server_field('undelivered_sms_invitation')
+        o = self.O._from_json_obj(json)
+        o._set_api(api, None)
 
-    # def test_delivered_invitation(self):
-    #     self._test_server_field('delivered_invitation')
+        self.assertIsNone(o.absolute_sign_url())
+        o._set_read_only()
+        self.assertIsNone(o.absolute_sign_url())
+        o._set_invalid()
+        with self.assertRaises(InvalidScriveObject, None):
+            o.absolute_sign_url()
 
-    # def test_has_account(self):
-    #     self._test_server_field('has_account')
+        json = self.json.copy()
+        json[u'api_delivery_url'] = u'/s/1/2/3'
+        o = self.O._from_json_obj(json)
+        o._set_api(api, None)
 
-    # def test_eleg_mismatch_message(self):
-    #     self._test_server_field('eleg_mismatch_message')
-
-    # def test_invitation_view_time(self):
-    #     self._test_time_field('invitation_view_time', u'readdate')
-
-    # def test_sign_url(self):
-    #     self._test_server_field('sign_url')
-    #     json = self.json.copy()
-    #     del json[u'signlink']
-    #     s = S._from_json_obj(json)
-    #     self.assertIsNone(s.sign_url)
-
-    # def test_absolute_sign_url(self):
-    #     json = self.json.copy()
-    #     s = S._from_json_obj(json)
-    #     with self.assertRaises(Error, u'API not set'):
-    #         s.absolute_sign_url()
-    #     s._set_read_only()
-    #     with self.assertRaises(Error, u'API not set'):
-    #         s.absolute_sign_url()
-    #     s._set_invalid()
-    #     with self.assertRaises(InvalidScriveObject, None):
-    #         s.absolute_sign_url()
-
-    #     s = S._from_json_obj(json)
-    #     api = Scrive(client_credentials_identifier='',
-    #                  client_credentials_secret='',
-    #                  token_credentials_identifier='',
-    #                  token_credentials_secret='',
-    #                  api_hostname='127.0.0.1:8000',
-    #                  https=True)
-    #     s._set_api(api, None)
-    #     self.assertEqual('https://127.0.0.1:8000/s/1/2/3',
-    #                      s.absolute_sign_url())
-    #     s._set_read_only()
-    #     self.assertEqual('https://127.0.0.1:8000/s/1/2/3',
-    #                      s.absolute_sign_url())
-    #     s._set_invalid()
-    #     with self.assertRaises(InvalidScriveObject, None):
-    #         s.absolute_sign_url()
-
-    #     json = self.json.copy()
-    #     del json[u'signlink']
-    #     s = S._from_json_obj(json)
-    #     self.assertIsNone(s.absolute_sign_url())
-    #     s._set_read_only()
-    #     self.assertIsNone(s.absolute_sign_url())
-    #     s._set_invalid()
-    #     with self.assertRaises(InvalidScriveObject, None):
-    #         s.absolute_sign_url()
-
-    #     s = S._from_json_obj(json)
-    #     s._set_api(api, None)
-    #     self.assertIsNone(s.absolute_sign_url())
-    #     s._set_read_only()
-    #     self.assertIsNone(s.absolute_sign_url())
-    #     s._set_invalid()
-    #     with self.assertRaises(InvalidScriveObject, None):
-    #         s.absolute_sign_url()
+        self.assertEqual('https://127.0.0.1:8000/s/1/2/3',
+                         o.absolute_sign_url())
+        o._set_read_only()
+        self.assertEqual('https://127.0.0.1:8000/s/1/2/3',
+                         o.absolute_sign_url())
+        o._set_invalid()
+        with self.assertRaises(InvalidScriveObject, None):
+            o.absolute_sign_url()
 
     # def test_attachments(self):
     #     # check default ctor value
