@@ -79,8 +79,6 @@
 ** Signatory
 *** user_id
 **** add get_user() method
-*** fields
-**** tvu for field subclasses
 *** highlighted_pages
 *** attachments
 ** Document

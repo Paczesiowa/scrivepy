@@ -132,6 +132,7 @@ class Signatory(ScriveObject):
     email_delivery_status = scrive_descriptor()
     mobile_delivery_status = scrive_descriptor()
     sign_url = scrive_descriptor()
+    fields = scrive_descriptor()
 
     @tvu(sign_order=tvu.tvus.PositiveInt,
          invitation_delivery=tvu.instance(InvitationDeliveryMethod, enum=True),
@@ -168,16 +169,16 @@ class Signatory(ScriveObject):
         self._sign_auth = sign_auth
         self._view_auth = view_auth
         self._sign_url = None
-        # self._fields = ScriveSet()
-        # self._fields._elem_validator = tvu.instance(Field)
+        self._fields = ScriveSet()
+        self._fields._elem_validator = tvu.instance(Field)
         # self._attachments = ScriveSet()
         # self._attachments._elem_validator = tvu.instance(SignatoryAttachment)
 
     @classmethod
     def _from_json_obj(cls, json):
         try:
-            # fields = [Field._from_json_obj(field_json)
-            #           for field_json in json[u'fields']]
+            fields = [Field._from_json_obj(field_json)
+                      for field_json in json[u'fields']]
             # attachments = [SignatoryAttachment._from_json_obj(att_json)
             #                for att_json in json[u'attachments']]
 
@@ -217,7 +218,7 @@ class Signatory(ScriveObject):
                           allows_highlighting=json[u'allows_highlighting'],
                           sign_redirect_url=json[u'sign_success_redirect_url'],
                           reject_redirect_url=json[u'reject_redirect_url'])
-            # signatory.fields.update(fields)
+            signatory.fields.update(fields)
             # signatory.attachments.update(attachments)
             signatory._email_delivery_status = json[u'email_delivery_status']
             signatory._mobile_delivery_status = json[u'mobile_delivery_status']
@@ -239,7 +240,7 @@ class Signatory(ScriveObject):
             raise InvalidResponse(e)
 
     def _to_json_obj(self):
-        result = {# u'fields': list(self.fields),
+        result = {u'fields': list(self.fields),
                   # u'attachments': list(self.attachments),
                   u'sign_order': self.sign_order,
                   u'delivery_method': self.invitation_delivery.value,
@@ -255,16 +256,16 @@ class Signatory(ScriveObject):
             result[u'id'] = self.id
         return result
 
-    # def _set_invalid(self):
-    #     # invalidate fields first, before getter stops working
-    #     self.fields._set_invalid()
-    #     self.attachments._set_invalid()
-    #     super(Signatory, self)._set_invalid()
+    def _set_invalid(self):
+        # invalidate fields first, before getter stops working
+        self.fields._set_invalid()
+        # self.attachments._set_invalid()
+        super(Signatory, self)._set_invalid()
 
-    # def _set_read_only(self):
-    #     super(Signatory, self)._set_read_only()
-    #     self.fields._set_read_only()
-    #     self.attachments._set_read_only()
+    def _set_read_only(self):
+        super(Signatory, self)._set_read_only()
+        self.fields._set_read_only()
+        # self.attachments._set_read_only()
 
     # def _set_api(self, api, document):
     #     super(Signatory, self)._set_api(api, document)

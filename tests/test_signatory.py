@@ -4,11 +4,12 @@ from dateutil.tz import tzutc
 
 from scrivepy import (
     ConfirmationDeliveryMethod,
-    Error,
     InvalidScriveObject,
     InvitationDeliveryMethod,
+    ReadOnlyScriveObject,
     SignAuthenticationMethod,
     Signatory,
+    SignatureField,
     Scrive,
     TextField,
     ViewAuthenticationMethod
@@ -21,7 +22,6 @@ from scrivepy import (
     # Scrive,
     # StandardField as SF,
     # StandardFieldType as SFT,
-    # ReadOnlyScriveObject,
 )
 
 from scrivepy._set import ScriveSet
@@ -50,13 +50,14 @@ class SignatoryTest(utils.IntegrationTestCase):
             u'rejected_time': None,
             u'email_delivery_status': u'unknown',
             u'mobile_delivery_status': u'unknown',
+            u'fields': [],
             u'confirmation_delivery_method': u'email'}
 
     def f1(self):
         return TextField(name='f1', value='v1')
 
     def f2(self):
-        return TextField(name='f2', value='v2')
+        return SignatureField(name='sig1')
 
     def test_invitation_delivery(self):
         variant_err = r".*could be InvitationDeliveryMethod's variant name.*"
@@ -415,6 +416,39 @@ class SignatoryTest(utils.IntegrationTestCase):
     #                              for f in s.fields]),
     #                      sorted([self.f1._to_json_obj(),
     #                              self.f2._to_json_obj()]))
+
+    def test_fields(self):
+        # check default ctor value
+        o = self.o()
+        self.assertEqual(ScriveSet(), o.fields)
+
+        f1 = self.f1()
+        o.fields.add(f1)
+        self.assertEqual(ScriveSet([f1]), o.fields)
+
+        err_msg = u'elem must be Field, not 1'
+        with self.assertRaises(TypeError, err_msg):
+            o.fields.add(1)
+
+        o.fields.clear()
+        f2 = self.f2()
+        o.fields.add(f2)
+        self.assertEqual(ScriveSet([f2]), o.fields)
+
+        self.assertEqual([f2], o._to_json_obj()[u'fields'])
+
+        o._set_read_only()
+        # set() is because the 2nd one is read only and not really equal
+        self.assertEqual(set(ScriveSet([f2])), set(o.fields))
+        with self.assertRaises(ReadOnlyScriveObject, None):
+            o.fields.clear()
+
+        fields = o.fields
+        o._set_invalid()
+        with self.assertRaises(InvalidScriveObject, None):
+            o.fields
+        with self.assertRaises(InvalidScriveObject, None):
+            fields.add(f1)
 
     # def test_fields(self):
     #     # check default ctor value
