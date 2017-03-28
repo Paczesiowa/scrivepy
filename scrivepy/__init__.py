@@ -3,12 +3,12 @@ from scrivepy import _document, _exceptions, _placement, \
 
 Anchor = _placement.Anchor
 SignAuthenticationMethod = _signatory.SignAuthenticationMethod
-AuthorAttachment = _document.AuthorAttachment
+# AuthorAttachment = _document.AuthorAttachment
 CheckboxField = _field.CheckboxField
 ConfirmationDeliveryMethod = _signatory.ConfirmationDeliveryMethod
-DeletionStatus = _document.DeletionStatus
+# DeletionStatus = _document.DeletionStatus
 Document = _document.Document
-DocumentStatus = _document.DocumentStatus
+# DocumentStatus = _document.DocumentStatus
 Error = _exceptions.Error
 InvalidResponse = _exceptions.InvalidResponse
 InvalidScriveObject = _exceptions.InvalidScriveObject
@@ -29,12 +29,12 @@ TipSide = _placement.TipSide
 ViewAuthenticationMethod = _signatory.ViewAuthenticationMethod
 
 __all__ = ['Anchor',
-           'AuthorAttachment',
+           # 'AuthorAttachment',
            'CheckboxField',
            'ConfirmationDeliveryMethod',
-           'DeletionStatus',
+           # 'DeletionStatus',
            'Document',
-           'DocumentStatus',
+           # 'DocumentStatus',
            'Error',
            'InvalidResponse',
            'InvalidScriveObject',

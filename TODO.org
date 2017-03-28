@@ -62,6 +62,7 @@
 * add custom UA to requests
 * clean up tests/utils.py
 * test_attr() (and test_id) should test for InvalidResponse for things in json that do not validate
+* test_attr() should support not passing things through ctor
 * follow convention that bool attrs start with is_
 * validation of RO enums returned from server (e.g. email_delivery_status)
 * API v2
@@ -81,5 +82,30 @@
 **** add get_user() method
 *** highlighted_pages
 *** attachments
+*** full_name
 ** Document
+*** parties
+*** file
+*** sealed_file
+**** method that will retry to download it
+*** author_attachments
+*** timeout_time
+*** auto_remind_time
+*** status
+*** days_to_sign
+*** days_to_remind
+*** display_options
+*** invitation_message
+*** confirmation_message
+*** api_callback_url
+*** object_version
+*** access_token
+*** timezone
+*** tags
+*** is_template
+*** is_saved
+*** is_shared
+*** is_trashed
+*** is_deleted
+*** viewer
 ** API
