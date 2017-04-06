@@ -25,7 +25,7 @@ SignatureField = _field.SignatureField
 StandardField = _field.StandardField
 StandardFieldType = _field.StandardFieldType
 TextField = _field.TextField
-TipSide = _placement.TipSide
+Tip = _placement.Tip
 ViewAuthenticationMethod = _signatory.ViewAuthenticationMethod
 
 __all__ = ['Anchor',
@@ -51,5 +51,5 @@ __all__ = ['Anchor',
            'StandardField',
            'StandardFieldType',
            'TextField',
-           'TipSide',
+           'Tip',
            'ViewAuthenticationMethod']

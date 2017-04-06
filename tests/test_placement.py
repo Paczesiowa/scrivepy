@@ -4,7 +4,7 @@ from scrivepy import (
     InvalidScriveObject,
     Placement,
     ReadOnlyScriveObject,
-    TipSide
+    Tip
 )
 from scrivepy._set import ScriveSet
 from tests import utils
@@ -122,20 +122,20 @@ class PlacementTest(utils.TestCase):
     def test_tip(self):
         self._test_attr(
             attr_name='tip',
-            good_values=[('left', TipSide.left), ('right', TipSide.right),
-                         TipSide.left, TipSide.right],
-            bad_type_values=[({}, u'TipSide'), (0, u'TipSide')],
-            bad_val_values=[('wrong', r".*could be TipSide's variant name.*")],
+            good_values=[('left', Tip.left), ('right', Tip.right),
+                         Tip.left, Tip.right],
+            bad_type_values=[({}, u'Tip'), (0, u'Tip')],
+            bad_val_values=[('wrong', r".*could be Tip's variant name.*")],
             serialized_name='tip',
-            serialized_values=[('left', u'left'), (TipSide.left, u'left'),
-                               ('right', u'right'), (TipSide.right, u'right')],
-            default_value=TipSide.right,
+            serialized_values=[('left', u'left'), (Tip.left, u'left'),
+                               ('right', u'right'), (Tip.right, u'right')],
+            default_value=Tip.right,
             required=False)
 
         json = dict(self.json)
         json[u'tip'] = None
         p = self.O._from_json_obj(json)
-        self.assertEqual(p.tip, TipSide.left)
+        self.assertEqual(p.tip, Tip.left)
 
     def test_from_json_obj(self):
         json1 = {u'xrel': 0.08589607635206786,
@@ -153,7 +153,7 @@ class PlacementTest(utils.TestCase):
         self.assertTrue(.02 < fp.height < .03)
         self.assertTrue(.01 < fp.font_size < .02)
         self.assertEqual(fp.page, 1)
-        self.assertEqual(fp.tip, TipSide.right)
+        self.assertEqual(fp.tip, Tip.right)
 
         json2 = {u'xrel': 0.4188759278897137,
                  u'yrel': 0.31367731367731366,
@@ -170,11 +170,11 @@ class PlacementTest(utils.TestCase):
         self.assertTrue(.0 < fp.height < .01)
         self.assertTrue(.01 < fp.font_size < .02)
         self.assertEqual(fp.page, 1)
-        self.assertEqual(fp.tip, TipSide.left)
+        self.assertEqual(fp.tip, Tip.left)
 
     def test_to_json_obj(self):
         fp = Placement(left=.1, top=.2, width=.3, height=.4, font_size=.5,
-                       page=6, tip=TipSide.left)
+                       page=6, tip=Tip.left)
         json = {u'xrel': .1,
                 u'yrel': .2,
                 u'wrel': .3,
@@ -210,6 +210,7 @@ class PlacementTest(utils.TestCase):
             p.anchors.clear()
 
         anchors = p.anchors
+        # import ipdb; ipdb.set_trace()
         p._set_invalid()
         with self.assertRaises(InvalidScriveObject, None):
             p.anchors

@@ -1,15 +1,17 @@
 import itertools
 
 import tvu
-from scrivepy import _object
+
+from scrivepy._exceptions import InvalidResponse
+from scrivepy._object import ScriveObject, scrive_descriptor
 
 
-class ScriveSet(set, _object.ScriveObject):
+class ScriveSet(set, ScriveObject):
 
     @tvu(iterable=tvu.tvus.iterable())
     def __init__(self, iterable=()):
         set.__init__(self, iterable)
-        _object.ScriveObject.__init__(self)
+        ScriveObject.__init__(self)
         self.__init_scrive_set__()
 
     def __init_scrive_set__(self):
@@ -26,7 +28,7 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         result = set.copy(self)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         if self._read_only:
             result._set_read_only()
@@ -42,7 +44,7 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         result = set.intersection(self, *args)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -65,7 +67,7 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         result = set.symmetric_difference(self, iterable)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -99,7 +101,7 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         result = set.difference(self, *args)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -126,7 +128,7 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         result = set.union(self, *args)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -135,7 +137,7 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         result = set.__and__(self, other)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -144,7 +146,7 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         result = set.__xor__(self, other)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -153,7 +155,7 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         result = set.__sub__(self, other)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -162,7 +164,7 @@ class ScriveSet(set, _object.ScriveObject):
         self._check_getter()
         result = set.__or__(self, other)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -260,7 +262,7 @@ class ScriveSet(set, _object.ScriveObject):
         for item in itertools.chain(
                 set.__iter__(self),  # iterate even if self already invalid/ro
                 iter(self._derived_objs)):
-            if isinstance(item, _object.ScriveObject):
+            if isinstance(item, ScriveObject):
                 item._set_read_only()
         super(ScriveSet, self)._set_read_only()
 
@@ -268,7 +270,7 @@ class ScriveSet(set, _object.ScriveObject):
         for item in itertools.chain(
                 set.__iter__(self),  # iterate even if self already invalid/ro
                 iter(self._derived_objs)):
-            if isinstance(item, _object.ScriveObject):
+            if isinstance(item, ScriveObject):
                 item._set_invalid()
         super(ScriveSet, self)._set_invalid()
 
@@ -278,7 +280,7 @@ class ScriveSet(set, _object.ScriveObject):
         # proxy to __xor__, it's ok cause it's symmetric
         result = set.__xor__(self, other)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -288,7 +290,7 @@ class ScriveSet(set, _object.ScriveObject):
         # proxy to __and__, it's ok cause it's symmetric
         result = set.__and__(self, other)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -298,7 +300,7 @@ class ScriveSet(set, _object.ScriveObject):
         # proxy to __or__, it's ok cause it's symmetric
         result = set.__or__(self, other)
         result.__init_scrive_set__()
-        _object.ScriveObject.__init__(result)
+        ScriveObject.__init__(result)
         self._derived_objs.append(result)
         return result
 
@@ -329,3 +331,37 @@ class ScriveSet(set, _object.ScriveObject):
             if matches:
                 return x
         return None
+
+
+class scrive_set_descriptor(scrive_descriptor):
+
+    def __init__(self, elem_class):
+        self._elem_class = elem_class
+        super(scrive_set_descriptor, self).__init__()
+
+    def _init(self, obj, kwargs_dict):
+        # set arguments are not allowed as ctor params
+        # so just don't pop it from kwargs
+        empty_set = ScriveSet()
+        empty_set._elem_validator = tvu.instance(self._elem_class)
+        setattr(obj, self._attr_name, empty_set)
+
+    def _serialize(self, obj, json_obj):
+        json_obj[self._serialized_name] = list(getattr(obj, self._attr_name))
+
+    def _deserialize(self, obj, json_obj):
+        child_jsons = self._retrieve_from_json(obj, json_obj)
+
+        try:
+            children_list = [self._elem_class._from_json_obj(child_json)
+                             for child_json in child_jsons]
+        except TypeError:
+            err_msg = (u"'" + self._serialized_name + u"' in " +
+                       u"server's JSON response for " + type(obj).__name__ +
+                       u'is not a list')
+            raise InvalidResponse(err_msg)
+
+        children = ScriveSet()
+        children._elem_validator = tvu.instance(self._elem_class)
+        children.update(children_list)
+        setattr(obj, self._attr_name, children)
