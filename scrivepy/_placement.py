@@ -29,13 +29,14 @@ class Anchor(ScriveObject):
 
 class tip_descriptor(scrive_descriptor):
 
+    def __init__(self):
+        super(tip_descriptor, self).__init__(tvu.instance(Tip, enum=True),
+                                             default_ctor_value=Tip.right)
+
     def _deserialize(self, obj, json_obj):
         try:
-            val = json_obj[u'tip']
+            val = self._retrieve_from_json(obj, json_obj)
             obj._tip = Tip.left if val is None else Tip(val)
-        except KeyError:
-            err_msg = u"'tip' missing in server's JSON response for Placement"
-            raise InvalidResponse(err_msg)
         except ValueError:
             err_msg = (u"Invalid value '" + repr(val) + u"' for 'tip' " +
                        u"in server's JSON response for Placement")
@@ -55,7 +56,6 @@ class Placement(ScriveObject):
     height = scrive_descriptor(Ratio, serialized_name=u'hrel')
     left = scrive_descriptor(Ratio, serialized_name=u'xrel')
     page = scrive_descriptor(tvu.tvus.PositiveInt, default_ctor_value=1)
-    tip = tip_descriptor(tvu.instance(Tip, enum=True),
-                         default_ctor_value=Tip.right)
+    tip = tip_descriptor()
     top = scrive_descriptor(Ratio, serialized_name=u'yrel')
     width = scrive_descriptor(Ratio, serialized_name=u'wrel')

@@ -132,7 +132,7 @@ class scrive_descriptor(object):
 class ScriveObject(object):
 
     ###########################################################################
-    #                            descriptor setup                             #
+    #                                 setup                                   #
     ###########################################################################
     def _bare_init(self):
         '''
@@ -179,10 +179,9 @@ class ScriveObject(object):
         and all its subobjects.
         '''
         for descr in self._scrive_descriptors:
-            value = getattr(self, descr._name)
+            value = getattr(self, descr._attr_name)
             if isinstance(value, ScriveObject):
                 value._set_invalid()
-
         self._invalid = True
 
     def _set_read_only(self):
@@ -191,7 +190,7 @@ class ScriveObject(object):
         all its subobjects.
         '''
         for descr in self._scrive_descriptors:
-            value = getattr(self, descr._name)
+            value = getattr(self, descr._attr_name)
             if isinstance(value, ScriveObject):
                 value._set_read_only()
         self._read_only = True

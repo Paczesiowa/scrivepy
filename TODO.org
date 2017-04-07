@@ -55,7 +55,7 @@
 ** StandardField
 *** standard fields have no duplicates
 ** Signatory
-*** sign_orders have proper numbers (continous, >=1, no duplicates)
+*** sign_orders have proper numbers (continous, >=1, no duplicates, no holes)
 * write test_attrs()
 * write test_attr() wrapper that is tailored to e.g. nonemptytext
 * get rid of test_field()
@@ -65,6 +65,7 @@
 * test_attr() should support not passing things through ctor
 * follow convention that bool attrs start with is_
 * validation of RO enums returned from server (e.g. email_delivery_status)
+* nemid support
 * API v2
 ** Placement
 *** test_tip
