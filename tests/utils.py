@@ -1,3 +1,4 @@
+# coding: utf-8
 import contextlib
 from subprocess import check_output
 import os
@@ -11,8 +12,9 @@ from os import path
 import nose
 import testconfig
 
-from scrivepy import InvalidScriveObject, ReadOnlyScriveObject, Scrive
-from scrivepy._object import ScriveObject
+from scrivepy import (InvalidResponse, InvalidScriveObject,
+                      ReadOnlyScriveObject, Scrive)
+from scrivepy._set import ScriveSet
 
 
 class AssertRaisesContext(object):
@@ -73,27 +75,59 @@ class TestCase(unittest.TestCase):
 
     def _test_invalid_field(self, invalid_field_name):
         # this field should not exist
-        o = self.o()
 
-        with self.assertRaises(AttributeError, None):
-            getattr(o, invalid_field_name)
+        params, call_string = self._ctor_call()
+        descr = 'o=%s;o.%s throws AttributeError' % (call_string,
+                                                     invalid_field_name)
+        with describe(descr):
+            with self.assertRaises(AttributeError, None):
+                o = self.o(**params)
+                getattr(o, invalid_field_name)
 
-        with self.assertRaises(AttributeError, None):
-            setattr(o, invalid_field_name, None)
+        params, call_string = self._ctor_call()
+        descr = 'o=%s;o.%s=None throws AttributeError' % (call_string,
+                                                          invalid_field_name)
+        with describe(descr):
+            with self.assertRaises(AttributeError, None):
+                o = self.o(**params)
+                setattr(o, invalid_field_name, None)
 
-        o._set_read_only()
-        with self.assertRaises(AttributeError, None):
-            getattr(o, invalid_field_name)
+        params, call_string = self._ctor_call()
+        descr = 'o=%s;o._set_read_only();o.%s throws AttributeError' % (
+                call_string, invalid_field_name)
+        with describe(descr):
+            with self.assertRaises(AttributeError, None):
+                o = self.o(**params)
+                o._set_read_only()
+                getattr(o, invalid_field_name)
 
-        with self.assertRaises(AttributeError, None):
-            setattr(o, invalid_field_name, None)
+        params, call_string = self._ctor_call()
+        descr = 'o=%s;o._set_read_only();o.%s=None throws AttributeError' % (
+                call_string, invalid_field_name)
+        with describe(descr):
+            with self.assertRaises(AttributeError, None):
+                o = self.o(**params)
+                o._set_read_only()
+                setattr(o, invalid_field_name, None)
 
-        o._set_invalid()
-        with self.assertRaises(AttributeError, None):
-            getattr(o, invalid_field_name)
+        params, call_string = self._ctor_call()
+        descr = 'o=%s;o._set_read_only();o.%s throws AttributeError' % (
+                call_string, invalid_field_name)
+        with describe(descr):
+            with self.assertRaises(AttributeError, None):
+                o = self.o(**params)
+                o._set_invalid()
+                getattr(o, invalid_field_name)
 
-        with self.assertRaises(InvalidScriveObject, None):
-            setattr(o, invalid_field_name, None)
+        params, call_string = self._ctor_call()
+        descr = \
+            'o=%s;o._set_read_only();o.%s=None throws InvalidScriveObject' % (
+                call_string, invalid_field_name)
+        with describe(descr):
+            with self.assertRaises(InvalidScriveObject, None):
+                o = self.o(**params)
+                o._set_invalid()
+                setattr(o, invalid_field_name, None)
 
     def _test_server_field(self, field_name):
         o = self.o()
@@ -190,139 +224,397 @@ class TestCase(unittest.TestCase):
         with self.assertRaises(InvalidScriveObject):
             getattr(o, attr_name)
 
-    def _test_attr(self, attr_name, good_values,
-                   bad_type_values, bad_val_values,
-                   serialized_name, serialized_values,
-                   required=True, default_value=None,
-                   sealed_attr=False):
-        good_values = self._value_pairs(good_values)
-        serialized_values = self._value_pairs(serialized_values)
+    def _ctor_call(self, params=None, **param_overrides):
+        if params is None:
+            params = self.default_ctor_kwargs.copy()
+        for name, val in param_overrides.items():
+            params[name] = val
+        params_string = ','.join([param + '=' + repr(val)
+                                  for param, val in params.items()])
+        return params, '%s(%s)' % (self.O.__name__, params_string)
+
+    def _deser_call(self, json_obj):
+        return '%s._from_json_obj(%s)' % (self.O.__name__, repr(json_obj))
+
+    def _test_attr_ctor(self, attr_name, forbidden, good_values,
+                        bad_type_values, bad_val_values,
+                        required, default_value):
+        # if attr_name is a forbidden ctor arg, check that
+        # using it, __init__() throws TypeError
+        if forbidden:
+            err_msg = (u"__init__() got an unexpected keyword argument '" +
+                       attr_name + u"'")
+            params, call_string = self._ctor_call(**{attr_name: None})
+            with describe(call_string + ' throws TypeError'):
+                with self.assertRaises(TypeError, err_msg):
+                    o = self.o(**params)
+
+            # no point in other tests
+            return
+
         # test, that for every pair (v1, v2) in good_values
         # o(attr_name=v1).attr_name == v2
         for value_in, value_out in good_values:
-            o = self.o(**{attr_name: value_in})
-            self.assertEqual(getattr(o, attr_name), value_out)
-            self.assertEqual(type(getattr(o, attr_name)), type(value_out))
+            params, call_string = self._ctor_call(**{attr_name: value_in})
+            with describe('%s.%s == %s' % (call_string, attr_name, value_out)):
+                o = self.o(**params)
+                self.assertEqual(getattr(o, attr_name), value_out)
+                self.assertEqual(type(getattr(o, attr_name)), type(value_out))
 
         # test, that for every pair (v, err) in bad_type_values
         # o(attr_name=v) throws TypeError(err)
-        for value_in, err_msg in bad_type_values:
+        for value_in, err in bad_type_values:
+            params, call_string = self._ctor_call(**{attr_name: value_in})
             err_msg = \
-                attr_name + ' must be ' + err_msg + ', not ' + repr(value_in)
-            with self.assertRaises(TypeError, err_msg):
-                o = self.o(**{attr_name: value_in})
+                attr_name + ' must be ' + err + ', not ' + repr(value_in)
+            with describe('%s throws TypeError(%s)' % (call_string, err_msg)):
+                with self.assertRaises(TypeError, err_msg):
+                    o = self.o(**{attr_name: value_in})
 
         # test, that for every pair (v, err) in bad_val_values
         # o(attr_name=v) throws ValueError(err)
-        for value_in, err_msg in bad_val_values:
-            with self.assertRaises(ValueError, err_msg, regex=True):
-                o = self.o(**{attr_name: value_in})
+        for value_in, err in bad_val_values:
+            params, call_string = self._ctor_call(**{attr_name: value_in})
+            with describe('%s throws TypeError(%s)' % (call_string, err)):
+                with self.assertRaises(ValueError, err, regex=True):
+                    o = self.o(**params)
+
+        # if attr_name is not an optional ctor arg, check that
+        # TypeError is raised when this param is not used
+        if required:
+            params = dict(self.default_ctor_kwargs)
+            params.pop(attr_name, None)
+            params, call_string = self._ctor_call(params)
+            err_msg = \
+                u'__init__() requires ' + attr_name + u' keyword argument'
+            with describe('%s throws TypeError(%s)' % (call_string, err_msg)):
+                with self.assertRaises(TypeError, err_msg):
+                    o = self.O(**params)
 
         # if attr_name is an optional ctor arg, check that
-        # without it it sets a good value: o().attr_name == default_value
+        # without it, __init__() sets a good value:
+        # o().attr_name == default_value
         if not required:
-            o = self.o()
-            self.assertEqual(getattr(o, attr_name), default_value)
+            params, call_string = self._ctor_call()
+            with describe('%s.%s == %s' % (call_string, attr_name,
+                                           default_value)):
+                o = self.o(**params)
+                self.assertEqual(getattr(o, attr_name), default_value)
+                self.assertEqual(type(getattr(o, attr_name)),
+                                 type(default_value))
+
+    def _test_attr_setter(self, attr_name, read_only, good_values,
+                          bad_type_values, bad_val_values):
+        # if attr is read_only, check if assignment throws AttributeError
+        if read_only:
+            params, call_string = self._ctor_call()
+            set_string = '%s.%s=%s' % (call_string, attr_name, repr(None))
+            with describe(set_string + ' throws AttributeError'):
+                with self.assertRaises(AttributeError):
+                    o = self.o(**params)
+                    setattr(o, attr_name, None)
+
+            # no point in other tests
+            return
 
         # test, that for every pair (v1, v2) in good_values
         # o = o(); o.attr_name = v1; o.attr_name == v2
-        # unless sealed_attr is True
-        if not sealed_attr:
-            for value_in, value_out in good_values:
-                o = self.o()
-                setattr(o, attr_name, value_in)
+        for value_in, value_out in good_values:
+            params, call_string = self._ctor_call()
+            o = self.o(**params)
+            setattr(o, attr_name, value_in)
+            with describe('o=%s;o.%s=%s;o.%s == %s' % (call_string, attr_name,
+                                                       repr(value_in),
+                                                       attr_name,
+                                                       repr(value_out))):
                 self.assertEqual(getattr(o, attr_name), value_out)
                 self.assertEqual(type(getattr(o, attr_name)), type(value_out))
 
         # test, that for every pair (v, err) in bad_type_values
         # o = o(); o.attr_name=v throws TypeError(err)
-        # unless sealed_attr is True
-        if not sealed_attr:
-            for value_in, err_msg in bad_type_values:
+        for value_in, err in bad_type_values:
+            params, call_string = self._ctor_call()
+            err_msg = \
+                attr_name + ' must be ' + err + ', not ' + repr(value_in)
+            descr = 'o=%s;o.%s=%s throws TypeError(%s)' % (call_string,
+                                                           attr_name,
+                                                           repr(value_in),
+                                                           err_msg)
+            with describe(descr):
                 o = self.o()
-                err_msg = (attr_name + ' must be ' + err_msg +
-                           ', not ' + repr(value_in))
                 with self.assertRaises(TypeError, err_msg):
                     setattr(o, attr_name, value_in)
 
         # test, that for every pair (v, err) in bad_value_values
         # o = o(); o.attr_name=v throws ValueError(err)
-        # unless sealed_attr is True
-        if not sealed_attr:
-            for value_in, err_msg in bad_val_values:
+        for value_in, err_msg in bad_val_values:
+            params, call_string = self._ctor_call()
+            descr = 'o=%s;o.%s=%s throws ValueError(%s)' % (call_string,
+                                                            attr_name,
+                                                            repr(value_in),
+                                                            err_msg)
+            with describe(descr):
                 o = self.o()
                 with self.assertRaises(ValueError, regex=err_msg):
                     setattr(o, attr_name, value_in)
 
+        # test, that for every pair (v, _) in good_values
+        # o = o(attr_name=v); o._set_read_only(); o.attr_name == v,
+        # but o.attr_name = v throws ReadOnlyScriveObject
+        for value_in, value_out in good_values:
+            params, call_string = self._ctor_call(**{attr_name: value_in})
+            descr = 'o=%s;o._set_read_only();o.%s == %s'
+            with describe(descr % (call_string, attr_name, repr(value_out))):
+                o = self.o(**params)
+                o._set_read_only()
+                self.assertEqual(getattr(o, attr_name), value_out)
+                self.assertEqual(type(getattr(o, attr_name)), type(value_out))
+            descr = \
+                'o=%s;o._set_read_only();o.%s=%s throws ReadOnlyScriveObject'
+            with describe(descr % (call_string, attr_name, repr(value_in))):
+                with self.assertRaises(ReadOnlyScriveObject):
+                    setattr(o, attr_name, value_in)
+
+    def _test_attr_serialization(self, attr_name, serialized_name,
+                                 serialized_values):
         # test that for every pair (v1, v2) in serialized_values
         # o(attr_name=v1)._to_json_obj()[serialized_name] == v2
         for value_in, value_out in serialized_values:
-            o = self.o(**{attr_name: value_in})
-            self.assertEqual(o._to_json_obj()[serialized_name], value_out)
-            self.assertEqual(type(o._to_json_obj()[serialized_name]),
-                             type(value_out))
+            params, call_string = self._ctor_call(**{attr_name: value_in})
+            with describe('%s._to_json_obj()["%s"] == %s' % (call_string,
+                                                             serialized_name,
+                                                             repr(value_out))):
+                o = self.o(**params)
+                self.assertEqual(o._to_json_obj()[serialized_name], value_out)
+                self.assertEqual(type(o._to_json_obj()[serialized_name]),
+                                 type(value_out))
+
+    def _test_attr_deserialization(self, attr_name, serialized_name,
+                                   serialized_values, bad_type_values,
+                                   bad_val_values):
+        # test that if attr is missing in server's response
+        # _from_json_obj() throws InvalidResponse
+        json = dict(self.json)
+        del json[serialized_name]
+        err_msg = serialized_name + r' missing'
+        descr = '%s throws InvalidResponse(%s)' % (self._deser_call(json),
+                                                   err_msg)
+        with describe(descr):
+            with self.assertRaises(InvalidResponse, regex=err_msg):
+                self.O._from_json_obj(json)
 
         # test that for every pair (v1, v2) in serialized_values
         # json[serialized_name]=v2; O._from_json_obj(json).attr_name == v1
         for value_in, value_out in serialized_values:
             json = dict(self.json)
             json[serialized_name] = value_out
-            o = self.O._from_json_obj(json)
-            self.assertTrue(isinstance(o, self.O))
-            self.assertEqual(getattr(o, attr_name), value_in)
+            with describe('%s.%s == %s' % (self._deser_call(json), attr_name,
+                                           repr(value_in))):
+                o = self.O._from_json_obj(json)
+                self.assertTrue(isinstance(o, self.O))
+                self.assertEqual(getattr(o, attr_name), value_in)
+                self.assertEqual(type(getattr(o, attr_name)), type(value_in))
 
-        # test that o() and it ScriveObject deps are not read only
-        # good_values can still be read, but not set after _set_read_only()
-        # (setting skipped if sealed_attr == True)
-        for value_in, value_out in good_values:
-            o = self.o(**{attr_name: value_in})
-            o._set_read_only()
-            self.assertEqual(getattr(o, attr_name), value_out)
-            self.assertEqual(type(getattr(o, attr_name)), type(value_out))
-            if not sealed_attr:
-                with self.assertRaises(ReadOnlyScriveObject):
-                    setattr(o, attr_name, value_in)
+        # test, that for every pair (v, err) in bad_type_values
+        # O._from_json_obj({attr_name: v}) throws ValidationError(err)
+        for value_in, err in bad_type_values:
+            json = dict(self.json)
+            json[serialized_name] = value_in
+            err_msg = \
+                attr_name + ' must be ' + err + ', not ' + repr(value_in)
+            deser_call = self._deser_call(json)
+            with describe('%s throws InvalidResponse(%s)' % (deser_call,
+                                                             err_msg)):
+                with self.assertRaises(InvalidResponse, err_msg):
+                    self.O._from_json_obj(json)
 
-        o = self.o()
-        deps = [getattr(o, attr)
-                for attr in dir(o)
-                if isinstance(getattr(o, attr), ScriveObject)]
-        self.assertFalse(o._read_only)
-        for dep in deps:
-            self.assertFalse(dep._read_only)
+        # test, that for every pair (v, err) in bad_val_values
+        # O._from_json_obj({attr_name: v}) throws ValidationError(err)
+        for value_in, err in bad_val_values:
+            json = dict(self.json)
+            json[serialized_name] = value_in
+            deser_call = self._deser_call(json)
+            with describe('%s throws InvalidResponse(%s)' % (deser_call, err)):
+                with self.assertRaises(InvalidResponse, regex=err):
+                    self.O._from_json_obj(json)
 
-        # test that o() and it ScriveObject deps are read only,
-        # after o._set_read_only() (unless sealed_attr is True)
-        o._set_read_only()
-        self.assertTrue(o._read_only)
-        if not sealed_attr:
-            with self.assertRaises(ReadOnlyScriveObject):
-                setattr(o, attr_name, 'whatever')
-        for dep in deps:
-            self.assertTrue(dep._read_only)
+    def _test_attr(self, attr_name, good_values,
+                   bad_type_values, bad_val_values,
+                   serialized_values, serialized_name=None,
+                   required=True, default_value=None,
+                   forbidden=False):
+        good_values = self._value_pairs(good_values)
+        serialized_values = self._value_pairs(serialized_values)
+        if serialized_name is None:
+            serialized_name = attr_name
 
-        # test that o() and it ScriveObject deps are not invalid
-        o = self.o()
-        deps = [getattr(o, attr)
-                for attr in dir(o)
-                if isinstance(getattr(o, attr), ScriveObject)]
-        self.assertFalse(o._invalid)
-        for dep in deps:
-            self.assertFalse(dep._invalid)
+        self._test_attr_ctor(attr_name=attr_name,
+                             good_values=good_values,
+                             bad_type_values=bad_type_values,
+                             bad_val_values=bad_val_values,
+                             required=required,
+                             default_value=default_value,
+                             forbidden=forbidden)
 
-        # test that o() and it ScriveObject deps are invalid,
-        # after o._set_invalid()
-        o._set_invalid()
-        self.assertTrue(o._invalid)
-        with self.assertRaises(InvalidScriveObject):
-                getattr(o, attr_name)
-        if not sealed_attr:
-            with self.assertRaises(InvalidScriveObject):
-                setattr(o, attr_name, good_values[0][0])
-        for dep in deps:
-            self.assertTrue(dep._invalid)
+        self._test_attr_setter(attr_name=attr_name,
+                               read_only=False,
+                               good_values=good_values,
+                               bad_type_values=bad_type_values,
+                               bad_val_values=bad_val_values)
+
+        self._test_attr_serialization(attr_name=attr_name,
+                                      serialized_name=serialized_name,
+                                      serialized_values=serialized_values)
+
+        self._test_attr_deserialization(attr_name=attr_name,
+                                        serialized_name=serialized_name,
+                                        serialized_values=serialized_values,
+                                        bad_type_values=bad_type_values,
+                                        bad_val_values=bad_val_values)
 
         self._test_invalid_field(attr_name + '77')
+
+    def _test_non_empty_text(self, attr_name):
+        unicode_err = \
+            attr_name + u' must be unicode text, or ascii-only bytestring'
+        self._test_attr(
+            attr_name=attr_name,
+            good_values=[u'foo', (b'bar', u'bar'), u'żółw'],
+            bad_type_values=[([], u'unicode or str'),
+                             (None, u'unicode or str'),
+                             (2, u'unicode or str')],
+            bad_val_values=[(u'ą'.encode('utf-8'), unicode_err),
+                            (u'', u'text must be non-empty string')],
+            serialized_values=[u'foo', u'żółw', u'bar'])
+
+    def _test_int(self, attr_name):
+        self._test_attr(
+            attr_name=attr_name,
+            good_values=[-2, -1, 0, 1, 2],
+            bad_type_values=[([], u'int'), (3.0, u'int'), ('4', u'int')],
+            bad_val_values=[],
+            serialized_values=[-2, -1, 0, 1, 2])
+
+    def _test_positive_int(self, attr_name, required=True, default_value=None):
+        self._test_attr(
+            attr_name=attr_name,
+            good_values=[1, 2, 3, 10],
+            bad_type_values=[([], u'int or float'),
+                             ('4', u'int or float')],
+            bad_val_values=[(0, r'.*integer greater or equal to 1.*'),
+                            (1.1, r'.*round number.*')],
+            serialized_values=[1, 2, 3, 100, 2],
+            required=required,
+            default_value=default_value)
+
+    def _test_enum(self, enum_class, attr_name,
+                   required=True, default_value=None):
+        ename = enum_class.__name__
+        good_values = list(enum_class) + [(enum_elem.name, enum_elem)
+                                          for enum_elem in enum_class]
+        serialized_values = [(enum_elem, enum_elem.value)
+                             for enum_elem in enum_class]
+        enum_variant_err = r'.*could be ' + ename + r"'s variant name.*"
+        self._test_attr(
+            attr_name=attr_name,
+            good_values=good_values,
+            bad_type_values=[({}, ename), (0, ename), ([], ename)],
+            bad_val_values=[('wrong', enum_variant_err)],
+            serialized_values=serialized_values,
+            default_value=default_value,
+            required=required)
+
+    def _test_set(self, elem_type, attr_name,
+                  sub_factory, serialized_name=None):
+        if serialized_name is None:
+            serialized_name = attr_name
+
+        self._test_attr_ctor(attr_name, forbidden=True, good_values=[],
+                             bad_type_values=[], bad_val_values=[],
+                             required=False, default_value=None)
+        self._test_attr_setter(attr_name, read_only=True, good_values=[],
+                               bad_type_values=[], bad_val_values=[])
+
+        subobj_str = type(sub_factory()).__name__ + '(..)'
+
+        # new objects should have empty ScriveSet attribute
+        params, call_string = self._ctor_call()
+        with describe('%s.%s == set()' % (call_string, attr_name)):
+            o = self.o(**params)
+            self.assertEqual(set(getattr(o, attr_name)), set())
+            self.assertTrue(isinstance(getattr(o, attr_name), ScriveSet))
+
+        # test that adding subobjects works
+        params, call_string = self._ctor_call()
+        descr = 'o=%s;o.%s.add(%s);list(o.%s)[0]==%s' % (
+            call_string, attr_name, subobj_str, attr_name, subobj_str)
+        with describe(descr):
+            o = self.o(**params)
+            sub_obj = sub_factory()
+            getattr(o, attr_name).add(sub_obj)
+            self.assertEqual(list(getattr(o, attr_name))[0], sub_obj)
+
+        # subobject validation
+        params, call_string = self._ctor_call()
+        descr = 'o=%s;o.%s.add(None) throws TypeError' % (call_string,
+                                                          attr_name)
+        with describe(descr):
+            o = self.o(**params)
+            err_msg = u'elem must be ' + elem_type.__name__ + ', not None'
+            with self.assertRaises(TypeError, err_msg):
+                getattr(o, attr_name).add(None)
+
+        # test serialization
+        params, call_string = self._ctor_call()
+        descr = 'o=%s;o.%s.add([%s,%s]);o._to_json_obj()[%s]==[%s,%s]' % (
+            call_string, attr_name, subobj_str, subobj_str,
+            attr_name, subobj_str, subobj_str)
+        with describe(descr):
+            o = self.o(**params)
+            sub_obj1 = sub_factory()
+            sub_obj2 = sub_factory(2)
+            getattr(o, attr_name).update([sub_obj1, sub_obj2])
+            self.assertEqual(set([sub_obj1, sub_obj2]),
+                             set(o._to_json_obj()[serialized_name]))
+
+        # test deserialization
+        descr = ('o=%s;o.%s.add([%s,%s]);' +
+                 'o2=%s._from_json_obj(o._to_json_obj());' +
+                 'o2.%s==[%s,%s]') % (call_string, attr_name, subobj_str,
+                                      subobj_str, self.O.__name__,
+                                      attr_name, subobj_str, subobj_str)
+        with describe(descr):
+            sub_obj1 = sub_factory()
+            sub_obj2 = sub_factory(2)
+            sub_jsons = [sub_obj1._to_json_obj(), sub_obj2._to_json_obj()]
+            json = dict(self.json)
+            json[serialized_name] = sub_jsons
+            o = self.O._from_json_obj(json)
+            self.assertEqual(sorted(sub_jsons),
+                             sorted(map(lambda x: x._to_json_obj(),
+                                        getattr(o, attr_name))))
+
+        # test flag propagation
+        o = self.o(**params)
+        sub_obj = sub_factory()
+        sub_obj2 = sub_factory(2)
+        getattr(o, attr_name).add(sub_obj)
+        o._set_read_only()
+        self.assertEqual(list(getattr(o, attr_name))[0], sub_obj)
+        with self.assertRaises(ReadOnlyScriveObject):
+            getattr(o, attr_name).add(sub_obj)
+        with self.assertRaises(ReadOnlyScriveObject):
+            getattr(o, attr_name).add(sub_obj2)
+        self.assertTrue(sub_obj._read_only)
+
+        o = self.o(**params)
+        sub_obj = sub_factory()
+        sub_obj2 = sub_factory(2)
+        getattr(o, attr_name).add(sub_obj)
+        o._set_invalid()
+        with self.assertRaises(InvalidScriveObject):
+            getattr(o, attr_name)
+        self.assertTrue(sub_obj._invalid)
 
     def _test_server_attr(self, attr_name, serialized_name, serialized_values,
                           is_send_back=False, default_manual_val=None):
@@ -521,3 +813,15 @@ def temporary_dir():
             shutil.rmtree(dir_path)
         except OSError:
             pass
+
+
+@contextlib.contextmanager
+def describe(description):
+    print (description + '?'),
+    try:
+        yield
+    except:
+        print ':(((((('
+        raise
+    else:
+        print 'OK'

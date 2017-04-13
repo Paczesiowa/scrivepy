@@ -38,8 +38,7 @@ class tip_descriptor(scrive_descriptor):
             val = self._retrieve_from_json(obj, json_obj)
             obj._tip = Tip.left if val is None else Tip(val)
         except ValueError:
-            err_msg = (u"Invalid value '" + repr(val) + u"' for 'tip' " +
-                       u"in server's JSON response for Placement")
+            err_msg = self._name + u' must be Tip, not ' + repr(val)
             raise InvalidResponse(err_msg)
 
 

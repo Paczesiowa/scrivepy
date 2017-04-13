@@ -1,11 +1,9 @@
 * rework show_header+show_pdf_download and reject options (they are hierarchical)
 * update call could skip setting attachments if they didn't change
-* add tests that there are no setters for fields of ScriveSet/Dict type
 * Signatory.author should not be writable
 * ScriveFile object
 ** should not be consturctable by users
 ** add tvu thingies for file/dir path args to download methods
-* add tests for failing _from_json_obj()
 * add setup.py
 * port to other python versions
 * write utility functions
@@ -40,7 +38,6 @@
 ** list of lists of unicode objects
 ** implement Document.save() method with syncing of possible old versions of objects
 * Signatory needs a status field
-* add subobjects method to ScriveObject (use it for set_invalid/set_ro)
 * sort tvu/__init__ arguments (and most other things)
 * use functional syntax for enums
 * before update call verify fields/signatories
@@ -56,13 +53,9 @@
 *** standard fields have no duplicates
 ** Signatory
 *** sign_orders have proper numbers (continous, >=1, no duplicates, no holes)
-* write test_attrs()
-* write test_attr() wrapper that is tailored to e.g. nonemptytext
 * get rid of test_field()
 * add custom UA to requests
 * clean up tests/utils.py
-* test_attr() (and test_id) should test for InvalidResponse for things in json that do not validate
-* test_attr() should support not passing things through ctor
 * follow convention that bool attrs start with is_
 * validation of RO enums returned from server (e.g. email_delivery_status)
 * nemid support
