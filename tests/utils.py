@@ -481,7 +481,7 @@ class TestCase(unittest.TestCase):
             serialized_values=[(-2, -2), (-1, -1), (0, 0), (1, 1), (2, 2)])
 
     def _test_bool(self, attr_name, required=True, default_value=None,
-                   serialized_name=None):
+                   serialized_name=None, forbidden=False, read_only=False):
         serialized_name = serialized_name or attr_name
         self._test_attr(
             attr_name=attr_name,
@@ -493,6 +493,8 @@ class TestCase(unittest.TestCase):
                                (False, False)],
             serialized_name=serialized_name,
             required=required,
+            forbidden=forbidden,
+            read_only=read_only,
             default_value=default_value)
 
     def _test_positive_int(self, attr_name, required=True, default_value=None,
