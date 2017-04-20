@@ -1,169 +1,86 @@
 # coding: utf-8
 from scrivepy import (
     CheckboxField,
-    InvalidScriveObject,
     NameField,
     Placement,
-    ReadOnlyScriveObject,
     SignatureField,
     StandardField,
     StandardFieldType,
     TextField
 )
+from scrivepy._field import Field
 
-from scrivepy._set import ScriveSet
-
-from tests import utils
+from tests.utils import describe, TestCase
 
 
 class AbstractFieldTest(object):
 
-    def p1(self):
-        return Placement(left=.1, top=.2, width=.3, height=.4)
-
-    def p2(self):
-        return Placement(left=.5, top=.6, width=.7, height=.8)
+    def make_placement(self, num=1):
+        return Placement(left=(num * .01), top=(num * .2),
+                         width=(num * .3), height=(num * .4))
 
     def test_obligatory(self):
-        self._test_attr(
-            attr_name='obligatory',
-            good_values=[True, False],
-            bad_type_values=[([], u'bool')],
-            bad_val_values=[],
-            serialized_name='is_obligatory',
-            serialized_values=[True, False],
-            default_value=True,
-            required=False)
-
-    def test_should_be_filled_by_sender(self):
-        self._test_attr(
-            attr_name='should_be_filled_by_sender',
-            good_values=[True, False],
-            bad_type_values=[([], u'bool')],
-            bad_val_values=[],
-            serialized_name='should_be_filled_by_sender',
-            serialized_values=[True, False],
-            default_value=False,
-            required=False)
-
-    # optional test
-    def _test_value(self):
-        unicode_err = u'value must be unicode text, or ascii-only bytestring'
-        self._test_attr(
-            attr_name='value',
-            good_values=[u'foo', (b'bar', u'bar'), u'ą'],
-            bad_type_values=[([], u'unicode or str')],
-            bad_val_values=[(u'ą'.encode('utf-8'), unicode_err)],
-            serialized_name='value',
-            serialized_values=[u'foo', u'ą'],
-            default_value=u'',
-            required=False)
-
-    # optional test
-    def _test_name(self):
-        unicode_err = u'name must be unicode text, or ascii-only bytestring'
-        self._test_attr(
-            attr_name='name',
-            good_values=[u'foo', (b'bar', u'bar'), u'ą'],
-            bad_type_values=[([], u'unicode or str')],
-            bad_val_values=[(u'ą'.encode('utf-8'), unicode_err),
-                            (u'', u'name must be non-empty string')],
-            serialized_name='name',
-            serialized_values=[u'foo', u'ą'],
-            required=True)
+        self._test_bool('obligatory', required=False, default_value=True,
+                        serialized_name=u'is_obligatory')
 
     def test_placements(self):
-        # check default ctor value
-        f = self.o()
-        self.assertEqual(ScriveSet(), f.placements)
+        self._test_set(Placement, 'placements', self.make_placement)
 
-        p1 = self.p1()
-        f.placements.add(p1)
-        self.assertEqual(ScriveSet([p1]), f.placements)
+    def test_should_be_filled_by_sender(self):
+        self._test_bool('should_be_filled_by_sender', required=False,
+                        default_value=False)
 
-        err_msg = u'elem must be Placement, not 1'
-        with self.assertRaises(TypeError, err_msg):
-            f.placements.add(1)
-
-        f.placements.clear()
-        p2 = self.p2()
-        f.placements.add(p2)
-        self.assertEqual(ScriveSet([p2]), f.placements)
-
-        self.assertEqual([p2], f._to_json_obj()[u'placements'])
-
-        f._set_read_only()
-        # set() is because the 2nd one is read only and not really equal
-        self.assertEqual(set(ScriveSet([p2])), set(f.placements))
-        with self.assertRaises(ReadOnlyScriveObject, None):
-            f.placements.clear()
-
-        placements = f.placements
-        f._set_invalid()
-        with self.assertRaises(InvalidScriveObject, None):
-            f.placements
-        with self.assertRaises(InvalidScriveObject, None):
-            placements.add(p1)
+    def _test_const_type(self, val):
+        possible_types = (u'checkbox|text|signature|name|email' +
+                          u'|mobile|personal_number|company_number')
+        self._test_attr(attr_name='type',
+                        good_values=[],
+                        bad_type_values=[(3, possible_types)],
+                        bad_val_values=[(val + '2', '')],
+                        serialized_values=unicode(val),
+                        deserialization_values=[(unicode(val), unicode(val))],
+                        required=False,
+                        default_value=unicode(val),
+                        read_only=True,
+                        forbidden=True)
 
 
-class NameFieldTest(AbstractFieldTest, utils.TestCase):
+class NameFieldTest(AbstractFieldTest, TestCase):
 
     O = NameField
     default_ctor_kwargs = {'value': u'', 'obligatory': True,
                            'order': 1, 'should_be_filled_by_sender': False}
-    json = {u'type': u'name', u'is_obligatory': True, u'placements': [],
-            u'order': 1, u'value': u'', u'should_be_filled_by_sender': False}
-
-    def test_type(self):
-        self._test_ctor_param('type', default_value=u'name')
-        o = self.o()
-        self.assertEqual(o._to_json_obj()[u'type'], u'name')
-
-    def test_value(self):
-        self._test_value()
+    json = {u'type': u'name', u'is_obligatory': True, u'order': 1,
+            u'value': u'', u'should_be_filled_by_sender': False,
+            u'placements': []}
 
     def test_order(self):
-        self._test_attr(
-            attr_name='order',
-            good_values=[1, 2, 100, (1., 1)],
-            bad_type_values=[([], u'int or float')],
-            bad_val_values=[(0, r'.*integer greater or equal to 1.*'),
-                            (1.1, r'.*round number.*')],
-            serialized_name='order',
-            serialized_values=[1, 2, 3, 100, (2., 2)],
-            default_value=1,
-            sealed_attr=True,
-            required=False)
+        self._test_positive_int('order', required=False, default_value=1)
+
+    def test_value(self):
+        self._test_text('value', required=False, default_value=u'')
+
+    def test_type(self):
+        self._test_const_type('name')
 
 
-class StandardFieldTest(AbstractFieldTest, utils.TestCase):
+class StandardFieldTest(AbstractFieldTest, TestCase):
 
     O = StandardField
-    default_ctor_kwargs = {'value': u'', 'obligatory': True, 'type_': 'mobile',
+    default_ctor_kwargs = {'value': u'', 'obligatory': True, 'type': 'mobile',
                            'should_be_filled_by_sender': False}
     json = {u'type': u'email', u'is_obligatory': True, u'placements': [],
             u'value': u'', u'should_be_filled_by_sender': False}
 
     def test_type(self):
-        ctor_params = [('email', StandardFieldType.email),
-                       ('mobile', StandardFieldType.mobile),
-                       ('personal_number', StandardFieldType.personal_number),
-                       ('company_number', StandardFieldType.company_number)]
-        ctor_params += list(StandardFieldType)
-        serialized_values = [('email', u'email'),
-                             ('mobile', u'mobile'),
-                             ('personal_number', u'personal_number'),
-                             ('company_number', u'company_number')]
-        self._test_ctor_param('type', ctor_attr_name='type_',
-                              ctor_params=ctor_params,
-                              serialized_name='type',
-                              serialized_values=serialized_values)
+        self._test_enum(StandardFieldType, attr_name='type',
+                        read_only=True, skip_deser_bad_type_values=True)
 
     def test_value(self):
-        self._test_value()
+        self._test_text('value', required=False, default_value=u'')
 
 
-class TextFieldTest(AbstractFieldTest, utils.TestCase):
+class TextFieldTest(AbstractFieldTest, TestCase):
 
     O = TextField
     default_ctor_kwargs = {'value': u'', 'obligatory': True,
@@ -174,40 +91,35 @@ class TextFieldTest(AbstractFieldTest, utils.TestCase):
             u'should_be_filled_by_sender': False}
 
     def test_type(self):
-        self._test_ctor_param('type', default_value=u'text')
-        o = self.o()
-        self.assertEqual(o._to_json_obj()[u'type'], u'text')
+        self._test_const_type('text')
 
     def test_value(self):
-        self._test_value()
+        self._test_text('value', required=False, default_value=u'')
 
     def test_name(self):
-        self._test_name()
+        self._test_non_empty_text('name')
 
 
-class SignatureFieldTest(AbstractFieldTest, utils.TestCase):
+class SignatureFieldTest(AbstractFieldTest, TestCase):
 
     O = SignatureField
     default_ctor_kwargs = {'obligatory': True, 'name': u'sig1'}
     json = {u'type': u'signature', u'is_obligatory': True,
-            u'placements': [], u'name': u'sig1', u'signature': None}
+            u'placements': [], u'name': u'sig1'}
 
+    # override
     def test_should_be_filled_by_sender(self):
-        self._test_ctor_param('should_be_filled_by_sender',
-                              default_value=False)
-        o = self.o()
-        self.assertFalse(u'should_be_filled_by_sender' in o._to_json_obj())
+        # signatures don't use this param
+        pass
 
     def test_type(self):
-        self._test_ctor_param('type', default_value=u'signature')
-        o = self.o()
-        self.assertEqual(o._to_json_obj()[u'type'], u'signature')
+        self._test_const_type('signature')
 
     def test_name(self):
-        self._test_name()
+        self._test_non_empty_text('name')
 
 
-class CheckboxFieldTest(AbstractFieldTest, utils.TestCase):
+class CheckboxFieldTest(AbstractFieldTest, TestCase):
 
     O = CheckboxField
     default_ctor_kwargs = {'checked': False, 'obligatory': True,
@@ -218,20 +130,75 @@ class CheckboxFieldTest(AbstractFieldTest, utils.TestCase):
             u'should_be_filled_by_sender': False}
 
     def test_type(self):
-        self._test_ctor_param('type', default_value=u'checkbox')
-        o = self.o()
-        self.assertEqual(o._to_json_obj()[u'type'], u'checkbox')
+        self._test_const_type('checkbox')
 
     def test_name(self):
-        self._test_name()
+        self._test_non_empty_text('name')
 
     def test_checked(self):
-        self._test_attr(
-            attr_name='checked',
-            good_values=[True, False],
-            bad_type_values=[([], u'bool')],
-            bad_val_values=[],
-            serialized_name='is_checked',
-            serialized_values=[True, False],
-            default_value=False,
-            required=False)
+        self._test_bool(attr_name='checked', required=False,
+                        default_value=False, serialized_name=u'is_checked')
+
+
+class JSONFactoryFieldTest(TestCase):
+
+    O = Field
+
+    def test_from_json(self):
+        checkbox_json = CheckboxFieldTest.json
+        descr = 'type(%s) == CheckboxField' % self._deser_call(checkbox_json)
+        with describe(descr):
+            checkbox = Field._from_json_obj(checkbox_json)
+            self.assertTrue(isinstance(checkbox, CheckboxField))
+
+        signature_json = SignatureFieldTest.json
+        descr = 'type(%s) == SignatureField' % self._deser_call(signature_json)
+        with describe(descr):
+            signature = Field._from_json_obj(signature_json)
+            self.assertTrue(isinstance(signature, SignatureField))
+
+        text_json = TextFieldTest.json
+        descr = 'type(%s) == TextField' % self._deser_call(text_json)
+        with describe(descr):
+            text = Field._from_json_obj(text_json)
+            self.assertTrue(isinstance(text, TextField))
+
+        name_json = NameFieldTest.json
+        descr = 'type(%s) == NameField' % self._deser_call(name_json)
+        with describe(descr):
+            name = Field._from_json_obj(name_json)
+            self.assertTrue(isinstance(name, NameField))
+
+        email_json = dict(StandardFieldTest.json)
+        email_json[u'type'] = u'email'
+        descr = 'type(%s) == StandardField' % self._deser_call(email_json)
+        with describe(descr):
+            email = Field._from_json_obj(email_json)
+            self.assertTrue(isinstance(email, StandardField))
+            self.assertEqual(email.type, StandardFieldType.email)
+
+        mobile_json = dict(StandardFieldTest.json)
+        mobile_json[u'type'] = u'mobile'
+        descr = 'type(%s) == StandardField' % self._deser_call(mobile_json)
+        with describe(descr):
+            mobile = Field._from_json_obj(mobile_json)
+            self.assertTrue(isinstance(mobile, StandardField))
+            self.assertEqual(mobile.type, StandardFieldType.mobile)
+
+        pers_id_json = dict(StandardFieldTest.json)
+        pers_id_json[u'type'] = u'personal_number'
+        descr = 'type(%s) == StandardField' % self._deser_call(pers_id_json)
+        with describe(descr):
+            personal_number = Field._from_json_obj(pers_id_json)
+            self.assertTrue(isinstance(personal_number, StandardField))
+            self.assertEqual(personal_number.type,
+                             StandardFieldType.personal_number)
+
+        company_no_json = dict(StandardFieldTest.json)
+        company_no_json[u'type'] = u'company_number'
+        descr = 'type(%s) == StandardField' % self._deser_call(company_no_json)
+        with describe(descr):
+            company_number = Field._from_json_obj(company_no_json)
+            self.assertTrue(isinstance(company_number, StandardField))
+            self.assertEqual(company_number.type,
+                             StandardFieldType.company_number)

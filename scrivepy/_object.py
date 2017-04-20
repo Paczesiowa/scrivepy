@@ -18,12 +18,13 @@ class scrive_descriptor(object):
     #                            descriptor setup                             #
     ###########################################################################
     def __init__(self, tvu_=None, default_ctor_value=None,
-                 serialized_name=None):
+                 serialized_name=None, read_only=False):
         self._name = None
         self._attr_name = None
         self._tvu = tvu_
         self._default_ctor_value = default_ctor_value
         self._serialized_name = serialized_name
+        self._read_only = read_only
 
     def _resolve_name(self, name):
         '''
@@ -53,9 +54,10 @@ class scrive_descriptor(object):
         '''
         obj.attr = val assigns validated val to obj._attr, unless
         obj._check_setter() throws exception or validation fails.
-        If descriptor's tvu is None, this is read only attribute.
+        If descriptor's tvu is None, or explicitly read_only,
+        this is read only attribute (setter throws AttributeError)
         '''
-        if self._tvu is None:
+        if self._tvu is None or self._read_only:
             # read only attribute
             raise AttributeError()
         obj._check_setter()
@@ -244,12 +246,13 @@ class ScriveObject(object):
         return result
 
     @classmethod
-    def _from_json_obj(cls, json):
+    def _from_json_obj(cls, json, class_override=None):
         '''
         Deserialize and construct an object from JSON object, by delegating
         new object initialization to attribute descriptors _deserialize()
         method.
         '''
+        cls = class_override or cls
         obj = cls.__new__(cls)
         obj._bare_init()
 

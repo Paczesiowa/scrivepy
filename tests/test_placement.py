@@ -32,13 +32,14 @@ class PlacementTest(TestCase):
         range_err = attr_name + r' must be in the <0,1> range \(inclusive\).*'
         self._test_attr(
             attr_name=attr_name,
-            good_values=[.0, .5, 1., .001, (0, 0.), (1, 1.)],
+            good_values=[(.0, .0), (.5, .5), (1., 1.),
+                         (.001, .001), (0, 0.), (1, 1.)],
             bad_type_values=[([], u'float or int'),
                              (None, u'float or int')],
             bad_val_values=[(-1., range_err), (1.1, range_err),
                             (2, range_err), (-2, range_err)],
             serialized_name=serialized_name,
-            serialized_values=[0., .5, 1., .001])
+            serialized_values=[(0., 0.), (.5, .5), (1., 1.), (.001, .001)])
 
     def test_left(self):
         self._test_ratio('left', 'xrel')
@@ -56,17 +57,22 @@ class PlacementTest(TestCase):
         range_err = r'font_size must be in the <0,1> range \(inclusive\).*'
         self._test_attr(
             attr_name='font_size',
-            good_values=[.0, .5, 1., .001, (0, 0.), (1, 1.),
-                         Placement.FONT_SIZE_SMALL,
-                         Placement.FONT_SIZE_NORMAL,
-                         Placement.FONT_SIZE_LARGE,
-                         Placement.FONT_SIZE_HUGE],
+            good_values=[(.0, .0), (.5, .5), (1., 1.),
+                         (.001, .001), (0, 0.), (1, 1.),
+                         (Placement.FONT_SIZE_SMALL,
+                          Placement.FONT_SIZE_SMALL),
+                         (Placement.FONT_SIZE_NORMAL,
+                          Placement.FONT_SIZE_NORMAL),
+                         (Placement.FONT_SIZE_LARGE,
+                          Placement.FONT_SIZE_LARGE),
+                         (Placement.FONT_SIZE_HUGE,
+                          Placement.FONT_SIZE_HUGE)],
             bad_type_values=[([], u'float or int'),
                              (None, u'float or int')],
             bad_val_values=[(-1., range_err), (1.1, range_err),
                             (2, range_err), (-2, range_err)],
             serialized_name='fsrel',
-            serialized_values=[0., .5, 1., .001],
+            serialized_values=[(0., 0.), (.5, .5), (1., 1.), (.001, .001)],
             default_value=Placement.FONT_SIZE_NORMAL,
             required=False)
 
