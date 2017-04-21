@@ -20,21 +20,20 @@ class AbstractFieldTest(object):
                          width=(num * .3), height=(num * .4))
 
     def test_obligatory(self):
-        self._test_bool('obligatory', required=False, default_value=True,
-                        serialized_name=u'is_obligatory')
+        self._test_bool(attr_name='obligatory', required=False,
+                        default_value=True, serialized_name=u'is_obligatory')
 
     def test_placements(self):
         self._test_set(Placement, 'placements', self.make_placement)
 
     def test_should_be_filled_by_sender(self):
-        self._test_bool('should_be_filled_by_sender', required=False,
+        self._test_bool(attr_name='should_be_filled_by_sender', required=False,
                         default_value=False)
 
     def _test_const_type(self, val):
         possible_types = (u'checkbox|text|signature|name|email' +
                           u'|mobile|personal_number|company_number')
         self._test_attr(attr_name='type',
-                        good_values=[],
                         bad_type_values=[(3, possible_types)],
                         bad_val_values=[(val + '2', '')],
                         serialized_values=unicode(val),
@@ -55,10 +54,11 @@ class NameFieldTest(AbstractFieldTest, TestCase):
             u'placements': []}
 
     def test_order(self):
-        self._test_positive_int('order', required=False, default_value=1)
+        self._test_positive_int(attr_name='order', required=False,
+                                default_value=1)
 
     def test_value(self):
-        self._test_text('value', required=False, default_value=u'')
+        self._test_text(attr_name='value', required=False, default_value=u'')
 
     def test_type(self):
         self._test_const_type('name')
@@ -77,7 +77,7 @@ class StandardFieldTest(AbstractFieldTest, TestCase):
                         read_only=True, skip_deser_bad_type_values=True)
 
     def test_value(self):
-        self._test_text('value', required=False, default_value=u'')
+        self._test_text(attr_name='value', required=False, default_value=u'')
 
 
 class TextFieldTest(AbstractFieldTest, TestCase):
@@ -94,10 +94,10 @@ class TextFieldTest(AbstractFieldTest, TestCase):
         self._test_const_type('text')
 
     def test_value(self):
-        self._test_text('value', required=False, default_value=u'')
+        self._test_text(attr_name='value', required=False, default_value=u'')
 
     def test_name(self):
-        self._test_non_empty_text('name')
+        self._test_non_empty_text(attr_name='name')
 
 
 class SignatureFieldTest(AbstractFieldTest, TestCase):
@@ -116,7 +116,7 @@ class SignatureFieldTest(AbstractFieldTest, TestCase):
         self._test_const_type('signature')
 
     def test_name(self):
-        self._test_non_empty_text('name')
+        self._test_non_empty_text(attr_name='name')
 
 
 class CheckboxFieldTest(AbstractFieldTest, TestCase):
@@ -133,7 +133,7 @@ class CheckboxFieldTest(AbstractFieldTest, TestCase):
         self._test_const_type('checkbox')
 
     def test_name(self):
-        self._test_non_empty_text('name')
+        self._test_non_empty_text(attr_name='name')
 
     def test_checked(self):
         self._test_bool(attr_name='checked', required=False,

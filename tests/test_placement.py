@@ -11,10 +11,10 @@ class AnchorTest(TestCase):
     json = {u'text': u'foo', u'index': 2}
 
     def test_text(self):
-        self._test_non_empty_text('text')
+        self._test_non_empty_text(attr_name='text')
 
     def test_index(self):
-        self._test_int('index')
+        self._test_int(attr_name='index')
 
 
 class PlacementTest(TestCase):
@@ -28,30 +28,30 @@ class PlacementTest(TestCase):
     def make_anchor(self, num=1):
         return Anchor(text=u'foo' + str(num), index=num)
 
-    def _test_ratio(self, attr_name, serialized_name):
-        range_err = attr_name + r' must be in the <0,1> range \(inclusive\).*'
-        self._test_attr(
-            attr_name=attr_name,
-            good_values=[(.0, .0), (.5, .5), (1., 1.),
-                         (.001, .001), (0, 0.), (1, 1.)],
-            bad_type_values=[([], u'float or int'),
-                             (None, u'float or int')],
-            bad_val_values=[(-1., range_err), (1.1, range_err),
-                            (2, range_err), (-2, range_err)],
-            serialized_name=serialized_name,
-            serialized_values=[(0., 0.), (.5, .5), (1., 1.), (.001, .001)])
+    def _test_ratio(self, **kwargs):
+        range_err = (kwargs['attr_name'] +
+                     r' must be in the <0,1> range \(inclusive\).*')
+        self._test_attr({
+            'good_values': [(.0, .0), (.5, .5), (1., 1.),
+                            (.001, .001), (0, 0.), (1, 1.)],
+            'bad_type_values': [([], u'float or int'),
+                                (None, u'float or int')],
+            'bad_val_values': [(-1., range_err), (1.1, range_err),
+                               (2, range_err), (-2, range_err)],
+            'serialized_values': [(0., 0.), (.5, .5), (1., 1.), (.001, .001)]},
+            **kwargs)
 
     def test_left(self):
-        self._test_ratio('left', 'xrel')
+        self._test_ratio(attr_name='left', serialized_name='xrel')
 
     def test_top(self):
-        self._test_ratio('top', 'yrel')
+        self._test_ratio(attr_name='top', serialized_name='yrel')
 
     def test_width(self):
-        self._test_ratio('width', 'wrel')
+        self._test_ratio(attr_name='width', serialized_name='wrel')
 
     def test_height(self):
-        self._test_ratio('height', 'hrel')
+        self._test_ratio(attr_name='height', serialized_name='hrel')
 
     def test_font_size(self):
         range_err = r'font_size must be in the <0,1> range \(inclusive\).*'
@@ -77,10 +77,12 @@ class PlacementTest(TestCase):
             required=False)
 
     def test_page(self):
-        self._test_positive_int('page', required=False, default_value=1)
+        self._test_positive_int(attr_name='page', required=False,
+                                default_value=1)
 
     def test_tip(self):
-        self._test_enum(Tip, 'tip', required=False, default_value=Tip.right)
+        self._test_enum(Tip, attr_name='tip', required=False,
+                        default_value=Tip.right)
 
         json = dict(self.json)
         json[u'tip'] = None

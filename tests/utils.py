@@ -393,135 +393,109 @@ class TestCase(unittest.TestCase):
                 with self.assertRaises(InvalidResponse, regex=err):
                     self.O._from_json_obj(json)
 
-    def _test_attr(self, attr_name, good_values,
-                   bad_type_values, bad_val_values,
-                   serialized_values, serialized_name=None,
-                   required=True, default_value=None,
-                   forbidden=False, deserialization_values=None,
-                   read_only=False, skip_deser_bad_type_values=False):
-        if serialized_name is None:
-            serialized_name = attr_name
-        if deserialization_values is None:
-            deserialization_values = serialized_values
+    def _test_attr(self, preset_values=None, **overrides):
+        kwargs = {'good_values': [],
+                  'bad_type_values': [],
+                  'bad_val_values': [],
+                  'serialized_values': [],
+                  'serialized_name': None,
+                  'required': True,
+                  'default_value': None,
+                  'forbidden': False,
+                  'deserialization_values': None,
+                  'read_only': False,
+                  'skip_deser_bad_type_values': False}
+        kwargs.update(preset_values or {}, **overrides)
 
-        self._test_attr_ctor(attr_name=attr_name,
-                             good_values=good_values,
-                             bad_type_values=bad_type_values,
-                             bad_val_values=bad_val_values,
-                             required=required,
-                             default_value=default_value,
-                             forbidden=forbidden)
+        if kwargs['serialized_name'] is None:
+            kwargs['serialized_name'] = kwargs['attr_name']
+        if kwargs['deserialization_values'] is None:
+            kwargs['deserialization_values'] = kwargs['serialized_values']
 
-        self._test_attr_setter(attr_name=attr_name,
-                               read_only=read_only,
-                               good_values=good_values,
-                               bad_type_values=bad_type_values,
-                               bad_val_values=bad_val_values)
+        self._test_attr_ctor(attr_name=kwargs['attr_name'],
+                             good_values=kwargs['good_values'],
+                             bad_type_values=kwargs['bad_type_values'],
+                             bad_val_values=kwargs['bad_val_values'],
+                             required=kwargs['required'],
+                             default_value=kwargs['default_value'],
+                             forbidden=kwargs['forbidden'])
 
-        self._test_attr_serialization(attr_name=attr_name,
-                                      serialized_name=serialized_name,
-                                      serialized_values=serialized_values)
+        self._test_attr_setter(attr_name=kwargs['attr_name'],
+                               read_only=kwargs['read_only'],
+                               good_values=kwargs['good_values'],
+                               bad_type_values=kwargs['bad_type_values'],
+                               bad_val_values=kwargs['bad_val_values'])
 
-        bad_deser_type_vals = \
-            [] if skip_deser_bad_type_values else bad_type_values
+        self._test_attr_serialization(
+            attr_name=kwargs['attr_name'],
+            serialized_name=kwargs['serialized_name'],
+            serialized_values=kwargs['serialized_values'])
+
+        if kwargs['skip_deser_bad_type_values']:
+            bad_deser_type_vals = []
+        else:
+            bad_deser_type_vals = kwargs['bad_type_values']
         self._test_attr_deserialization(
-            attr_name=attr_name, serialized_name=serialized_name,
-            serialized_values=deserialization_values,
-            bad_type_values=bad_deser_type_vals, bad_val_values=bad_val_values)
+            attr_name=kwargs['attr_name'],
+            serialized_name=kwargs['serialized_name'],
+            serialized_values=kwargs['deserialization_values'],
+            bad_type_values=bad_deser_type_vals,
+            bad_val_values=kwargs['bad_val_values'])
 
-        self._test_invalid_field(attr_name + '77')
+        self._test_invalid_field(kwargs['attr_name'] + '77')
 
-    def _test_text(self, attr_name, required=True, default_value=None,
-                   serialized_name=None):
-        serialized_name = serialized_name or attr_name
-        unicode_err = \
-            attr_name + u' must be unicode text, or ascii-only bytestring'
-        self._test_attr(
-            attr_name=attr_name,
-            good_values=[(u'', u''),
-                         (u'foo', u'foo'),
-                         (b'bar', u'bar'),
-                         (u'żółw', u'żółw')],
-            bad_type_values=[([], u'unicode or str'),
-                             (None, u'unicode or str'),
-                             (2, u'unicode or str')],
-            bad_val_values=[(u'ą'.encode('utf-8'), unicode_err)],
-            serialized_values=[(u'', u''),
-                               (u'foo', u'foo'),
-                               (u'żółw', u'żółw'),
-                               (u'bar', u'bar')],
-            serialized_name=serialized_name,
-            required=required,
-            default_value=default_value)
+    def _test_text(self, **kwargs):
+        unicode_err = (kwargs['attr_name'] +
+                       u' must be unicode text, or ascii-only bytestring')
+        self._test_attr({
+            'good_values': [(u'', u''), (u'foo', u'foo'),
+                            (b'bar', u'bar'), (u'żółw', u'żółw')],
+            'bad_type_values': [([], u'unicode or str'),
+                                (None, u'unicode or str'),
+                                (2, u'unicode or str')],
+            'bad_val_values': [(u'ą'.encode('utf-8'), unicode_err)],
+            'serialized_values': [(u'', u''), (u'foo', u'foo'),
+                                  (u'żółw', u'żółw'), (u'bar', u'bar')]},
+            **kwargs)
 
-    def _test_non_empty_text(self, attr_name, required=True,
-                             default_value=None, serialized_name=None):
-        serialized_name = serialized_name or attr_name
-        unicode_err = \
-            attr_name + u' must be unicode text, or ascii-only bytestring'
-        self._test_attr(
-            attr_name=attr_name,
-            required=required,
-            good_values=[(u'foo', u'foo'), (b'bar', u'bar'),
-                         (u'żółw', u'żółw')],
-            bad_type_values=[([], u'unicode or str'),
-                             (None, u'unicode or str'),
-                             (2, u'unicode or str')],
-            bad_val_values=[(u'ą'.encode('utf-8'), unicode_err),
-                            (u'', attr_name + u' must be non-empty string')],
-            serialized_values=[(u'foo', u'foo'), (u'żółw', u'żółw'),
-                               (u'bar', u'bar')])
+    def _test_non_empty_text(self, **kwargs):
+        unicode_err = (kwargs['attr_name'] + u' must be unicode text,' +
+                       ' or ascii-only bytestring')
+        non_empty_err = kwargs['attr_name'] + u' must be non-empty string'
+        self._test_attr({
+            'good_values': [(u'foo', u'foo'), (b'bar', u'bar'),
+                            (u'żółw', u'żółw')],
+            'bad_type_values': [([], u'unicode or str'),
+                                (None, u'unicode or str'),
+                                (2, u'unicode or str')],
+            'bad_val_values': [(u'ą'.encode('utf-8'), unicode_err),
+                               (u'', non_empty_err)],
+            'serialized_values': [(u'foo', u'foo'), (u'żółw', u'żółw'),
+                                  (u'bar', u'bar')]}, **kwargs)
 
-    def _test_int(self, attr_name):
-        self._test_attr(
-            attr_name=attr_name,
-            good_values=[(-2, -2), (-1, -1), (0, 0), (1, 1), (2, 2)],
-            bad_type_values=[([], u'int'), (3.0, u'int'), ('4', u'int')],
-            bad_val_values=[],
-            serialized_values=[(-2, -2), (-1, -1), (0, 0), (1, 1), (2, 2)])
+    def _test_int(self, **kwargs):
+        self._test_attr({
+            'good_values': [(-2, -2), (-1, -1), (0, 0), (1, 1), (2, 2)],
+            'bad_type_values': [([], u'int'), (3.0, u'int'), ('4', u'int')],
+            'serialized_values': [(-2, -2), (-1, -1), (0, 0), (1, 1), (2, 2)]},
+            **kwargs)
 
-    def _test_bool(self, attr_name, required=True, default_value=None,
-                   serialized_name=None, forbidden=False, read_only=False):
-        serialized_name = serialized_name or attr_name
-        self._test_attr(
-            attr_name=attr_name,
-            good_values=[(True, True),
-                         (False, False)],
-            bad_type_values=[([], u'bool'), (3.0, u'bool'), ('4', u'bool')],
-            bad_val_values=[],
-            serialized_values=[(True, True),
-                               (False, False)],
-            serialized_name=serialized_name,
-            required=required,
-            forbidden=forbidden,
-            read_only=read_only,
-            default_value=default_value)
+    def _test_bool(self, **kwargs):
+        self._test_attr({
+            'good_values': [(True, True), (False, False)],
+            'bad_type_values': [([], u'bool'), (3.0, u'bool'), ('4', u'bool')],
+            'serialized_values': [(True, True), (False, False)]}, **kwargs)
 
-    def _test_positive_int(self, attr_name, required=True, default_value=None,
-                           serialized_name=None):
-        serialized_name = serialized_name or attr_name
-        self._test_attr(
-            attr_name=attr_name,
-            good_values=[(1, 1),
-                         (2, 2),
-                         (3, 3),
-                         (10, 10)],
-            bad_type_values=[([], u'int or float'),
-                             ('4', u'int or float')],
-            bad_val_values=[(0, r'.*integer greater or equal to 1.*'),
-                            (1.1, r'.*round number.*')],
-            serialized_values=[(1, 1),
-                               (2, 2),
-                               (3, 3),
-                               (2, 2),
-                               (100, 100)],
-            serialized_name=serialized_name,
-            required=required,
-            default_value=default_value)
+    def _test_positive_int(self, **kwargs):
+        self._test_attr({
+            'good_values': [(1, 1), (2, 2), (3, 3), (10, 10)],
+            'bad_type_values': [([], u'int or float'), ('4', u'int or float')],
+            'bad_val_values': [(0, r'.*integer greater or equal to 1.*'),
+                               (1.1, r'.*round number.*')],
+            'serialized_values': [(1, 1), (2, 2), (3, 3), (2, 2), (100, 100)]},
+            **kwargs)
 
-    def _test_enum(self, enum_class, attr_name, required=True,
-                   default_value=None, read_only=False,
-                   skip_deser_bad_type_values=False):
+    def _test_enum(self, enum_class, **kwargs):
         ename = enum_class.__name__
         good_values = ([(x, x) for x in list(enum_class)] +
                        [(enum_elem.name, enum_elem)
@@ -529,16 +503,11 @@ class TestCase(unittest.TestCase):
         serialized_values = [(enum_elem, enum_elem.value)
                              for enum_elem in enum_class]
         enum_variant_err = r'.*could be ' + ename + r"'s variant name.*"
-        self._test_attr(
-            attr_name=attr_name,
-            good_values=good_values,
-            bad_type_values=[({}, ename), (0, ename), ([], ename)],
-            bad_val_values=[('wrong', enum_variant_err)],
-            serialized_values=serialized_values,
-            default_value=default_value,
-            read_only=read_only,
-            skip_deser_bad_type_values=skip_deser_bad_type_values,
-            required=required)
+        self._test_attr({
+            'good_values': good_values,
+            'bad_type_values': [({}, ename), (0, ename), ([], ename)],
+            'bad_val_values': [('wrong', enum_variant_err)],
+            'serialized_values': serialized_values}, **kwargs)
 
     def _test_set(self, elem_type, attr_name,
                   sub_factory, serialized_name=None):
