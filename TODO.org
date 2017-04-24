@@ -75,6 +75,8 @@
 ** Signatory
 *** user_id
 **** add get_user() method
+*** sign_time
+**** make sure that backend always returns proper time format
 *** highlighted_pages
 *** attachments
 *** full_name
