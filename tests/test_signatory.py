@@ -3,7 +3,12 @@ from datetime import datetime
 
 from dateutil.tz import tzutc
 
-from scrivepy import Signatory, NameField, SignatureField
+from scrivepy import (
+    DeliveryStatus,
+    NameField,
+    Signatory,
+    SignatureField)
+
 from scrivepy._field import Field
 
 from tests.utils import IntegrationTestCase, describe
@@ -17,7 +22,11 @@ class SignatoryTest(IntegrationTestCase):
             u'is_signatory': False, u'fields': [], u'sign_order': 1,
             u'sign_time': None, u'seen_time': None,
             u'read_invitation_time': None,
-            u'rejected_time': None}
+            u'rejected_time': None,
+            u'sign_success_redirect_url': u'',
+            u'reject_redirect_url': u'',
+            u'email_delivery_status': u'unknown',
+            u'mobile_delivery_status': u'unknown'}
 
     def make_field(self, num=1):
         if num == 1:
@@ -166,3 +175,34 @@ class SignatoryTest(IntegrationTestCase):
     def test_rejection_time(self):
         self._test_remote_time_attr(attr_name='rejection_time',
                                     serialized_name=u'rejected_time')
+
+    def test_sign_success_redirect_url(self):
+        self._test_text(attr_name='sign_success_redirect_url',
+                        required=False, default_value=u'')
+
+    def test_reject_redirect_url(self):
+        self._test_text(attr_name='reject_redirect_url',
+                        required=False, default_value=u'')
+
+    def _test_remote_enum(self, enum_class, **kwargs):
+        ename = enum_class.__name__
+        serialized_values = [(enum_elem, enum_elem.value)
+                             for enum_elem in enum_class]
+        enum_variant_err = r'.*could be ' + ename + r"'s variant name.*"
+        self._test_remote_attr({'serialized_values': serialized_values,
+                               'bad_type_values': [({}, ename),
+                                                   (0, ename),
+                                                   ([], ename)],
+                                'bad_val_values': [('wrong',
+                                                    enum_variant_err)]},
+                               **kwargs)
+
+    def test_email_delivery_status(self):
+        self._test_remote_enum(DeliveryStatus,
+                               attr_name='email_delivery_status',
+                               default_value=DeliveryStatus.unknown)
+
+    def test_mobile_delivery_status(self):
+        self._test_remote_enum(DeliveryStatus,
+                               attr_name='mobile_delivery_status',
+                               default_value=DeliveryStatus.unknown)

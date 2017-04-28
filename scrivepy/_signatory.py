@@ -10,6 +10,13 @@ from scrivepy._object import scrive_descriptor, ScriveObject
 from scrivepy._set import scrive_set_descriptor
 
 
+class DeliveryStatus(unicode, Enum):
+    unknown = u'unknown'
+    not_delivered = u'not_delivered'
+    delivered = u'delivered'
+    deferred = u'deferred'
+
+
 class InvitationDeliveryMethod(unicode, Enum):
     email = u'email'
     pad = u'pad'
@@ -107,3 +114,13 @@ class Signatory(ScriveObject):
     rejection_time = remote_descriptor(
         tvu.nullable(TimeTVU), serialized_name=u'rejected_time',
         read_only=True)
+    sign_success_redirect_url = scrive_descriptor(tvu.tvus.Text,
+                                                  default_ctor_value=u'')
+    reject_redirect_url = scrive_descriptor(tvu.tvus.Text,
+                                            default_ctor_value=u'')
+    email_delivery_status = remote_descriptor(
+        tvu.instance(DeliveryStatus, enum=True), read_only=True,
+        default_ctor_value=DeliveryStatus.unknown)
+    mobile_delivery_status = remote_descriptor(
+        tvu.instance(DeliveryStatus, enum=True), read_only=True,
+        default_ctor_value=DeliveryStatus.unknown)

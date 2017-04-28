@@ -1,5 +1,5 @@
 from scrivepy import _document, _exceptions, _placement, \
-     _field, _signatory, _scrive
+    _field, _signatory, _scrive
 
 Anchor = _placement.Anchor
 SignAuthenticationMethod = _signatory.SignAuthenticationMethod
@@ -7,6 +7,7 @@ SignAuthenticationMethod = _signatory.SignAuthenticationMethod
 CheckboxField = _field.CheckboxField
 ConfirmationDeliveryMethod = _signatory.ConfirmationDeliveryMethod
 # DeletionStatus = _document.DeletionStatus
+DeliveryStatus = _signatory.DeliveryStatus
 Document = _document.Document
 # DocumentStatus = _document.DocumentStatus
 Error = _exceptions.Error
@@ -33,6 +34,7 @@ __all__ = ['Anchor',
            'CheckboxField',
            'ConfirmationDeliveryMethod',
            # 'DeletionStatus',
+           'DeliveryStatus',
            'Document',
            # 'DocumentStatus',
            'Error',

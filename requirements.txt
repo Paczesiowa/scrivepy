@@ -1,5 +1,5 @@
 enum34 == 1.1.6
-tvu == 0.2.1
+tvu == 0.2.2
 requests == 2.10.0
 python-dateutil == 2.5.3
 
