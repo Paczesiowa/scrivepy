@@ -1,8 +1,8 @@
-from enum import Enum
 import tvu
 
 from scrivepy._exceptions import InvalidResponse
-from scrivepy._object import scrive_descriptor, ScriveObject
+from scrivepy._object import \
+     enum_descriptor, scrive_descriptor, ScriveEnum, ScriveObject
 from scrivepy._placement import Placement
 from scrivepy._set import scrive_set_descriptor
 
@@ -41,20 +41,15 @@ class Field(ScriveObject):
                                                 class_override=field_type)
 
 
-class StandardFieldType(unicode, Enum):
-    email = u'email'
-    mobile = u'mobile'
-    personal_number = u'personal_number'
-    # company_name = u'company_name'
-    company_number = u'company_number'
+StandardFieldType = ScriveEnum('StandardFieldType',
+                               'email mobile personal_number company_number')
 
 
 class StandardField(Field):
 
     should_be_filled_by_sender = scrive_descriptor(tvu.instance(bool),
                                                    default_ctor_value=False)
-    type = scrive_descriptor(tvu.instance(StandardFieldType, enum=True),
-                             read_only=True)
+    type = enum_descriptor(StandardFieldType, read_only=True)
     value = scrive_descriptor(tvu.tvus.Text, default_ctor_value=u'')
 
 

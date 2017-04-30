@@ -96,8 +96,6 @@ class scrive_descriptor(object):
         Serialize obj's attribute  to json_obj being constructed.
         '''
         val = getattr(obj, self._attr_name)
-        if isinstance(val, Enum):
-            val = val.value
         json_obj[self._serialized_name] = val
 
     def _retrieve_from_json(self, obj, json_obj):
@@ -271,3 +269,56 @@ class ScriveObject(object):
         else:
             # adding new attributes is not allowed
             raise AttributeError(attr)
+
+
+class ScriveEnumMixin(unicode):
+
+    @classmethod
+    def _deserialize(cls, value):
+        try:
+            return cls[cls._deserialization_mapping[value]]
+        except (KeyError, TypeError):
+            raise ValueError(value)
+
+    def _serialize(self):
+        return self._serialization_mapping[self.name]
+
+
+def ScriveEnum(name, values):
+    if isinstance(values, str):
+        names = values = values.split(' ')
+        serialization_mapping = {name: unicode(name) for name in names}
+        deserialization_mapping = {unicode(name): name for name in names}
+    else:
+        names = values.keys()
+        serialization_mapping = values
+        deserialization_mapping = {value: name
+                                   for name, value in values.items()}
+    result = Enum(name, names={name: name for name in names},
+                  type=ScriveEnumMixin)
+    result._serialization_mapping = serialization_mapping
+    result._deserialization_mapping = deserialization_mapping
+    return result
+
+
+class enum_descriptor(scrive_descriptor):
+
+    def __init__(self, enum_class, *args, **kwargs):
+        self._enum_class = enum_class
+        kwargs['tvu_'] = tvu.instance(enum_class, enum=True)
+        return super(enum_descriptor, self).__init__(*args, **kwargs)
+
+    def _serialize(self, obj, json_obj):
+        val = getattr(obj, self._attr_name)
+        json_obj[self._serialized_name] = val._serialize()
+
+    def _deserialize(self, obj, json_obj):
+        val = self._retrieve_from_json(obj, json_obj)
+        try:
+            setattr(obj, self._attr_name,
+                    self._enum_class._deserialize(val))
+        except ValueError:
+            err_msg = u'%s must be %s, not %s' % (self._name,
+                                                  self._enum_class.__name__,
+                                                  repr(val))
+            raise InvalidResponse(err_msg)

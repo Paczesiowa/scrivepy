@@ -39,7 +39,6 @@
 ** implement Document.save() method with syncing of possible old versions of objects
 * Signatory needs a status field
 * sort tvu/__init__ arguments (and most other things)
-* use functional syntax for enums
 * before update call verify fields/signatories
 ** NameField
 *** names have proper numbers (continous, >=1, no duplicates)

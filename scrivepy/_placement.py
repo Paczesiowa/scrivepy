@@ -2,7 +2,8 @@ from enum import Enum
 import tvu
 
 from scrivepy._exceptions import InvalidResponse
-from scrivepy._object import scrive_descriptor, ScriveObject
+from scrivepy._object import \
+     scrive_descriptor, enum_descriptor, ScriveEnum, ScriveObject
 from scrivepy._set import scrive_set_descriptor
 
 
@@ -17,9 +18,7 @@ class Ratio(tvu.TVU):
             self.error(u'in the <0,1> range (inclusive)')
 
 
-class Tip(unicode, Enum):
-    left = u'left'
-    right = u'right'
+Tip = ScriveEnum('Tip', 'left right')
 
 
 class Anchor(ScriveObject):
@@ -27,19 +26,17 @@ class Anchor(ScriveObject):
     index = scrive_descriptor(tvu.instance(int))
 
 
-class tip_descriptor(scrive_descriptor):
+class tip_descriptor(enum_descriptor):
 
     def __init__(self):
-        super(tip_descriptor, self).__init__(tvu.instance(Tip, enum=True),
-                                             default_ctor_value=Tip.right)
+        super(tip_descriptor, self).__init__(Tip, default_ctor_value=Tip.right)
 
     def _deserialize(self, obj, json_obj):
-        try:
-            val = self._retrieve_from_json(obj, json_obj)
-            obj._tip = Tip.left if val is None else Tip(val)
-        except ValueError:
-            err_msg = self._name + u' must be Tip, not ' + repr(val)
-            raise InvalidResponse(err_msg)
+        val = self._retrieve_from_json(obj, json_obj)
+        if val is None:
+            obj._tip = Tip.left
+        else:
+            super(tip_descriptor, self)._deserialize(obj, json_obj)
 
 
 class Placement(ScriveObject):

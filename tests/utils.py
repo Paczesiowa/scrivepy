@@ -500,7 +500,7 @@ class TestCase(unittest.TestCase):
         good_values = ([(x, x) for x in list(enum_class)] +
                        [(enum_elem.name, enum_elem)
                         for enum_elem in enum_class])
-        serialized_values = [(enum_elem, enum_elem.value)
+        serialized_values = [(enum_elem, enum_elem._serialize())
                              for enum_elem in enum_class]
         enum_variant_err = r'.*could be ' + ename + r"'s variant name.*"
         self._test_attr({
