@@ -4,10 +4,14 @@ from datetime import datetime
 from dateutil.tz import tzutc
 
 from scrivepy import (
+    ConfirmationDeliveryMethod,
     DeliveryStatus,
+    InvitationDeliveryMethod,
     NameField,
     Signatory,
-    SignatureField)
+    SignatureField,
+    SignAuthenticationMethod,
+    ViewAuthenticationMethod)
 
 from scrivepy._field import Field
 
@@ -26,7 +30,11 @@ class SignatoryTest(IntegrationTestCase):
             u'sign_success_redirect_url': u'',
             u'reject_redirect_url': u'',
             u'email_delivery_status': u'unknown',
-            u'mobile_delivery_status': u'unknown'}
+            u'mobile_delivery_status': u'unknown',
+            u'delivery_method': u'email',
+            u'confirmation_delivery_method': u'email',
+            u'authentication_method_to_view': u'standard',
+            u'authentication_method_to_sign': u'standard'}
 
     def make_field(self, num=1):
         if num == 1:
@@ -206,3 +214,30 @@ class SignatoryTest(IntegrationTestCase):
         self._test_remote_enum(DeliveryStatus,
                                attr_name='mobile_delivery_status',
                                default_value=DeliveryStatus.unknown)
+
+    def test_invitation_delivery_method(self):
+        self._test_enum(InvitationDeliveryMethod,
+                        attr_name='invitation_delivery_method',
+                        required=False,
+                        serialized_name=u'delivery_method',
+                        default_value=InvitationDeliveryMethod.email)
+
+    def test_confirmation_delivery_method(self):
+        self._test_enum(ConfirmationDeliveryMethod,
+                        attr_name='confirmation_delivery_method',
+                        required=False,
+                        default_value=ConfirmationDeliveryMethod.email)
+
+    def test_view_authentication_method(self):
+        self._test_enum(ViewAuthenticationMethod,
+                        attr_name='view_authentication_method',
+                        required=False,
+                        serialized_name=u'authentication_method_to_view',
+                        default_value=ViewAuthenticationMethod.standard)
+
+    def test_sign_authentication_method(self):
+        self._test_enum(SignAuthenticationMethod,
+                        attr_name='sign_authentication_method',
+                        required=False,
+                        serialized_name=u'authentication_method_to_sign',
+                        default_value=SignAuthenticationMethod.standard)

@@ -2,46 +2,34 @@ from datetime import datetime
 import re
 
 from dateutil.tz import tzutc
-from enum import Enum
 import tvu
 
 from scrivepy._field import Field
-from scrivepy._object import scrive_descriptor, ScriveObject
+from scrivepy._object import \
+     enum_descriptor, scrive_descriptor, ScriveEnum, ScriveObject
 from scrivepy._set import scrive_set_descriptor
 
 
-class DeliveryStatus(unicode, Enum):
-    unknown = u'unknown'
-    not_delivered = u'not_delivered'
-    delivered = u'delivered'
-    deferred = u'deferred'
+DeliveryStatus = ScriveEnum('DeliveryStatus',
+                            'unknown not_delivered delivered, deferred')
+
+InvitationDeliveryMethod = ScriveEnum('InvitationDeliveryMethod',
+                                      'email pad api mobile email_and_mobile')
+
+ConfirmationDeliveryMethod = ScriveEnum('ConfirmationDeliveryMethod',
+                                        'email mobile email_and_mobile none')
 
 
-class InvitationDeliveryMethod(unicode, Enum):
-    email = u'email'
-    pad = u'pad'
-    api = u'api'
-    mobile = u'mobile'
-    email_and_mobile = u'email_mobile'
+SignAuthenticationMethod = ScriveEnum('SignAuthenticationMethod',
+                                      {'standard': 'standard',
+                                       'swedish_bankid': 'se_bankid',
+                                       'sms_pin': 'sms_pin'})
 
-
-class ConfirmationDeliveryMethod(unicode, Enum):
-    email = u'email'
-    mobile = u'mobile'
-    email_and_mobile = u'email_mobile'
-    none = u'none'
-
-
-class SignAuthenticationMethod(unicode, Enum):
-    standard = u'standard'
-    swedish_bankid = u'se_bankid'
-    sms_pin = u'sms_pin'
-
-
-class ViewAuthenticationMethod(unicode, Enum):
-    standard = u'standard'
-    swedish_bankid = u'se_bankid'
-    norwegian_bankid = u'no_bankid'
+ViewAuthenticationMethod = ScriveEnum('ViewAuthenticationMethod',
+                                      {'standard': 'standard',
+                                       'swedish_bankid': 'se_bankid',
+                                       'norwegian_bankid': 'no_bankid',
+                                       'danish_nemid': 'dk_nemid'})
 
 
 class IDTVU(tvu.TVU):
@@ -124,3 +112,18 @@ class Signatory(ScriveObject):
     mobile_delivery_status = remote_descriptor(
         tvu.instance(DeliveryStatus, enum=True), read_only=True,
         default_ctor_value=DeliveryStatus.unknown)
+    invitation_delivery_method = enum_descriptor(
+        InvitationDeliveryMethod,
+        default_ctor_value=InvitationDeliveryMethod.email,
+        serialized_name=u'delivery_method')
+    confirmation_delivery_method = enum_descriptor(
+        ConfirmationDeliveryMethod,
+        default_ctor_value=ConfirmationDeliveryMethod.email)
+    view_authentication_method = enum_descriptor(
+        ViewAuthenticationMethod,
+        default_ctor_value=ViewAuthenticationMethod.standard,
+        serialized_name=u'authentication_method_to_view')
+    sign_authentication_method = enum_descriptor(
+        SignAuthenticationMethod,
+        default_ctor_value=SignAuthenticationMethod.standard,
+        serialized_name=u'authentication_method_to_sign')
