@@ -57,7 +57,6 @@
 * clean up tests/utils.py
 * follow convention that bool attrs start with is_
 * validation of RO enums returned from server (e.g. email_delivery_status)
-* nemid support
 * API v2
 ** Placement
 *** test_tip

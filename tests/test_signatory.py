@@ -34,7 +34,9 @@ class SignatoryTest(IntegrationTestCase):
             u'delivery_method': u'email',
             u'confirmation_delivery_method': u'email',
             u'authentication_method_to_view': u'standard',
-            u'authentication_method_to_sign': u'standard'}
+            u'authentication_method_to_sign': u'standard',
+            u'allows_highlighting': False,
+            u'api_delivery_url': None}
 
     def make_field(self, num=1):
         if num == 1:
@@ -241,3 +243,26 @@ class SignatoryTest(IntegrationTestCase):
                         required=False,
                         serialized_name=u'authentication_method_to_sign',
                         default_value=SignAuthenticationMethod.standard)
+
+    def test_allows_highlighting(self):
+        self._test_bool(attr_name='allows_highlighting', required=False,
+                        default_value=False)
+
+    def _test_remote_nullable_non_empty_text(self, **kwargs):
+        unicode_err = (kwargs['attr_name'] + u' must be unicode text,' +
+                       ' or ascii-only bytestring')
+        non_empty_err = kwargs['attr_name'] + u' must be non-empty string'
+        type_err = u'unicode, str or None'
+        self._test_remote_attr({'attr_name': 'sign_url',
+                                'serialized_name': 'api_delivery_url',
+                                'serialized_values': [(u'foo', u'foo'),
+                                                      (u'żółw', u'żółw'),
+                                                      (u'bar', u'bar')],
+                                'bad_type_values': [([], type_err),
+                                                    (2, type_err)],
+                                'bad_val_values': [(u'ą'.encode('utf-8'),
+                                                    unicode_err),
+                                                   (u'', non_empty_err)]})
+
+    def test_sign_url(self):
+        self._test_remote_nullable_non_empty_text(attr_name='sign_url')

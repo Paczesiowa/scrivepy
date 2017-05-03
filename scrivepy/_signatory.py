@@ -127,3 +127,8 @@ class Signatory(ScriveObject):
         SignAuthenticationMethod,
         default_ctor_value=SignAuthenticationMethod.standard,
         serialized_name=u'authentication_method_to_sign')
+    allows_highlighting = scrive_descriptor(
+        tvu.instance(bool), default_ctor_value=False)
+    sign_url = remote_descriptor(tvu.nullable(tvu.tvus.NonEmptyText),
+                                 serialized_name=u'api_delivery_url',
+                                 read_only=True)

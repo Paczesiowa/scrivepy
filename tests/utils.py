@@ -447,16 +447,17 @@ class TestCase(unittest.TestCase):
     def _test_text(self, **kwargs):
         unicode_err = (kwargs['attr_name'] +
                        u' must be unicode text, or ascii-only bytestring')
-        self._test_attr({
-            'good_values': [(u'', u''), (u'foo', u'foo'),
-                            (b'bar', u'bar'), (u'żółw', u'żółw')],
-            'bad_type_values': [([], u'unicode or str'),
-                                (None, u'unicode or str'),
-                                (2, u'unicode or str')],
-            'bad_val_values': [(u'ą'.encode('utf-8'), unicode_err)],
-            'serialized_values': [(u'', u''), (u'foo', u'foo'),
-                                  (u'żółw', u'żółw'), (u'bar', u'bar')]},
-            **kwargs)
+        self._test_attr({'good_values': [(u'', u''), (u'foo', u'foo'),
+                                         (b'bar', u'bar'), (u'żółw', u'żółw')],
+                         'bad_type_values': [([], u'unicode or str'),
+                                             (None, u'unicode or str'),
+                                             (2, u'unicode or str')],
+                         'bad_val_values': [(u'ą'.encode('utf-8'),
+                                             unicode_err)],
+                         'serialized_values': [(u'', u''), (u'foo', u'foo'),
+                                               (u'żółw', u'żółw'),
+                                               (u'bar', u'bar')]},
+                        **kwargs)
 
     def _test_non_empty_text(self, **kwargs):
         unicode_err = (kwargs['attr_name'] + u' must be unicode text,' +
