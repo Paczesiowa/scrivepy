@@ -7,9 +7,7 @@ import tvu
 from scrivepy._exceptions import (InvalidScriveObject,
                                   ReadOnlyScriveObject,
                                   InvalidResponse)
-
-
-ID = tvu.tvus.NonEmptyText
+from scrivepy._tvus import IDTVU
 
 
 class scrive_descriptor(object):
@@ -286,7 +284,7 @@ class ScriveEnumMixin(unicode):
 
 def ScriveEnum(name, values):
     if isinstance(values, str):
-        names = values = values.split(' ')
+        names = values.split(' ')
         serialization_mapping = {name: unicode(name) for name in names}
         deserialization_mapping = {unicode(name): name for name in names}
     else:
@@ -322,3 +320,30 @@ class enum_descriptor(scrive_descriptor):
                                                   self._enum_class.__name__,
                                                   repr(val))
             raise InvalidResponse(err_msg)
+
+
+class remote_descriptor(scrive_descriptor):
+
+    def __init__(self, *args, **kwargs):
+        super(remote_descriptor, self).__init__(*args, read_only=True,
+                                                **kwargs)
+
+    def _init(self, obj, kwargs_dict):
+        setattr(obj, self._attr_name, self._default_ctor_value)
+
+    def _serialize(self, obj, json_obj):
+        pass
+
+
+class id_descriptor(remote_descriptor):
+
+    def __init__(self, nullable_=False, preserve=False):
+        tvu_ = tvu.nullable(IDTVU) if nullable_ else IDTVU
+        super(id_descriptor, self).__init__(tvu_)
+        self._preserve = preserve
+
+    def _serialize(self, obj, json_obj):
+        if self._preserve:
+            value = getattr(obj, self._attr_name)
+            if value is not None:
+                json_obj[self._serialized_name] = value

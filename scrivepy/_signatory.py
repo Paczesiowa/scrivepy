@@ -1,17 +1,20 @@
-from datetime import datetime
-import re
-
-from dateutil.tz import tzutc
-import tvu
+from tvu import instance, nullable
+from tvu.tvus import NonEmptyText, PositiveInt, Text
 
 from scrivepy._field import Field
-from scrivepy._object import \
-     enum_descriptor, scrive_descriptor, ScriveEnum, ScriveObject
+from scrivepy._object import (
+     ScriveEnum,
+     ScriveObject,
+     enum_descriptor,
+     id_descriptor,
+     remote_descriptor,
+     scrive_descriptor)
 from scrivepy._set import scrive_set_descriptor
+from scrivepy._tvus import TimeTVU
 
 
 DeliveryStatus = ScriveEnum('DeliveryStatus',
-                            'unknown not_delivered delivered, deferred')
+                            'unknown not_delivered delivered deferred')
 
 InvitationDeliveryMethod = ScriveEnum('InvitationDeliveryMethod',
                                       'email pad api mobile email_and_mobile')
@@ -32,33 +35,12 @@ ViewAuthenticationMethod = ScriveEnum('ViewAuthenticationMethod',
                                        'danish_nemid': 'dk_nemid'})
 
 
-class IDTVU(tvu.TVU):
-
-    TYPES = unicode,
-
-    def validate(self, value):
-        if not re.search(r'^[0-9]+$', value):
-            self.error(u'non-empty digit-string')
-
-
-class remote_descriptor(scrive_descriptor):
-
-    def _init(self, obj, kwargs_dict):
-        setattr(obj, self._attr_name, self._default_ctor_value)
-
-    def _serialize(self, obj, json_obj):
-        pass
-
-
-class id_descriptor(remote_descriptor):
-
-    def _serialize(self, obj, json_obj):
-        value = obj._id
-        if value is not None:
-            json_obj[u'id'] = value
-
-
 class viewer_descriptor(scrive_descriptor):
+
+    def __init__(self):
+        super(viewer_descriptor, self).__init__(
+            instance(bool), default_ctor_value=False,
+            serialized_name=u'is_signatory')
 
     def _serialize(self, obj, json_obj):
         json_obj[u'is_signatory'] = not obj._is_viewer
@@ -68,67 +50,44 @@ class viewer_descriptor(scrive_descriptor):
         obj._is_viewer = not obj._is_viewer
 
 
-class TimeTVU(tvu.TVU):
-
-    TYPES = datetime, unicode
-
-    def unify(self, value):
-        if isinstance(value, unicode):
-            try:
-                value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%SZ')
-                return value.replace(tzinfo=tzutc())
-            except ValueError:
-                self.error(u'time string', soft=True)
-        return value
-
-
 class Signatory(ScriveObject):
 
-    id = id_descriptor(IDTVU, read_only=True)
-    user_id = id_descriptor(tvu.nullable(IDTVU), read_only=True)
-    is_author = remote_descriptor(tvu.instance(bool), default_ctor_value=False,
-                                  read_only=True)
-    is_viewer = viewer_descriptor(tvu.instance(bool), default_ctor_value=False,
-                                  serialized_name=u'is_signatory')
-    fields = scrive_set_descriptor(Field)
-    sign_order = scrive_descriptor(tvu.tvus.PositiveInt, default_ctor_value=1)
-    sign_time = remote_descriptor(tvu.nullable(TimeTVU), read_only=True,
-                                  default_ctor_value=None)
-    seen_time = remote_descriptor(tvu.nullable(TimeTVU), read_only=True,
-                                  default_ctor_value=None)
-    invitation_read_time = remote_descriptor(
-        tvu.nullable(TimeTVU), read_only=True, default_ctor_value=None,
-        serialized_name=u'read_invitation_time')
-    rejection_time = remote_descriptor(
-        tvu.nullable(TimeTVU), serialized_name=u'rejected_time',
-        read_only=True)
-    sign_success_redirect_url = scrive_descriptor(tvu.tvus.Text,
-                                                  default_ctor_value=u'')
-    reject_redirect_url = scrive_descriptor(tvu.tvus.Text,
-                                            default_ctor_value=u'')
+    allows_highlighting = scrive_descriptor(instance(bool),
+                                            default_ctor_value=False)
+    confirmation_delivery_method = enum_descriptor(
+        ConfirmationDeliveryMethod,
+        default_ctor_value=ConfirmationDeliveryMethod.email)
     email_delivery_status = remote_descriptor(
-        tvu.instance(DeliveryStatus, enum=True), read_only=True,
+        instance(DeliveryStatus, enum=True),
         default_ctor_value=DeliveryStatus.unknown)
-    mobile_delivery_status = remote_descriptor(
-        tvu.instance(DeliveryStatus, enum=True), read_only=True,
-        default_ctor_value=DeliveryStatus.unknown)
+    fields = scrive_set_descriptor(Field)
+    id = id_descriptor(preserve=True)
     invitation_delivery_method = enum_descriptor(
         InvitationDeliveryMethod,
         default_ctor_value=InvitationDeliveryMethod.email,
         serialized_name=u'delivery_method')
-    confirmation_delivery_method = enum_descriptor(
-        ConfirmationDeliveryMethod,
-        default_ctor_value=ConfirmationDeliveryMethod.email)
-    view_authentication_method = enum_descriptor(
-        ViewAuthenticationMethod,
-        default_ctor_value=ViewAuthenticationMethod.standard,
-        serialized_name=u'authentication_method_to_view')
+    invitation_read_time = remote_descriptor(
+        nullable(TimeTVU), serialized_name=u'read_invitation_time')
+    is_author = remote_descriptor(instance(bool), default_ctor_value=False)
+    is_viewer = viewer_descriptor()
+    mobile_delivery_status = remote_descriptor(
+        instance(DeliveryStatus, enum=True),
+        default_ctor_value=DeliveryStatus.unknown)
+    reject_redirect_url = scrive_descriptor(Text, default_ctor_value=u'')
+    rejection_time = remote_descriptor(nullable(TimeTVU),
+                                       serialized_name=u'rejected_time')
+    seen_time = remote_descriptor(nullable(TimeTVU))
     sign_authentication_method = enum_descriptor(
         SignAuthenticationMethod,
         default_ctor_value=SignAuthenticationMethod.standard,
         serialized_name=u'authentication_method_to_sign')
-    allows_highlighting = scrive_descriptor(
-        tvu.instance(bool), default_ctor_value=False)
-    sign_url = remote_descriptor(tvu.nullable(tvu.tvus.NonEmptyText),
-                                 serialized_name=u'api_delivery_url',
-                                 read_only=True)
+    sign_order = scrive_descriptor(PositiveInt, default_ctor_value=1)
+    sign_success_redirect_url = scrive_descriptor(Text, default_ctor_value=u'')
+    sign_time = remote_descriptor(nullable(TimeTVU))
+    sign_url = remote_descriptor(nullable(NonEmptyText),
+                                 serialized_name=u'api_delivery_url')
+    user_id = id_descriptor(nullable_=True)
+    view_authentication_method = enum_descriptor(
+        ViewAuthenticationMethod,
+        default_ctor_value=ViewAuthenticationMethod.standard,
+        serialized_name=u'authentication_method_to_view')
