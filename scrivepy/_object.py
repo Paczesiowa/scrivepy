@@ -142,7 +142,7 @@ class ScriveObject(object):
         self._api = None
 
         cls = type(self)
-        if not hasattr(cls, '_scrive_descriptors'):
+        if '_scrive_descriptors' not in cls.__dict__:
             # resolve descriptor names and cache descriptors
             cls._scrive_descriptors = []
             for attr_name in dir(cls):
