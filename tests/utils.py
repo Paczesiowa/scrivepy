@@ -565,8 +565,9 @@ class TestCase(unittest.TestCase):
             sub_obj1 = sub_factory()
             sub_obj2 = sub_factory(2)
             getattr(o, attr_name).update([sub_obj1, sub_obj2])
-            self.assertEqual(set([sub_obj1, sub_obj2]),
-                             set(o._to_json_obj()[serialized_name]))
+            self.assertEqual(sorted([sub_obj1._to_json_obj(),
+                                     sub_obj2._to_json_obj()]),
+                             sorted(o._to_json_obj()[serialized_name]))
 
         # test deserialization
         descr = ('o=%s;o.%s.add([%s,%s]);' +

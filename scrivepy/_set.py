@@ -344,7 +344,8 @@ class scrive_set_descriptor(scrive_descriptor):
         setattr(obj, self._attr_name, empty_set)
 
     def _serialize(self, obj, json_obj):
-        json_obj[self._serialized_name] = list(getattr(obj, self._attr_name))
+        val = getattr(obj, self._attr_name)
+        json_obj[self._serialized_name] = [x._to_json_obj() for x in val]
 
     def _deserialize(self, obj, json_obj):
         child_jsons = self._retrieve_from_json(obj, json_obj)
