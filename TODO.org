@@ -57,6 +57,7 @@
 * clean up tests/utils.py
 * follow convention that bool attrs start with is_
 * validation of RO enums returned from server (e.g. email_delivery_status)
+* check what should be exported from scrivepy
 * API v2
 ** Placement
 *** test_tip
@@ -103,4 +104,6 @@
 *** is_trashed
 *** is_deleted
 *** viewer
+*** private ctor
+**** all doc tests need to be adjusted, descriptors probably as well
 ** API
