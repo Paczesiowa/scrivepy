@@ -36,9 +36,12 @@ class SignatoryTest(IntegrationTestCase):
 
     def make_field(self, num=1):
         if num == 1:
-            return NameField(value=u'John')
+            return {u'type': u'name', u'is_obligatory': True, u'order': 1,
+                    u'value': u'John', u'should_be_filled_by_sender': False,
+                    u'placements': []}
         else:
-            return SignatureField(name=u'Signature 1')
+            return {u'type': u'signature', u'is_obligatory': True,
+                    u'placements': [], u'name': 'Signature 1'}
 
     def test_id(self):
         self._test_remote_id(attr_name='id', skip_preservation=False)

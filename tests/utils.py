@@ -526,7 +526,7 @@ class TestCase(unittest.TestCase):
         self._test_attr_setter(attr_name, read_only=True, good_values=[],
                                bad_type_values=[], bad_val_values=[])
 
-        subobj_str = type(sub_factory()).__name__ + '(..)'
+        subobj_str = elem_type.__name__ + '(..)'
 
         # new objects should have empty ScriveSet attribute
         params, call_string = self._ctor_call()
@@ -541,7 +541,7 @@ class TestCase(unittest.TestCase):
             call_string, attr_name, subobj_str, attr_name, subobj_str)
         with describe(descr):
             o = self.O(**params)
-            sub_obj = sub_factory()
+            sub_obj = elem_type._from_json_obj(sub_factory())
             getattr(o, attr_name).add(sub_obj)
             self.assertEqual(list(getattr(o, attr_name))[0], sub_obj)
 
@@ -562,8 +562,8 @@ class TestCase(unittest.TestCase):
             attr_name, subobj_str, subobj_str)
         with describe(descr):
             o = self.O(**params)
-            sub_obj1 = sub_factory()
-            sub_obj2 = sub_factory(2)
+            sub_obj1 = elem_type._from_json_obj(sub_factory())
+            sub_obj2 = elem_type._from_json_obj(sub_factory(2))
             getattr(o, attr_name).update([sub_obj1, sub_obj2])
             self.assertEqual(sorted([sub_obj1._to_json_obj(),
                                      sub_obj2._to_json_obj()]),
@@ -576,20 +576,23 @@ class TestCase(unittest.TestCase):
                                       subobj_str, self.O.__name__,
                                       attr_name, subobj_str, subobj_str)
         with describe(descr):
-            sub_obj1 = sub_factory()
-            sub_obj2 = sub_factory(2)
-            sub_jsons = [sub_obj1._to_json_obj(), sub_obj2._to_json_obj()]
+            sub_obj_json1 = sub_factory()
+            sub_obj_json2 = sub_factory(2)
+            sub_jsons = [sub_obj_json1, sub_obj_json2]
+            sub_objs = [elem_type._from_json_obj(sub_obj_json1),
+                        elem_type._from_json_obj(sub_obj_json2)]
             json = dict(self.json)
             json[serialized_name] = sub_jsons
             o = self.O._from_json_obj(json)
-            self.assertEqual(sorted(sub_jsons),
+            # from ipdb import set_trace; set_trace()
+            self.assertEqual(sorted(map(lambda x: x._to_json_obj(), sub_objs)),
                              sorted(map(lambda x: x._to_json_obj(),
                                         getattr(o, attr_name))))
 
         # test flag propagation
         o = self.O(**params)
-        sub_obj = sub_factory()
-        sub_obj2 = sub_factory(2)
+        sub_obj = elem_type._from_json_obj(sub_factory())
+        sub_obj2 = elem_type._from_json_obj(sub_factory(2))
         getattr(o, attr_name).add(sub_obj)
         o._set_read_only()
         self.assertEqual(list(getattr(o, attr_name))[0], sub_obj)
@@ -600,8 +603,8 @@ class TestCase(unittest.TestCase):
         self.assertTrue(sub_obj._read_only)
 
         o = self.O(**params)
-        sub_obj = sub_factory()
-        sub_obj2 = sub_factory(2)
+        sub_obj = elem_type._from_json_obj(sub_factory())
+        sub_obj2 = elem_type._from_json_obj(sub_factory(2))
         getattr(o, attr_name).add(sub_obj)
         o._set_invalid()
         with self.assertRaises(InvalidScriveObject):

@@ -16,8 +16,12 @@ from tests.utils import describe, TestCase
 class AbstractFieldTest(object):
 
     def make_placement(self, num=1):
-        return Placement(left=(num * .01), top=(num * .2),
-                         width=(num * .3), height=(num * .4))
+        return {u'xrel': num * .01,
+                u'yrel': num * .02,
+                u'wrel': num * .03,
+                u'hrel': num * .04,
+                u'fsrel': .5, u'page': 1,
+                u'tip': u'left', u'anchors': []}
 
     def test_obligatory(self):
         self._test_bool(attr_name='obligatory', required=False,

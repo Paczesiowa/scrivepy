@@ -26,7 +26,7 @@ class PlacementTest(TestCase):
             u'tip': u'left', u'anchors': [{u'text': u'foo', u'index': 2}]}
 
     def make_anchor(self, num=1):
-        return Anchor(text=u'foo' + str(num), index=num)
+        return {u'text': u'foo' + str(num), u'index': num}
 
     def _test_ratio(self, **kwargs):
         range_err = (kwargs['attr_name'] +
