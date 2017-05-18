@@ -9,7 +9,7 @@ ConfirmationDeliveryMethod = _signatory.ConfirmationDeliveryMethod
 # DeletionStatus = _document.DeletionStatus
 DeliveryStatus = _signatory.DeliveryStatus
 Document = _document.Document
-# DocumentStatus = _document.DocumentStatus
+DocumentStatus = _document.DocumentStatus
 Error = _exceptions.Error
 InvalidResponse = _exceptions.InvalidResponse
 InvalidScriveObject = _exceptions.InvalidScriveObject
@@ -36,7 +36,7 @@ __all__ = ['Anchor',
            # 'DeletionStatus',
            'DeliveryStatus',
            'Document',
-           # 'DocumentStatus',
+           'DocumentStatus',
            'Error',
            'InvalidResponse',
            'InvalidScriveObject',

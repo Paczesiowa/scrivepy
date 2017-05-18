@@ -707,15 +707,23 @@ class TestCase(unittest.TestCase):
                                                       (False, False)]},
                                **kwargs)
 
-    def _test_remote_time_attr(self, **kwargs):
+    def _test_remote_time_attr(self, null_ok=True, **kwargs):
         d1s = u'2014-10-29T15:40:20Z'
         d1 = datetime(2014, 10, 29, 15, 40, 20, tzinfo=tzutc())
         d2s = u'2017-04-22T12:56:00Z'
         d2 = datetime(2017, 4, 22, 12, 56, 0, tzinfo=tzutc())
-        type_error = u'datetime, unicode or None'
-        self._test_remote_attr({'serialized_values': [(d1, d1s), (d2, d2s)],
-                                'bad_type_values': [([], type_error),
-                                                    (2, type_error)],
+        serialized_values = [(d1, d1s), (d2, d2s)]
+        if null_ok:
+            type_error = u'datetime, unicode or None'
+            serialized_values.append((None, None))
+        else:
+            type_error = u'datetime or unicode'
+        bad_type_values = [([], type_error), (2, type_error)]
+        if not null_ok:
+            bad_type_values.append((None, type_error))
+
+        self._test_remote_attr({'serialized_values': serialized_values,
+                                'bad_type_values': bad_type_values,
                                 'bad_val_values': [(u'2014-10-29T', u''),
                                                    (d1s + u'foo', u'')]},
                                **kwargs)

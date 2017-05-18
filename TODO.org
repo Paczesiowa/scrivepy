@@ -78,14 +78,10 @@
 *** attachments
 *** full_name
 ** Document
-*** parties
 *** file
 *** sealed_file
 **** method that will retry to download it
 *** author_attachments
-*** timeout_time
-*** auto_remind_time
-*** status
 *** days_to_sign
 *** days_to_remind
 *** display_options

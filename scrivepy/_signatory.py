@@ -3,12 +3,12 @@ from tvu.tvus import NonEmptyText, PositiveInt, Text
 
 from scrivepy._field import Field
 from scrivepy._object import (
-     ScriveEnum,
-     ScriveObject,
-     enum_descriptor,
-     id_descriptor,
-     remote_descriptor,
-     scrive_descriptor)
+    ScriveEnum,
+    ScriveObject,
+    enum_descriptor,
+    id_descriptor,
+    remote_descriptor,
+    scrive_descriptor)
 from scrivepy._set import scrive_set_descriptor
 from scrivepy._tvus import TimeTVU
 
