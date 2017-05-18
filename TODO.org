@@ -64,8 +64,6 @@
 **** tests for serialized_values work by accident, should disappear after func syntax for enums
 ** Field
 *** private ctor for Field
-*** StandardField
-**** company_name ??
 *** Signature
 **** signature
 ***** RO

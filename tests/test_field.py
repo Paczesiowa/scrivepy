@@ -36,7 +36,7 @@ class AbstractFieldTest(object):
 
     def _test_const_type(self, val):
         possible_types = (u'checkbox|text|signature|name|email' +
-                          u'|mobile|personal_number|company_number')
+                          u'|mobile|personal_number|company|company_number')
         self._test_attr(attr_name='type',
                         bad_type_values=[(3, possible_types)],
                         bad_val_values=[(val + '2', '')],

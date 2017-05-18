@@ -2,7 +2,7 @@ import tvu
 
 from scrivepy._exceptions import InvalidResponse
 from scrivepy._object import \
-     enum_descriptor, scrive_descriptor, ScriveEnum, ScriveObject
+    enum_descriptor, scrive_descriptor, ScriveEnum, ScriveObject
 from scrivepy._placement import Placement
 from scrivepy._set import scrive_set_descriptor
 
@@ -27,13 +27,14 @@ class Field(ScriveObject):
                      u'email': StandardField,
                      u'mobile': StandardField,
                      u'personal_number': StandardField,
+                     u'company': StandardField,
                      u'company_number': StandardField}
 
         try:
             field_type = field_map[type_]
         except (KeyError, TypeError):
             err = (u'type must be checkbox|text|signature|name|email' +
-                   u'|mobile|personal_number|company_number, not ' +
+                   u'|mobile|personal_number|company|company_number, not ' +
                    repr(type_))
             raise InvalidResponse(err)
 
@@ -42,7 +43,8 @@ class Field(ScriveObject):
 
 
 StandardFieldType = ScriveEnum('StandardFieldType',
-                               'email mobile personal_number company_number')
+                               ('email mobile personal_number ' +
+                                'company company_number'))
 
 
 class StandardField(Field):
