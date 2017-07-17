@@ -1,7 +1,5 @@
-from enum import Enum
 import tvu
 
-from scrivepy._exceptions import InvalidResponse
 from scrivepy._object import \
      scrive_descriptor, enum_descriptor, ScriveEnum, ScriveObject
 from scrivepy._set import scrive_set_descriptor
@@ -26,19 +24,6 @@ class Anchor(ScriveObject):
     index = scrive_descriptor(tvu.instance(int))
 
 
-class tip_descriptor(enum_descriptor):
-
-    def __init__(self):
-        super(tip_descriptor, self).__init__(Tip, default_ctor_value=Tip.right)
-
-    def _deserialize(self, obj, json_obj):
-        val = self._retrieve_from_json(obj, json_obj)
-        if val is None:
-            obj._tip = Tip.left
-        else:
-            super(tip_descriptor, self)._deserialize(obj, json_obj)
-
-
 class Placement(ScriveObject):
 
     FONT_SIZE_SMALL = 12. / 943.
@@ -52,6 +37,14 @@ class Placement(ScriveObject):
     height = scrive_descriptor(Ratio, serialized_name=u'hrel')
     left = scrive_descriptor(Ratio, serialized_name=u'xrel')
     page = scrive_descriptor(tvu.tvus.PositiveInt, default_ctor_value=1)
-    tip = tip_descriptor()
     top = scrive_descriptor(Ratio, serialized_name=u'yrel')
     width = scrive_descriptor(Ratio, serialized_name=u'wrel')
+    tip = enum_descriptor(Tip, default_ctor_value=Tip.right)
+
+    @tip
+    def _deserialize(self, obj, json_obj):
+        val = self._retrieve_from_json(obj, json_obj)
+        if val is None:
+            obj._tip = Tip.left
+        else:
+            enum_descriptor._deserialize(self, obj, json_obj)

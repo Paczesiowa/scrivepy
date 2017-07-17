@@ -35,21 +35,6 @@ ViewAuthenticationMethod = ScriveEnum('ViewAuthenticationMethod',
                                        'danish_nemid': 'dk_nemid'})
 
 
-class viewer_descriptor(scrive_descriptor):
-
-    def __init__(self):
-        super(viewer_descriptor, self).__init__(
-            instance(bool), default_ctor_value=False,
-            serialized_name=u'is_signatory')
-
-    def _serialize(self, obj, json_obj):
-        json_obj[u'is_signatory'] = not obj._is_viewer
-
-    def _deserialize(self, obj, json_obj):
-        super(viewer_descriptor, self)._deserialize(obj, json_obj)
-        obj._is_viewer = not obj._is_viewer
-
-
 class Signatory(ScriveObject):
 
     allows_highlighting = scrive_descriptor(instance(bool),
@@ -69,7 +54,18 @@ class Signatory(ScriveObject):
     invitation_read_time = remote_descriptor(
         nullable(TimeTVU), serialized_name=u'read_invitation_time')
     is_author = remote_descriptor(instance(bool), default_ctor_value=False)
-    is_viewer = viewer_descriptor()
+    is_viewer = scrive_descriptor(instance(bool), default_ctor_value=False,
+                                  serialized_name=u'is_signatory')
+
+    @is_viewer
+    def _serialize(self, obj, json_obj):
+        json_obj[u'is_signatory'] = not obj._is_viewer
+
+    @is_viewer
+    def _deserialize(self, obj, json_obj):
+        scrive_descriptor._deserialize(self, obj, json_obj)
+        obj._is_viewer = not obj._is_viewer
+
     mobile_delivery_status = remote_descriptor(
         instance(DeliveryStatus, enum=True),
         default_ctor_value=DeliveryStatus.unknown)

@@ -1,5 +1,6 @@
 import json
 import sys
+from types import MethodType
 
 from enum import Enum
 import tvu
@@ -125,6 +126,15 @@ class scrive_descriptor(object):
 
         # finally set it inside object
         setattr(obj, self._attr_name, val)
+
+    ###########################################################################
+    #                      descriptor behaviour overriding                    #
+    ###########################################################################
+    def __call__(self, f):
+        fname = f.__name__
+        if fname not in ['_deserialize', '_serialize', '_init']:
+            raise TypeError('Unknown descriptor method: ' + fname)
+        setattr(self, fname, MethodType(f, self))
 
 
 class ScriveObject(object):
