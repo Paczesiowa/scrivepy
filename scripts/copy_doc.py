@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from scrive import FieldPlacement, Signatory, SignatureField, Scrive
+from scrivepy import FieldPlacement, Signatory, SignatureField, Scrive
 import argparse
 
 
