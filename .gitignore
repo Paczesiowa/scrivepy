@@ -8,3 +8,4 @@ aliases.sh
 bare_python_tests
 build
 tests/test_config.json
+venv/
