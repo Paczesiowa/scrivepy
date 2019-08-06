@@ -68,7 +68,8 @@ def copy_doc(d1, d2):
     for sl in d1.signatories:
         d2.signatories.add(clone_signatory(sl))
 
-    d2._api.update_document(d2)
+    d2 = d2._api.update_document(d2)
+    return d2
 
 
 if __name__ == '__main__':
@@ -140,5 +141,5 @@ if __name__ == '__main__':
     for did in args.DOCUMENT_ID:
         source_doc = source_api.get_document(did)
         target_doc = target_api.create_document_from_file(file_path=None)
-        copy_doc(source_doc, target_doc)
+        target_doc = copy_doc(source_doc, target_doc)
         print source_doc.id, '->', target_doc.id
