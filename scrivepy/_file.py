@@ -70,8 +70,8 @@ class RemoteFile(File):
             kwargs['stream'] = True
             return requests.get(*args, **kwargs)
 
-        response = self._api._make_request([b'downloadfile', self._document.id,
-                                            self.id, self.name],
-                                           method=stream_get)
+        response = self._api._make_request([b'documents', self._document.id,
+                                            b'files', self.id, self.name],
+                                            method=stream_get)
         response.raw.decode_content = True
         return response.raw
